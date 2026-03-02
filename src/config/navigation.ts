@@ -1,0 +1,135 @@
+import {
+    LucideIcon,
+    LayoutDashboard,
+    ShoppingCart,
+    Package,
+    Users,
+    FileText,
+    Settings,
+    BarChart3,
+    Truck,
+    LogOut,
+    UserPlus,
+    Calendar,
+    CreditCard,
+    MessageSquare,
+    Calculator,
+    PieChart,
+    Percent,
+    ClipboardList,
+    BookOpen
+} from "lucide-react";
+
+export type Role = 'admin' | 'staff' | 'user' | 'hr_manager' | 'super_admin' | 'sales_manager' | 'inventory_manager' | 'accountant' | 'employee';
+
+export interface NavItem {
+    title: string;
+    href: string;
+    icon: LucideIcon;
+    variant?: "default" | "ghost";
+}
+
+export const ROLE_SIDEBARS: Record<Role, NavItem[]> = {
+    // Super Admin - Sees Everything
+    super_admin: [
+        { title: "Dashboard", href: "/", icon: LayoutDashboard },
+        { title: "Products", href: "/products", icon: Package },
+        { title: "Inventory Summary", href: "/stock-summary", icon: BarChart3 },
+        { title: "Sales", href: "/sales", icon: ShoppingCart },
+        { title: "Customers", href: "/customers", icon: Users },
+        { title: "Suppliers", href: "/suppliers", icon: Truck },
+        { title: "Goods Receiving", href: "/receivings", icon: Package },
+        { title: "HR Department", href: "/hr", icon: Users },
+        { title: "Accounts", href: "/accounts", icon: BookOpen },
+        { title: "Cheques", href: "/finance/cheques", icon: CreditCard },
+        { title: "Invoices", href: "/invoices", icon: FileText },
+        { title: "Delivery Settings", href: "/delivery-settings", icon: Truck },
+        { title: "Transactions", href: "/transactions", icon: CreditCard },
+        { title: "P & L", href: "/profit-loss", icon: PieChart },
+        { title: "Reports", href: "/reports", icon: FileText },
+        { title: "Stores", href: "/stores", icon: BookOpen },
+        { title: "Users", href: "/users", icon: Users },
+        { title: "Store Config", href: "/store-config", icon: Settings },
+        { title: "Settings", href: "/more", icon: Settings },
+    ],
+
+    // HR Manager
+    hr_manager: [
+        { title: "HR Dashboard", href: "/hr", icon: LayoutDashboard },
+        { title: "Employees", href: "/hr/employees", icon: Users },
+        { title: "Attendance", href: "/hr/attendance", icon: Calendar },
+        { title: "Leaves", href: "/hr/leaves", icon: FileText },
+        { title: "Payroll", href: "/hr/payroll", icon: CreditCard },
+        { title: "Performance", href: "/hr/performance", icon: BarChart3 },
+        { title: "HR Assistant", href: "/hr/chat", icon: MessageSquare },
+    ],
+
+    // Sales Manager
+    sales_manager: [
+        { title: "Sales Dashboard", href: "/sales", icon: LayoutDashboard },
+        { title: "New Sale", href: "/sales/new", icon: ShoppingCart },
+        { title: "Invoices", href: "/invoices", icon: FileText },
+        { title: "Quotations", href: "/sales/quotations", icon: FileText },
+        { title: "Customers", href: "/customers", icon: Users },
+        { title: "Day Book", href: "/day-book", icon: BookOpen },
+    ],
+
+    // Inventory Manager
+    inventory_manager: [
+        { title: "Inventory Dashboard", href: "/products", icon: LayoutDashboard },
+        { title: "Inventory Summary", href: "/stock-summary", icon: Package },
+        { title: "Stock Journal", href: "/stock-journal", icon: ClipboardList },
+        { title: "Suppliers", href: "/suppliers", icon: Truck },
+        { title: "Purchase Orders", href: "/purchase-orders", icon: Truck },
+        { title: "Goods Receiving", href: "/receivings", icon: Package },
+    ],
+
+    // Accountant
+    accountant: [
+        { title: "Finance Dashboard", href: "/transactions", icon: LayoutDashboard },
+        { title: "Ledger", href: "/accounts", icon: BookOpen },
+        { title: "Profit & Loss", href: "/profit-loss", icon: PieChart },
+        { title: "Purchases", href: "/purchases", icon: ShoppingCart },
+        { title: "Suppliers", href: "/suppliers", icon: Truck },
+        { title: "Commissions", href: "/commissions", icon: Percent },
+        { title: "Invoices", href: "/invoices", icon: FileText },
+        { title: "Cheques", href: "/finance/cheques", icon: CreditCard },
+        { title: "Tax Settings", href: "/tax-settings", icon: Calculator },
+    ],
+
+    // Employee
+    employee: [
+        { title: "My Dashboard", href: "/employee/dashboard", icon: LayoutDashboard },
+        { title: "Mark Attendance", href: "/employee/attendance", icon: Calendar },
+        { title: "Apply Leave", href: "/employee/leave", icon: FileText },
+        { title: "My Payslips", href: "/employee/payslip", icon: CreditCard },
+        { title: "Work History", href: "/employee/history", icon: ClipboardList },
+    ],
+
+    // Fallbacks
+    admin: [
+        { title: "Dashboard", href: "/", icon: LayoutDashboard },
+        { title: "Inventory", href: "/products", icon: Package },
+        { title: "Sales", href: "/sales", icon: ShoppingCart },
+        { title: "Invoices", href: "/invoices", icon: FileText },
+        { title: "Cheques", href: "/finance/cheques", icon: CreditCard },
+        { title: "Quotations", href: "/quotations", icon: FileText },
+        { title: "Customers", href: "/customers", icon: Users },
+        { title: "Suppliers", href: "/suppliers", icon: Truck },
+        { title: "Goods Receiving", href: "/receivings", icon: Package },
+        { title: "HR", href: "/hr", icon: Users },
+        { title: "Finance", href: "/transactions", icon: Calculator },
+        { title: "Delivery Settings", href: "/delivery-settings", icon: Truck },
+        { title: "Reports", href: "/reports", icon: BarChart3 },
+        { title: "Users", href: "/users", icon: Users },
+        { title: "Store Config", href: "/store-config", icon: Settings },
+        { title: "Settings", href: "/more", icon: Settings },
+    ],
+    staff: [
+        { title: "Dashboard", href: "/", icon: LayoutDashboard },
+        { title: "Sales", href: "/sales", icon: ShoppingCart },
+    ],
+    user: [
+        { title: "Dashboard", href: "/", icon: LayoutDashboard },
+    ]
+};

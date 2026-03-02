@@ -1,0 +1,2 @@
+- [ ] Fixed `main.cjs` IPC handlers
+- [ ] Updated `SyncStatus.tsx` for real fetch

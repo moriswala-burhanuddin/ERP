@@ -1,0 +1,530 @@
+Browserslist: browsers data (caniuse-lite) is 8 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+
+Rebuilding...
+CssSyntaxError: tailwindcss: D:\erp-love\storeflow-erp\src\index.css:138:5: The `shadow-[0_2px_10px_rgba(0,` class does not exist. If `shadow-[0_2px_10px_rgba(0,` is a custom class, make sure it is defined within a `@layer` directive.
+    at Input.error (D:\erp-love\storeflow-erp\node_modules\postcss\lib\input.js:135:16)
+    at AtRule.error (D:\erp-love\storeflow-erp\node_modules\postcss\lib\node.js:146:32)
+    at processApply (D:\erp-love\storeflow-erp\node_modules\tailwindcss\lib\lib\expandApplyAtRules.js:380:29)
+    at D:\erp-love\storeflow-erp\node_modules\tailwindcss\lib\lib\expandApplyAtRules.js:551:9
+    at D:\erp-love\storeflow-erp\node_modules\tailwindcss\lib\processTailwindFeatures.js:55:50
+    at async Object.Once (D:\erp-love\storeflow-erp\node_modules\tailwindcss\lib\cli\build\plugin.js:245:17)
+    at async LazyResult.runAsync (D:\erp-love\storeflow-erp\node_modules\postcss\lib\lazy-result.js:293:11)
+    at async build (D:\erp-love\storeflow-erp\node_modules\tailwindcss\lib\cli\build\index.js:49:9) {
+  reason: 'The `shadow-[0_2px_10px_rgba(0,` class does not exist. If `shadow-[0_2px_10px_rgba(0,` is a custom class, make sure it is defined within a `@layer` directive.',
+  file: 'D:\\erp-love\\storeflow-erp\\src\\index.css',
+  source: '@tailwind base;\r\n' +
+    '@tailwind components;\r\n' +
+    '@tailwind utilities;\r\n' +
+    '\r\n' +
+    '@layer base {\r\n' +
+    '  :root {\r\n' +
+    '    /* iOS Black and White Light Theme */\r\n' +
+    '    /* Base Colors - White & Gray */\r\n' +
+    '    --background: 0 0% 98%;\r\n' +
+    '    /* iOS very light gray background */\r\n' +
+    '    --foreground: 0 0% 0%;\r\n' +
+    '    /* Pure Black text */\r\n' +
+    '\r\n' +
+    '    --card: 0 0% 100%;\r\n' +
+    '    /* Pure White cards */\r\n' +
+    '    --card-foreground: 0 0% 0%;\r\n' +
+    '    /* Black text on cards */\r\n' +
+    '\r\n' +
+    '    --popover: 0 0% 100%;\r\n' +
+    '    --popover-foreground: 0 0% 0%;\r\n' +
+    '\r\n' +
+    '    /* Brand Colors - Black */\r\n' +
+    '    --primary: 0 0% 0%;\r\n' +
+    '    /* Pure Black for primary elements */\r\n' +
+    '    --primary-foreground: 0 0% 100%;\r\n' +
+    '    /* Pure White text on primary */\r\n' +
+    '\r\n' +
+    '    --secondary: 0 0% 96%;\r\n' +
+    '    /* Light Gray */\r\n' +
+    '    --secondary-foreground: 0 0% 0%;\r\n' +
+    '\r\n' +
+    '    --muted: 0 0% 96%;\r\n' +
+    '    --muted-foreground: 0 0% 40%;\r\n' +
+    '    /* Gray text */\r\n' +
+    '\r\n' +
+    '    --accent: 0 0% 96%;\r\n' +
+    '    --accent-foreground: 0 0% 0%;\r\n' +
+    '\r\n' +
+    '    --destructive: 0 84.2% 60.2%;\r\n' +
+    '    /* iOS Red */\r\n' +
+    '    --destructive-foreground: 0 0% 100%;\r\n' +
+    '\r\n' +
+    '    --success: 142 70% 40%;\r\n' +
+    '    /* iOS Green */\r\n' +
+    '    --success-foreground: 0 0% 100%;\r\n' +
+    '\r\n' +
+    '    --warning: 40 96% 53%;\r\n' +
+    '    /* iOS Orange/Yellow */\r\n' +
+    '    --warning-foreground: 0 0% 100%;\r\n' +
+    '\r\n' +
+    '    --border: 0 0% 90%;\r\n' +
+    '    /* Light gray border */\r\n' +
+    '    --input: 0 0% 90%;\r\n' +
+    '    --ring: 0 0% 0%;\r\n' +
+    '    /* Black focus ring */\r\n' +
+    '\r\n' +
+    '    --radius: 0.75rem;\r\n' +
+    '    /* iOS rounded corners */\r\n' +
+    '\r\n' +
+    '    /* Sidebar Tokens - Light Theme */\r\n' +
+    '    --sidebar-background: 0 0% 100%;\r\n' +
+    '    /* White Sidebar */\r\n' +
+    '    --sidebar-foreground: 0 0% 30%;\r\n' +
+    '    /* Dark Gray text */\r\n' +
+    '    --sidebar-primary: 0 0% 0%;\r\n' +
+    '    /* Black Active */\r\n' +
+    '    --sidebar-primary-foreground: 0 0% 100%;\r\n' +
+    '    /* White Text on Active */\r\n' +
+    '    --sidebar-accent: 0 0% 96%;\r\n' +
+    '    /* Light Gray hover */\r\n' +
+    '    --sidebar-accent-foreground: 0 0% 0%;\r\n' +
+    '    /* Black Text on Hover */\r\n' +
+    '    --sidebar-border: 0 0% 90%;\r\n' +
+    '    /* Light gray border */\r\n' +
+    '    --sidebar-ring: 0 0% 0%;\r\n' +
+    '\r\n' +
+    '    /* ERP Specific Tokens */\r\n' +
+    '    --erp-nav-height: 3.5rem;\r\n' +
+    '    --erp-bottom-nav-height: 4.5rem;\r\n' +
+    '    /* Slightly taller for iOS style */\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .dark {\r\n' +
+    '    /* Keep dark mode as is, or switch to an iOS dark mode later if requested. User asked for Light Theme. */\r\n' +
+    '    --background: 222.2 84% 4.9%;\r\n' +
+    '    --foreground: 210 40% 98%;\r\n' +
+    '    /* ... keeping default dark variables from previous setup ... */\r\n' +
+    '    --card: 222.2 84% 4.9%;\r\n' +
+    '    --card-foreground: 210 40% 98%;\r\n' +
+    '    --popover: 222.2 84% 4.9%;\r\n' +
+    '    --popover-foreground: 210 40% 98%;\r\n' +
+    '    --primary: 210 40% 98%;\r\n' +
+    '    --primary-foreground: 222.2 47.4% 11.2%;\r\n' +
+    '    --secondary: 217.2 32.6% 17.5%;\r\n' +
+    '    --secondary-foreground: 210 40% 98%;\r\n' +
+    '    --muted: 217.2 32.6% 17.5%;\r\n' +
+    '    --muted-foreground: 215 20.2% 65.1%;\r\n' +
+    '    --accent: 217.2 32.6% 17.5%;\r\n' +
+    '    --accent-foreground: 210 40% 98%;\r\n' +
+    '    --destructive: 0 62.8% 30.6%;\r\n' +
+    '    --destructive-foreground: 210 40% 98%;\r\n' +
+    '    --border: 217.2 32.6% 17.5%;\r\n' +
+    '    --input: 217.2 32.6% 17.5%;\r\n' +
+    '    --ring: 212.7 26.8% 83.9%;\r\n' +
+    '  }\r\n' +
+    '}\r\n' +
+    '\r\n' +
+    '@layer base {\r\n' +
+    '  * {\r\n' +
+    '    @apply border-border;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  body {\r\n' +
+    '    @apply bg-background text-foreground antialiased;\r\n' +
+    '    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";\r\n' +
+    '    /* Use iOS system fonts */\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  /* Global Page Entry */\r\n' +
+    '  main {\r\n' +
+    '    @apply animate-in fade-in duration-300;\r\n' +
+    '  }\r\n' +
+    '}\r\n' +
+    '\r\n' +
+    '@layer components {\r\n' +
+    '\r\n' +
+    '  /* No Animations - Instant Response (Keeping as requested previously) */\r\n' +
+    '  .erp-animate-in {\r\n' +
+    '    /* No animation */\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .hover-scale {\r\n' +
+    '    /* No scaling */\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  /* iOS Card */\r\n' +
+    '  .erp-card {\r\n' +
+    '    @apply bg-card border-none rounded-2xl p-5 shadow-[0_2px_10px_rgba(0, 0, 0, 0.06)];\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-stat-card {\r\n' +
+    '    @apply bg-card border border-gray-100 rounded-2xl p-5 transition-shadow shadow-[0_2px_8px_rgba(0, 0, 0, 0.04)] hover:shadow-[0_4px_16px_rgba(0, 0, 0, 0.08)];\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  /* Compact Lists */\r\n' +
+    '  .erp-list-item {\r\n' +
+    '    @apply flex items-center justify-between p-3 border-b border-gray-100 last:border-b-0 active:bg-gray-100 transition-colors cursor-pointer text-sm;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  /* Clean Header */\r\n' +
+    '  .erp-page-header {\r\n' +
+    '    @apply sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 py-3 md:px-6 flex items-center justify-between;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-page-content {\r\n' +
+    '    @apply p-4 md:p-6 pb-28 lg:pb-6 max-w-full mx-auto container scroll-smooth;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  /* Bottom Nav */\r\n' +
+    '  .erp-bottom-nav {\r\n' +
+    '    @apply fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-gray-200 flex items-center justify-around h-[4.5rem] lg:hidden z-50 pb-safe;\r\n' +
+    '    /* pb-safe for iPhone bottom bar spacing */\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-nav-item {\r\n' +
+    '    @apply flex flex-col items-center justify-center gap-1 px-3 py-2 text-gray-500 transition-colors rounded-none active:text-black;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-nav-item.active {\r\n' +
+    '    @apply text-black font-semibold;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  /* Inputs - iOS style */\r\n' +
+    '  .erp-input {\r\n' +
+    '    @apply w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent focus:bg-white transition-all text-base md:text-sm;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  /* Buttons - Clean iOS Style */\r\n' +
+    '  .erp-button {\r\n' +
+    '    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-[15px] transition-all focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98];\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-button-primary {\r\n' +
+    '    @apply bg-black text-white hover:bg-gray-800 border-none shadow-sm;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-button-secondary {\r\n' +
+    '    @apply bg-gray-100 text-black border-none hover:bg-gray-200;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-button-accent {\r\n' +
+    '    @apply bg-blue-500 text-white hover:bg-blue-600 border-none shadow-sm;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-button-ghost {\r\n' +
+    '    @apply bg-transparent text-black hover:bg-gray-100;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-fab {\r\n' +
+    '    @apply fixed right-6 bottom-24 lg:bottom-8 w-14 h-14 rounded-full bg-black text-white shadow-xl flex items-center justify-center hover:bg-gray-800 z-40 border-none;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  /* Badges - Rounded Pills */\r\n' +
+    '  .erp-badge {\r\n' +
+    '    @apply inline-flex items-center px-2.5 py-0.5 rounded-full border border-transparent text-[11px] font-semibold;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-badge-warning {\r\n' +
+    '    @apply bg-orange-100 text-orange-800;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-badge-success {\r\n' +
+    '    @apply bg-green-100 text-green-800;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-badge-destructive {\r\n' +
+    '    @apply bg-red-100 text-red-800;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-badge-admin {\r\n' +
+    '    @apply bg-gray-200 text-gray-800;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  /* Table - Clean */\r\n' +
+    '  .erp-table {\r\n' +
+    '    @apply w-full text-sm border-collapse;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-table th {\r\n' +
+    '    @apply text-left p-3.5 bg-gray-50/50 font-semibold text-gray-500 border-b border-gray-200 text-[13px];\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-table td {\r\n' +
+    '    @apply p-3.5 border-b border-gray-100 text-black;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-table tr:hover {\r\n' +
+    '    @apply bg-gray-50/80;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  .erp-empty-state {\r\n' +
+    '    @apply flex flex-col items-center justify-center py-12 text-center border border-gray-100 rounded-2xl bg-gray-50;\r\n' +
+    '  }\r\n' +
+    '\r\n' +
+    '  /* Utilities for iOS safe areas */\r\n' +
+    '  .pb-safe {\r\n' +
+    '    padding-bottom: env(safe-area-inset-bottom);\r\n' +
+    '  }\r\n' +
+    '}',
+  line: 138,
+  column: 5,
+  endLine: 138,
+  endColumn: 88,
+  input: {
+    column: 5,
+    endColumn: 88,
+    endLine: 138,
+    endOffset: 3662,
+    line: 138,
+    offset: 3579,
+    source: '@tailwind base;\r\n' +
+      '@tailwind components;\r\n' +
+      '@tailwind utilities;\r\n' +
+      '\r\n' +
+      '@layer base {\r\n' +
+      '  :root {\r\n' +
+      '    /* iOS Black and White Light Theme */\r\n' +
+      '    /* Base Colors - White & Gray */\r\n' +
+      '    --background: 0 0% 98%;\r\n' +
+      '    /* iOS very light gray background */\r\n' +
+      '    --foreground: 0 0% 0%;\r\n' +
+      '    /* Pure Black text */\r\n' +
+      '\r\n' +
+      '    --card: 0 0% 100%;\r\n' +
+      '    /* Pure White cards */\r\n' +
+      '    --card-foreground: 0 0% 0%;\r\n' +
+      '    /* Black text on cards */\r\n' +
+      '\r\n' +
+      '    --popover: 0 0% 100%;\r\n' +
+      '    --popover-foreground: 0 0% 0%;\r\n' +
+      '\r\n' +
+      '    /* Brand Colors - Black */\r\n' +
+      '    --primary: 0 0% 0%;\r\n' +
+      '    /* Pure Black for primary elements */\r\n' +
+      '    --primary-foreground: 0 0% 100%;\r\n' +
+      '    /* Pure White text on primary */\r\n' +
+      '\r\n' +
+      '    --secondary: 0 0% 96%;\r\n' +
+      '    /* Light Gray */\r\n' +
+      '    --secondary-foreground: 0 0% 0%;\r\n' +
+      '\r\n' +
+      '    --muted: 0 0% 96%;\r\n' +
+      '    --muted-foreground: 0 0% 40%;\r\n' +
+      '    /* Gray text */\r\n' +
+      '\r\n' +
+      '    --accent: 0 0% 96%;\r\n' +
+      '    --accent-foreground: 0 0% 0%;\r\n' +
+      '\r\n' +
+      '    --destructive: 0 84.2% 60.2%;\r\n' +
+      '    /* iOS Red */\r\n' +
+      '    --destructive-foreground: 0 0% 100%;\r\n' +
+      '\r\n' +
+      '    --success: 142 70% 40%;\r\n' +
+      '    /* iOS Green */\r\n' +
+      '    --success-foreground: 0 0% 100%;\r\n' +
+      '\r\n' +
+      '    --warning: 40 96% 53%;\r\n' +
+      '    /* iOS Orange/Yellow */\r\n' +
+      '    --warning-foreground: 0 0% 100%;\r\n' +
+      '\r\n' +
+      '    --border: 0 0% 90%;\r\n' +
+      '    /* Light gray border */\r\n' +
+      '    --input: 0 0% 90%;\r\n' +
+      '    --ring: 0 0% 0%;\r\n' +
+      '    /* Black focus ring */\r\n' +
+      '\r\n' +
+      '    --radius: 0.75rem;\r\n' +
+      '    /* iOS rounded corners */\r\n' +
+      '\r\n' +
+      '    /* Sidebar Tokens - Light Theme */\r\n' +
+      '    --sidebar-background: 0 0% 100%;\r\n' +
+      '    /* White Sidebar */\r\n' +
+      '    --sidebar-foreground: 0 0% 30%;\r\n' +
+      '    /* Dark Gray text */\r\n' +
+      '    --sidebar-primary: 0 0% 0%;\r\n' +
+      '    /* Black Active */\r\n' +
+      '    --sidebar-primary-foreground: 0 0% 100%;\r\n' +
+      '    /* White Text on Active */\r\n' +
+      '    --sidebar-accent: 0 0% 96%;\r\n' +
+      '    /* Light Gray hover */\r\n' +
+      '    --sidebar-accent-foreground: 0 0% 0%;\r\n' +
+      '    /* Black Text on Hover */\r\n' +
+      '    --sidebar-border: 0 0% 90%;\r\n' +
+      '    /* Light gray border */\r\n' +
+      '    --sidebar-ring: 0 0% 0%;\r\n' +
+      '\r\n' +
+      '    /* ERP Specific Tokens */\r\n' +
+      '    --erp-nav-height: 3.5rem;\r\n' +
+      '    --erp-bottom-nav-height: 4.5rem;\r\n' +
+      '    /* Slightly taller for iOS style */\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .dark {\r\n' +
+      '    /* Keep dark mode as is, or switch to an iOS dark mode later if requested. User asked for Light Theme. */\r\n' +
+      '    --background: 222.2 84% 4.9%;\r\n' +
+      '    --foreground: 210 40% 98%;\r\n' +
+      '    /* ... keeping default dark variables from previous setup ... */\r\n' +
+      '    --card: 222.2 84% 4.9%;\r\n' +
+      '    --card-foreground: 210 40% 98%;\r\n' +
+      '    --popover: 222.2 84% 4.9%;\r\n' +
+      '    --popover-foreground: 210 40% 98%;\r\n' +
+      '    --primary: 210 40% 98%;\r\n' +
+      '    --primary-foreground: 222.2 47.4% 11.2%;\r\n' +
+      '    --secondary: 217.2 32.6% 17.5%;\r\n' +
+      '    --secondary-foreground: 210 40% 98%;\r\n' +
+      '    --muted: 217.2 32.6% 17.5%;\r\n' +
+      '    --muted-foreground: 215 20.2% 65.1%;\r\n' +
+      '    --accent: 217.2 32.6% 17.5%;\r\n' +
+      '    --accent-foreground: 210 40% 98%;\r\n' +
+      '    --destructive: 0 62.8% 30.6%;\r\n' +
+      '    --destructive-foreground: 210 40% 98%;\r\n' +
+      '    --border: 217.2 32.6% 17.5%;\r\n' +
+      '    --input: 217.2 32.6% 17.5%;\r\n' +
+      '    --ring: 212.7 26.8% 83.9%;\r\n' +
+      '  }\r\n' +
+      '}\r\n' +
+      '\r\n' +
+      '@layer base {\r\n' +
+      '  * {\r\n' +
+      '    @apply border-border;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  body {\r\n' +
+      '    @apply bg-background text-foreground antialiased;\r\n' +
+      '    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";\r\n' +
+      '    /* Use iOS system fonts */\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  /* Global Page Entry */\r\n' +
+      '  main {\r\n' +
+      '    @apply animate-in fade-in duration-300;\r\n' +
+      '  }\r\n' +
+      '}\r\n' +
+      '\r\n' +
+      '@layer components {\r\n' +
+      '\r\n' +
+      '  /* No Animations - Instant Response (Keeping as requested previously) */\r\n' +
+      '  .erp-animate-in {\r\n' +
+      '    /* No animation */\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .hover-scale {\r\n' +
+      '    /* No scaling */\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  /* iOS Card */\r\n' +
+      '  .erp-card {\r\n' +
+      '    @apply bg-card border-none rounded-2xl p-5 shadow-[0_2px_10px_rgba(0, 0, 0, 0.06)];\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-stat-card {\r\n' +
+      '    @apply bg-card border border-gray-100 rounded-2xl p-5 transition-shadow shadow-[0_2px_8px_rgba(0, 0, 0, 0.04)] hover:shadow-[0_4px_16px_rgba(0, 0, 0, 0.08)];\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  /* Compact Lists */\r\n' +
+      '  .erp-list-item {\r\n' +
+      '    @apply flex items-center justify-between p-3 border-b border-gray-100 last:border-b-0 active:bg-gray-100 transition-colors cursor-pointer text-sm;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  /* Clean Header */\r\n' +
+      '  .erp-page-header {\r\n' +
+      '    @apply sticky top-0 z-10 bg-white/80 backdrop-blur-md border-b border-gray-200 px-4 py-3 md:px-6 flex items-center justify-between;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-page-content {\r\n' +
+      '    @apply p-4 md:p-6 pb-28 lg:pb-6 max-w-full mx-auto container scroll-smooth;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  /* Bottom Nav */\r\n' +
+      '  .erp-bottom-nav {\r\n' +
+      '    @apply fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-gray-200 flex items-center justify-around h-[4.5rem] lg:hidden z-50 pb-safe;\r\n' +
+      '    /* pb-safe for iPhone bottom bar spacing */\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-nav-item {\r\n' +
+      '    @apply flex flex-col items-center justify-center gap-1 px-3 py-2 text-gray-500 transition-colors rounded-none active:text-black;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-nav-item.active {\r\n' +
+      '    @apply text-black font-semibold;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  /* Inputs - iOS style */\r\n' +
+      '  .erp-input {\r\n' +
+      '    @apply w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent focus:bg-white transition-all text-base md:text-sm;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  /* Buttons - Clean iOS Style */\r\n' +
+      '  .erp-button {\r\n' +
+      '    @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-[15px] transition-all focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-offset-1 disabled:opacity-50 disabled:pointer-events-none active:scale-[0.98];\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-button-primary {\r\n' +
+      '    @apply bg-black text-white hover:bg-gray-800 border-none shadow-sm;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-button-secondary {\r\n' +
+      '    @apply bg-gray-100 text-black border-none hover:bg-gray-200;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-button-accent {\r\n' +
+      '    @apply bg-blue-500 text-white hover:bg-blue-600 border-none shadow-sm;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-button-ghost {\r\n' +
+      '    @apply bg-transparent text-black hover:bg-gray-100;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-fab {\r\n' +
+      '    @apply fixed right-6 bottom-24 lg:bottom-8 w-14 h-14 rounded-full bg-black text-white shadow-xl flex items-center justify-center hover:bg-gray-800 z-40 border-none;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  /* Badges - Rounded Pills */\r\n' +
+      '  .erp-badge {\r\n' +
+      '    @apply inline-flex items-center px-2.5 py-0.5 rounded-full border border-transparent text-[11px] font-semibold;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-badge-warning {\r\n' +
+      '    @apply bg-orange-100 text-orange-800;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-badge-success {\r\n' +
+      '    @apply bg-green-100 text-green-800;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-badge-destructive {\r\n' +
+      '    @apply bg-red-100 text-red-800;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-badge-admin {\r\n' +
+      '    @apply bg-gray-200 text-gray-800;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  /* Table - Clean */\r\n' +
+      '  .erp-table {\r\n' +
+      '    @apply w-full text-sm border-collapse;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-table th {\r\n' +
+      '    @apply text-left p-3.5 bg-gray-50/50 font-semibold text-gray-500 border-b border-gray-200 text-[13px];\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-table td {\r\n' +
+      '    @apply p-3.5 border-b border-gray-100 text-black;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-table tr:hover {\r\n' +
+      '    @apply bg-gray-50/80;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  .erp-empty-state {\r\n' +
+      '    @apply flex flex-col items-center justify-center py-12 text-center border border-gray-100 rounded-2xl bg-gray-50;\r\n' +
+      '  }\r\n' +
+      '\r\n' +
+      '  /* Utilities for iOS safe areas */\r\n' +
+      '  .pb-safe {\r\n' +
+      '    padding-bottom: env(safe-area-inset-bottom);\r\n' +
+      '  }\r\n' +
+      '}',
+    url: 'file:///D:/erp-love/storeflow-erp/src/index.css',
+    file: 'D:\\erp-love\\storeflow-erp\\src\\index.css'
+  },
+  plugin: 'tailwindcss'
+}

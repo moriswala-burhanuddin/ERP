@@ -1,0 +1,17 @@
+=== LOCAL IDs ===
+Stores: ['store-1']
+Accounts: ['acc-1']
+Customers: []
+Products: ['id-1770384079019-wbrfkvyuo', 'prod-1', 'prod-1770308842708-1', 'prod-1770375724774-2', 'prod-3']
+
+=== PENDING LOCAL SALES ===
+Sale id-1770384243509-8diqbufsf -> Store:store-1, Acc:acc-1, Cust:None
+
+=== PENDING LOCAL LOGS ===
+Log 1770384243512-wz15zfe4f -> Store:store-1, Prod:id-1770384079019-wbrfkvyuo
+
+=== SERVER IDs ===
+Stores: ['test-uuid', 'store-1']
+Accounts: ['acc-1']
+Customers: []
+Products: ['id-1770367949257-cbguf5en2', 'prod-1770308842708-1']

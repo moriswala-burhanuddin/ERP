@@ -1,0 +1,3 @@
+- [ ] Fix `updateProduct`: Reset `sync_status = 0`.
+- [ ] Implement Soft Delete for `deleteProduct`.
+- [ ] Update Django `PushEndpoint` to handle deletions.

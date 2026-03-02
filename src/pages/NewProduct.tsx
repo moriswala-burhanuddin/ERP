@@ -1,0 +1,390 @@
+import { useState, useEffect } from 'react';
+import { PageHeader } from '@/components/layout/PageHeader';
+import { useERPStore } from '@/lib/store-data';
+import { Package, Save, X, Sparkles, Loader2, ArrowLeft, Barcode, DollarSign, Info, ShieldCheck, Tag } from 'lucide-react';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+
+export default function NewProduct() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { id } = useParams();
+  const { addProduct, updateProduct, getStoreProducts, activeStoreId, customFields, productCustomValues, updateProductCustomValues } = useERPStore();
+
+  const [formData, setFormData] = useState({
+    name: '',
+    sku: '',
+    category: '',
+    brand: '',
+    unit: '',
+    purchasePrice: '',
+    sellingPrice: '',
+    quantity: '',
+    minStock: '',
+    reorderQuantity: '',
+    barcodeEnabled: true,
+    limitedQty: '',
+  });
+  const [customValues, setCustomValues] = useState<Record<string, string>>({});
+  const [isAiLoading, setIsAiLoading] = useState(false);
+
+  const isEditMode = Boolean(id);
+
+  useEffect(() => {
+    if (isEditMode) {
+      const products = getStoreProducts();
+      const product = products.find(p => p.id === id);
+      if (product) {
+        setFormData({
+          name: product.name,
+          sku: product.sku,
+          category: product.category,
+          brand: product.brand || '',
+          unit: product.unit || '',
+          purchasePrice: product.purchasePrice.toString(),
+          sellingPrice: product.sellingPrice.toString(),
+          quantity: product.quantity.toString(),
+          minStock: (product.minStock || 0).toString(),
+          reorderQuantity: (product.reorderQuantity || 0).toString(),
+          barcodeEnabled: product.barcodeEnabled ?? true,
+          limitedQty: product.limitedQty?.toString() || '',
+        });
+
+        const values = productCustomValues.filter(v => v.productId === id);
+        const valuesMap = values.reduce((acc, v) => ({ ...acc, [v.fieldId]: v.value }), {} as Record<string, string>);
+        setCustomValues(valuesMap);
+      } else {
+        toast.error("Product not found.");
+        navigate('/products');
+      }
+    } else if (location.state?.cloneData) {
+      const product = location.state.cloneData as import('@/lib/store-data').Product;
+      setFormData({
+        name: `${product.name} (CLONE)`,
+        sku: `${product.sku}-COPY`,
+        category: product.category,
+        brand: product.brand || '',
+        unit: product.unit || '',
+        purchasePrice: product.purchasePrice.toString(),
+        sellingPrice: product.sellingPrice.toString(),
+        quantity: '0',
+        minStock: (product.minStock || 0).toString(),
+        reorderQuantity: (product.reorderQuantity || 0).toString(),
+        barcodeEnabled: product.barcodeEnabled ?? true,
+        limitedQty: product.limitedQty?.toString() || '',
+      });
+    }
+  }, [id, isEditMode, getStoreProducts, navigate, productCustomValues, location.state]);
+
+  const handleAiSuggest = async () => {
+    if (!formData.name.trim()) {
+      toast.error("Product name required for AI analysis.");
+      return;
+    }
+    setIsAiLoading(true);
+    try {
+      const result = await window.electronAPI.suggestCategory(formData.name);
+      if (result) {
+        setFormData(prev => ({
+          ...prev,
+          category: result.category || prev.category,
+          brand: result.brand || prev.brand,
+          unit: result.unit || prev.unit
+        }));
+        toast.success("AI Suggestions Applied");
+      }
+    } catch (error) {
+      toast.error("AI Suggestion failed.");
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    if (type === 'checkbox') {
+      const checked = (e.target as HTMLInputElement).checked;
+      setFormData(prev => ({ ...prev, [name]: checked }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.sku || !formData.category || !formData.purchasePrice || !formData.sellingPrice) {
+      toast.error("Please fill in all required fields.");
+      return;
+    }
+
+    try {
+      const productData = {
+        name: formData.name,
+        sku: formData.sku.toUpperCase(),
+        category: formData.category,
+        brand: formData.brand,
+        unit: formData.unit || 'Pcs',
+        purchasePrice: parseFloat(formData.purchasePrice),
+        sellingPrice: parseFloat(formData.sellingPrice),
+        quantity: parseInt(formData.quantity) || 0,
+        minStock: parseInt(formData.minStock) || 0,
+        reorderQuantity: parseInt(formData.reorderQuantity) || 0,
+        barcodeEnabled: formData.barcodeEnabled,
+        limitedQty: formData.limitedQty ? parseFloat(formData.limitedQty) : undefined,
+        storeId: activeStoreId,
+        lastUsed: new Date().toISOString().split('T')[0],
+        updatedAt: new Date().toISOString().split('T')[0],
+      };
+
+      if (isEditMode && id) {
+        updateProduct(id, productData);
+        const customValuesArray = Object.entries(customValues).map(([fieldId, value]) => ({ fieldId, value }));
+        updateProductCustomValues(id, customValuesArray);
+        toast.success("Product Updated Successfully");
+      } else {
+        addProduct(productData);
+        const products = useERPStore.getState().products;
+        const newProduct = products.find(p => p.sku === productData.sku && p.name === productData.name);
+        if (newProduct) {
+          const customValuesArray = Object.entries(customValues).map(([fieldId, value]) => ({ fieldId, value }));
+          updateProductCustomValues(newProduct.id, customValuesArray);
+        }
+        toast.success("Product Added Successfully");
+      }
+      navigate('/products');
+    } catch (error) {
+      toast.error("Process failed.");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#F2F2F7] pb-32">
+      <div className="bg-white border-b border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate('/products')} className="p-3 bg-slate-50 hover:bg-slate-100 rounded-2xl transition-all">
+              <ArrowLeft className="w-5 h-5 text-slate-400" />
+            </button>
+            <div>
+              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{isEditMode ? 'Edit Product' : 'New Product'}</h1>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{isEditMode ? 'Update existing item' : 'Create new inventory entry'}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" onClick={() => navigate('/products')} className="rounded-[1.2rem] h-12 px-6 font-black uppercase text-[10px] tracking-widest">
+              Discard
+            </Button>
+            <Button onClick={handleSubmit} className="bg-black text-white rounded-[1.2rem] h-12 px-8 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+              <Save className="w-4 h-4 mr-2" />
+              Complete Create
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
+        <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Essential Identity Card */}
+          <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center">
+                <Info className="w-6 h-6 text-indigo-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black uppercase tracking-tight">Identity & Labeling</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Core identification details</p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-3">
+                <div className="flex justify-between items-center">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Product Name *</label>
+                  <button
+                    type="button"
+                    onClick={handleAiSuggest}
+                    disabled={isAiLoading}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-[9px] font-black uppercase hover:bg-indigo-100 transition-all"
+                  >
+                    {isAiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                    AI Suggest
+                  </button>
+                </div>
+                <input
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className="w-full bg-slate-50 border-none rounded-[1.5rem] py-5 px-6 font-bold text-slate-900 focus:ring-2 focus:ring-black transition-all placeholder:text-slate-300"
+                  placeholder="Enter product title..."
+                />
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Universal Sku / Barcode *</label>
+                <div className="relative group">
+                  <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
+                    <Barcode className="w-4 h-4 text-slate-300 group-focus-within:text-black transition-colors" />
+                  </div>
+                  <input
+                    name="sku"
+                    value={formData.sku}
+                    onChange={handleChange}
+                    className="w-full bg-slate-50 border-none rounded-[1.5rem] py-5 pl-12 pr-6 font-mono font-black text-slate-900 uppercase focus:ring-2 focus:ring-black transition-all placeholder:text-slate-300"
+                    placeholder="E.G. SF-HT-001"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 mt-8">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Category *</label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold appearance-none cursor-pointer focus:ring-2 focus:ring-black"
+                >
+                  <option value="">Select...</option>
+                  <option value="Power Tools">Power Tools</option>
+                  <option value="Hand Tools">Hand Tools</option>
+                  <option value="Plumbing">Plumbing</option>
+                  <option value="Electrical">Electrical</option>
+                  <option value="Fasteners">Fasteners</option>
+                </select>
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Brand</label>
+                <input name="brand" value={formData.brand} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black" placeholder="Optional" />
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Unit of Measure</label>
+                <input name="unit" value={formData.unit} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black" placeholder="Pcs, Set, Ltr..." />
+              </div>
+            </div>
+          </div>
+
+          {/* Financial & Stock Card */}
+          <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black uppercase tracking-tight">Value & Quantity</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pricing strategy and initial inventory</p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6">
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Purchase Price *</label>
+                <div className="relative group">
+                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 font-black">$</span>
+                  <input name="purchasePrice" type="number" step="0.01" value={formData.purchasePrice} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-5 font-black text-slate-900 focus:ring-2 focus:ring-black" />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Selling Price *</label>
+                <div className="relative group">
+                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 font-black">$</span>
+                  <input name="sellingPrice" type="number" step="0.01" value={formData.sellingPrice} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-5 font-black text-slate-900 focus:ring-2 focus:ring-black" />
+                </div>
+              </div>
+              <div className="space-y-3">
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Initial Stock</label>
+                <input name="quantity" type="number" value={formData.quantity} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-black text-slate-900 focus:ring-2 focus:ring-black" />
+              </div>
+            </div>
+          </div>
+
+          {/* Logistics Strategy Card */}
+          <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center">
+                <ShieldCheck className="w-6 h-6 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black uppercase tracking-tight">Stock Protection</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Reorder thresholds and sale limits</p>
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Low Stock Threshold</label>
+                  <input name="minStock" type="number" value={formData.minStock} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black" placeholder="20" />
+                </div>
+                <p className="text-[9px] font-bold text-slate-400 uppercase leading-relaxed ml-1">System will trigger "Stock Alert" when quantity reaches this level.</p>
+              </div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Optimization Quantity</label>
+                  <input name="reorderQuantity" type="number" value={formData.reorderQuantity} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black" placeholder="50" />
+                </div>
+                <p className="text-[9px] font-bold text-slate-400 uppercase leading-relaxed ml-1">The recommended purchase amount during restock operations.</p>
+              </div>
+            </div>
+
+            <div className="mt-10 p-6 bg-slate-50 rounded-[2rem] border border-slate-100 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                  <Barcode className="w-5 h-5 text-slate-900" />
+                </div>
+                <div>
+                  <h4 className="text-[11px] font-black uppercase">Barcode Label Support</h4>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase">Enable for automatic cataloging</p>
+                </div>
+              </div>
+              <div className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  name="barcodeEnabled"
+                  checked={formData.barcodeEnabled}
+                  onChange={handleChange}
+                  className="sr-only peer"
+                />
+                <div className="w-14 h-8 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[4px] after:left-[4px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-black"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Custom Attributes Card */}
+          {customFields.filter(f => f.targetType === 'product').length > 0 && (
+            <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center">
+                  <Tag className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-black uppercase tracking-tight">Extended Attributes</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Custom business metadata</p>
+                </div>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-8">
+                {customFields.filter(f => f.targetType === 'product').map(field => (
+                  <div key={field.id} className="space-y-3">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
+                      {field.label} {field.isRequired ? '*' : ''}
+                    </label>
+                    <input
+                      type={field.type === 'number' ? 'number' : field.type === 'date' ? 'date' : 'text'}
+                      value={customValues[field.id] || ''}
+                      onChange={e => setCustomValues(prev => ({ ...prev, [field.id]: e.target.value }))}
+                      className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black"
+                      placeholder={field.label}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </form>
+      </main>
+    </div>
+  );
+}
