@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "electron/**"
+      - "src/**"
+      - "package.json"
+      - "vite.config.*"
 
 jobs:
   build:
