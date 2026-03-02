@@ -41,6 +41,7 @@ db.exec(`
     role TEXT CHECK(role IN ('admin', 'user', 'staff', 'super_admin', 'hr_manager', 'sales_manager', 'inventory_manager', 'accountant', 'employee')) NOT NULL,
     is_staff INTEGER DEFAULT 0,
     is_active INTEGER DEFAULT 1,
+    is_driver INTEGER DEFAULT 0,
     store_id TEXT,
     avatar TEXT,
     device_id TEXT,
@@ -64,6 +65,11 @@ db.exec(`
     barcode TEXT,
     min_stock INTEGER DEFAULT 0,
     reorder_quantity INTEGER DEFAULT 0,
+    is_deleted INTEGER DEFAULT 0,
+    is_kit INTEGER DEFAULT 0,
+    limited_qty REAL,
+    barcode_enabled INTEGER DEFAULT 1,
+    tax_slab_id TEXT,
     device_id TEXT,
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     sync_status INTEGER DEFAULT 0,
@@ -121,7 +127,11 @@ db.exec(`
     id TEXT PRIMARY KEY,
     invoice_number TEXT UNIQUE NOT NULL,
     type TEXT CHECK(type IN ('retail', 'cash', 'credit')) NOT NULL,
+    status TEXT DEFAULT 'completed',
     items TEXT NOT NULL,
+    subtotal REAL DEFAULT 0,
+    discount_amount REAL DEFAULT 0,
+    tax_amount REAL DEFAULT 0,
     total_amount REAL NOT NULL,
     profit REAL NOT NULL,
     payment_mode TEXT CHECK(payment_mode IN ('cash', 'card', 'wallet')) NOT NULL,
@@ -208,6 +218,7 @@ db.exec(`
     reference_id TEXT,
     device_id TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     sync_status INTEGER DEFAULT 0,
     FOREIGN KEY (product_id) REFERENCES products(id),
     FOREIGN KEY (store_id) REFERENCES stores(id)
@@ -253,6 +264,7 @@ db.exec(`
     reason TEXT,
     sale_id TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     sync_status INTEGER DEFAULT 0,
     FOREIGN KEY (customer_id) REFERENCES customers(id),
     FOREIGN KEY (sale_id) REFERENCES sales(id)
@@ -266,6 +278,7 @@ db.exec(`
     percentage REAL NOT NULL,
     status TEXT CHECK(status IN ('pending', 'paid')) DEFAULT 'pending',
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     sync_status INTEGER DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (sale_id) REFERENCES sales(id)
@@ -343,21 +356,6 @@ db.exec(`
     FOREIGN KEY (store_id) REFERENCES stores(id)
   );
 
-  CREATE TABLE IF NOT EXISTS candidates (
-    id TEXT PRIMARY KEY,
-    name TEXT NOT NULL,
-    email TEXT,
-    phone TEXT,
-    role TEXT NOT NULL,
-    status TEXT CHECK(status IN ('applied', 'interview', 'offer', 'hired', 'rejected')) DEFAULT 'applied',
-    resume_text TEXT,
-    score INTEGER DEFAULT 0,
-    skills TEXT,
-    store_id TEXT NOT NULL,
-    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-    sync_status INTEGER DEFAULT 0,
-    FOREIGN KEY (store_id) REFERENCES stores(id)
-  );
   CREATE TABLE IF NOT EXISTS employees (
     id TEXT PRIMARY KEY,
     user_id TEXT NOT NULL,
@@ -477,6 +475,7 @@ db.exec(`
     file_path TEXT NOT NULL,
     file_type TEXT,
     uploaded_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     store_id TEXT NOT NULL,
     sync_status INTEGER DEFAULT 0,
     FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
@@ -520,6 +519,7 @@ db.exec(`
     store_id TEXT NOT NULL,
     device_id TEXT,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     sync_status INTEGER DEFAULT 0,
     FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
     FOREIGN KEY (store_id) REFERENCES stores(id)
@@ -692,11 +692,11 @@ db.exec(`
     FOREIGN KEY (store_id) REFERENCES stores(id)
   );
 
-  CREATE INDEX IF NOT EXISTS idx_invoices_store ON invoices(store_id);
-  CREATE INDEX IF NOT EXISTS idx_invoices_customer ON invoices(customer_id);
-  CREATE INDEX IF NOT EXISTS idx_invoices_supplier ON invoices(supplier_id);
-  CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice ON invoice_items(invoice_id);
-`)
+    CREATE INDEX IF NOT EXISTS idx_invoices_store ON invoices(store_id);
+    CREATE INDEX IF NOT EXISTS idx_invoices_customer ON invoices(customer_id);
+    CREATE INDEX IF NOT EXISTS idx_invoices_supplier ON invoices(supplier_id);
+    CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice ON invoice_items(invoice_id);
+  `);
 
 
 // EXPLICIT MIGRATION CHECK ON STARTUP
@@ -746,26 +746,26 @@ try {
   // Individual column additions with error suppression to ensure idempotency
   const addColumn = (table, columnDef) => {
     try {
-      db.prepare(`ALTER TABLE ${table} ADD COLUMN ${columnDef}`).run();
-      console.log(`[DB] Added column ${columnDef} to ${table}`);
+      db.prepare('ALTER TABLE ' + table + ' ADD COLUMN ' + columnDef).run();
+      console.log('[DB] Added column ' + columnDef + ' to ' + table);
     } catch (e) {
       if (!e.message.includes('duplicate column name')) {
-        console.warn(`[DB] Could not add column ${columnDef} to ${table}:`, e.message);
+        console.warn('[DB] Could not add column ' + columnDef + ' to ' + table + ': ', e.message);
       }
     }
   };
 
   const DEFAULT_TS = "'2026-01-01 00:00:00'";
-  addColumn('kit_items', `updated_at TEXT NOT NULL DEFAULT ${DEFAULT_TS}`);
+  addColumn('kit_items', 'updated_at TEXT NOT NULL DEFAULT ' + DEFAULT_TS);
   addColumn('kit_items', 'sync_status INTEGER DEFAULT 0');
-  addColumn('product_custom_values', `updated_at TEXT NOT NULL DEFAULT ${DEFAULT_TS}`);
+  addColumn('product_custom_values', 'updated_at TEXT NOT NULL DEFAULT ' + DEFAULT_TS);
   addColumn('product_custom_values', 'sync_status INTEGER DEFAULT 0');
 
-  addColumn('stock_logs', `updated_at TEXT NOT NULL DEFAULT ${DEFAULT_TS}`);
-  addColumn('loyalty_points', `updated_at TEXT NOT NULL DEFAULT ${DEFAULT_TS}`);
-  addColumn('commissions', `updated_at TEXT NOT NULL DEFAULT ${DEFAULT_TS}`);
-  addColumn('supplier_documents', `updated_at TEXT NOT NULL DEFAULT ${DEFAULT_TS}`);
-  addColumn('supplier_transactions', `updated_at TEXT NOT NULL DEFAULT ${DEFAULT_TS}`);
+  addColumn('stock_logs', 'updated_at TEXT NOT NULL DEFAULT ' + DEFAULT_TS);
+  addColumn('loyalty_points', 'updated_at TEXT NOT NULL DEFAULT ' + DEFAULT_TS);
+  addColumn('commissions', 'updated_at TEXT NOT NULL DEFAULT ' + DEFAULT_TS);
+  addColumn('supplier_documents', 'updated_at TEXT NOT NULL DEFAULT ' + DEFAULT_TS);
+  addColumn('supplier_transactions', 'updated_at TEXT NOT NULL DEFAULT ' + DEFAULT_TS);
 
   // Deliveries & Work Orders
   addColumn('deliveries', 'delivery_charge REAL DEFAULT 0');
@@ -777,48 +777,48 @@ try {
   const invoicesTableInfo = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='invoices'").get();
   if (!invoicesTableInfo) {
     db.exec(`
-      CREATE TABLE IF NOT EXISTS invoices (
-        id TEXT PRIMARY KEY,
-        invoice_number TEXT UNIQUE NOT NULL,
-        type TEXT CHECK(type IN ('customer', 'supplier')) NOT NULL,
-        status TEXT CHECK(status IN ('draft', 'sent', 'paid', 'overdue', 'cancelled')) DEFAULT 'draft',
-        customer_id TEXT,
-        supplier_id TEXT,
-        date TEXT NOT NULL,
-        due_date TEXT,
-        subtotal REAL DEFAULT 0,
-        discount_amount REAL DEFAULT 0,
-        tax_amount REAL DEFAULT 0,
-        total_amount REAL DEFAULT 0,
-        amount_paid REAL DEFAULT 0,
-        amount_due REAL DEFAULT 0,
-        notes TEXT,
-        store_id TEXT NOT NULL,
-        device_id TEXT,
-        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-        sync_status INTEGER DEFAULT 0,
-        FOREIGN KEY (customer_id) REFERENCES customers(id),
-        FOREIGN KEY (supplier_id) REFERENCES suppliers(id),
-        FOREIGN KEY (store_id) REFERENCES stores(id)
-      );
-      CREATE TABLE IF NOT EXISTS invoice_items (
-        id TEXT PRIMARY KEY,
-        invoice_id TEXT NOT NULL,
-        product_id TEXT,
-        description TEXT,
-        quantity REAL NOT NULL,
-        unit_price REAL NOT NULL,
-        discount_amount REAL DEFAULT 0,
-        tax_amount REAL DEFAULT 0,
-        total REAL NOT NULL,
-        store_id TEXT NOT NULL,
-        updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-        sync_status INTEGER DEFAULT 0,
-        FOREIGN KEY (invoice_id) REFERENCES invoices(id),
-        FOREIGN KEY (product_id) REFERENCES products(id),
-        FOREIGN KEY (store_id) REFERENCES stores(id)
-      );
-    `);
+      CREATE TABLE IF NOT EXISTS invoices(
+  id TEXT PRIMARY KEY,
+  invoice_number TEXT UNIQUE NOT NULL,
+  type TEXT CHECK(type IN('customer', 'supplier')) NOT NULL,
+  status TEXT CHECK(status IN('draft', 'sent', 'paid', 'overdue', 'cancelled')) DEFAULT 'draft',
+  customer_id TEXT,
+  supplier_id TEXT,
+  date TEXT NOT NULL,
+  due_date TEXT,
+  subtotal REAL DEFAULT 0,
+  discount_amount REAL DEFAULT 0,
+  tax_amount REAL DEFAULT 0,
+  total_amount REAL DEFAULT 0,
+  amount_paid REAL DEFAULT 0,
+  amount_due REAL DEFAULT 0,
+  notes TEXT,
+  store_id TEXT NOT NULL,
+  device_id TEXT,
+  updated_at TEXT NOT NULL DEFAULT(datetime('now')),
+  sync_status INTEGER DEFAULT 0,
+  FOREIGN KEY(customer_id) REFERENCES customers(id),
+  FOREIGN KEY(supplier_id) REFERENCES suppliers(id),
+  FOREIGN KEY(store_id) REFERENCES stores(id)
+);
+      CREATE TABLE IF NOT EXISTS invoice_items(
+  id TEXT PRIMARY KEY,
+  invoice_id TEXT NOT NULL,
+  product_id TEXT,
+  description TEXT,
+  quantity REAL NOT NULL,
+  unit_price REAL NOT NULL,
+  discount_amount REAL DEFAULT 0,
+  tax_amount REAL DEFAULT 0,
+  total REAL NOT NULL,
+  store_id TEXT NOT NULL,
+  updated_at TEXT NOT NULL DEFAULT(datetime('now')),
+  sync_status INTEGER DEFAULT 0,
+  FOREIGN KEY(invoice_id) REFERENCES invoices(id),
+  FOREIGN KEY(product_id) REFERENCES products(id),
+  FOREIGN KEY(store_id) REFERENCES stores(id)
+);
+`);
     console.log('[DB] Invoice tables created via migration.');
   }
 
@@ -840,45 +840,45 @@ try {
       db.exec('DROP TABLE IF EXISTS users_new;');
 
       db.exec(`
-          CREATE TABLE users_new (
-            id TEXT PRIMARY KEY,
-            name TEXT,
-            email TEXT UNIQUE NOT NULL,
-            username TEXT UNIQUE,
-            first_name TEXT,
-            last_name TEXT,
-            password TEXT,
-            role TEXT CHECK(role IN ('admin', 'user', 'staff', 'super_admin', 'hr_manager', 'sales_manager', 'inventory_manager', 'accountant', 'employee')) NOT NULL,
-            is_staff INTEGER DEFAULT 0,
-            is_active INTEGER DEFAULT 1,
-            store_id TEXT,
-            avatar TEXT,
-            device_id TEXT,
-            updated_at TEXT NOT NULL DEFAULT (datetime('now')),
-            sync_status INTEGER DEFAULT 0,
-            FOREIGN KEY (store_id) REFERENCES stores(id)
-          );
-      `);
+          CREATE TABLE users_new(
+  id TEXT PRIMARY KEY,
+  name TEXT,
+  email TEXT UNIQUE NOT NULL,
+  username TEXT UNIQUE,
+  first_name TEXT,
+  last_name TEXT,
+  password TEXT,
+  role TEXT CHECK(role IN('admin', 'user', 'staff', 'super_admin', 'hr_manager', 'sales_manager', 'inventory_manager', 'accountant', 'employee')) NOT NULL,
+  is_staff INTEGER DEFAULT 0,
+  is_active INTEGER DEFAULT 1,
+  store_id TEXT,
+  avatar TEXT,
+  device_id TEXT,
+  updated_at TEXT NOT NULL DEFAULT(datetime('now')),
+  sync_status INTEGER DEFAULT 0,
+  FOREIGN KEY(store_id) REFERENCES stores(id)
+);
+`);
 
       db.exec('BEGIN TRANSACTION;');
       // Only copy columns that definitely exist or can be defaulted
       // Better-sqlite3 allows us to get PRAGMA table_info to be precise, but COALESCE is easier
       db.exec(`
-          INSERT INTO users_new (
-            id, name, email, username, first_name, last_name, password, role, 
-            is_staff, is_active, store_id, avatar, device_id, updated_at, sync_status
-          )
-          SELECT 
-            id, name, email, 
-            COALESCE(username, email), 
-            COALESCE(first_name, name), 
-            COALESCE(last_name, ''), 
-            password, role, 
-            COALESCE(is_staff, 0), 
-            COALESCE(is_active, 1), 
-            store_id, avatar, device_id, updated_at, sync_status 
+          INSERT INTO users_new(
+  id, name, email, username, first_name, last_name, password, role,
+  is_staff, is_active, store_id, avatar, device_id, updated_at, sync_status
+)
+SELECT
+id, name, email,
+  COALESCE(username, email),
+  COALESCE(first_name, name),
+  COALESCE(last_name, ''),
+  password, role,
+  COALESCE(is_staff, 0),
+  COALESCE(is_active, 1),
+  store_id, avatar, device_id, updated_at, sync_status 
           FROM users;
-      `);
+`);
 
       db.exec('DROP TABLE users;');
       db.exec('ALTER TABLE users_new RENAME TO users;');
@@ -896,7 +896,7 @@ try {
   try {
     const nullPasswords = db.prepare("SELECT count(*) as count FROM users WHERE password IS NULL").get();
     if (nullPasswords && nullPasswords.count > 0) {
-      console.log(`[DB] Found ${nullPasswords.count} users with missing passwords. Applying fix and forcing sync...`);
+      console.log(`[DB] Found ${ nullPasswords.count } users with missing passwords.Applying fix and forcing sync...`);
       db.prepare("UPDATE users SET password = 'ChangeMe123!', sync_status = 0 WHERE password IS NULL").run();
     }
   } catch (e) { }
@@ -912,7 +912,7 @@ try {
   if (!userInfo.some(col => col.name === 'password')) missingUserFields.push('password TEXT');
 
   missingUserFields.forEach(fieldSql => {
-    db.prepare(`ALTER TABLE users ADD COLUMN ${fieldSql}`).run();
+    db.prepare('ALTER TABLE users ADD COLUMN ' + fieldSql).run();
   });
 
   // Additional product fields for tax
@@ -955,7 +955,7 @@ try {
   for (const user of usersToHash) {
     // Check if it's already a bcrypt hash (starts with $2a$ or $2b$)
     if (user.password && !user.password.startsWith('$2a$') && !user.password.startsWith('$2b$')) {
-      console.log(`[DB] Hashing plain-text password for user: ${user.id}`);
+      console.log(`[DB] Hashing plain - text password for user: ${ user.id } `);
       const hashedPassword = bcrypt.hashSync(user.password, 10);
       db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, user.id);
     }
@@ -975,34 +975,34 @@ let deviceId = db.prepare('SELECT value FROM settings WHERE key = ?').get('devic
 if (!deviceId) {
   deviceId = crypto.randomUUID()
   db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)').run('device_id', deviceId)
-  console.log(`Generated new device_id: ${deviceId}`)
+  console.log(`Generated new device_id: ${ deviceId } `)
 } else {
-  console.log(`Existing device_id: ${deviceId}`)
+  console.log(`Existing device_id: ${ deviceId } `)
 }
 
 // Seed initial data if tables are empty
 try {
   const storeCount = db.prepare('SELECT COUNT(*) as count FROM stores').get().count
   const productCount = db.prepare('SELECT COUNT(*) as count FROM products').get().count
-  console.log(`Current DB status - Stores: ${storeCount}, Products: ${productCount}`)
+  console.log(`Current DB status - Stores: ${ storeCount }, Products: ${ productCount } `)
 
   if (storeCount === 0 || productCount === 0) {
     console.log('Seeding initial data...')
 
     // Insert stores (only if missing)
     if (storeCount === 0) {
-      db.prepare(`INSERT INTO stores (id, name, branch, address, phone, device_id) VALUES (?, ?, ?, ?, ?, ?)`).run(
+      db.prepare(`INSERT INTO stores(id, name, branch, address, phone, device_id) VALUES(?, ?, ?, ?, ?, ?)`).run(
         'store-1', 'Hardware Central', 'Main Branch', '123 Industrial Ave', '+1 555-0100', deviceId
       )
     }
 
     // Insert users
-    db.prepare(`INSERT INTO users (id, name, email, role, store_id, device_id) VALUES (?, ?, ?, ?, ?, ?)`).run(
+    db.prepare(`INSERT INTO users(id, name, email, role, store_id, device_id) VALUES(?, ?, ?, ?, ?, ?)`).run(
       'user-1', 'John Admin', 'admin@hardware.com', 'admin', 'store-1', deviceId
     )
 
     // Insert accounts
-    db.prepare(`INSERT INTO accounts (id, name, type, balance, store_id, device_id) VALUES (?, ?, ?, ?, ?, ?)`).run(
+    db.prepare(`INSERT INTO accounts(id, name, type, balance, store_id, device_id) VALUES(?, ?, ?, ?, ?, ?)`).run(
       'acc-1', 'Main Cash', 'cash', 5000, 'store-1', deviceId
     )
 
@@ -1014,12 +1014,12 @@ try {
     ]
 
     const insertProduct = db.prepare(`
-      INSERT INTO products (id, name, sku, category, selling_price, purchase_price, quantity, store_id, unit, brand, barcode, device_id, last_used)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      INSERT INTO products(id, name, sku, category, selling_price, purchase_price, quantity, store_id, unit, brand, barcode, device_id, last_used)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `)
 
     products.forEach(p => {
-      console.log(`Inserting product: ${p[1]}`)
+      console.log(`Inserting product: ${ p[1] } `)
       const params = [...p]
       params.splice(11, 0, deviceId) // Insert deviceId at correct position
       insertProduct.run(...params)
@@ -1045,7 +1045,7 @@ try {
       db.pragma('foreign_keys = OFF')
 
       try {
-        const insertAtt = db.prepare(`INSERT OR IGNORE INTO attendance (id, user_id, date, check_in, check_out, status, store_id, updated_at, sync_status) VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)`)
+        const insertAtt = db.prepare(`INSERT OR IGNORE INTO attendance(id, user_id, date, check_in, check_out, status, store_id, updated_at, sync_status) VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)`)
 
         for (let i = 30; i > 0; i--) {
           const d = new Date(today)
@@ -1062,7 +1062,7 @@ try {
           checkOutTime.setHours(18, 0, 0)
 
           insertAtt.run(
-            `att-seed-${i}`, userId, dateStr,
+            `att - seed - ${ i } `, userId, dateStr,
             checkInTime.toISOString(), checkOutTime.toISOString(),
             isLate ? 'late' : 'present', 'store-1'
           )
@@ -1071,7 +1071,7 @@ try {
         // Seed Leaves (only if leaves table exists)
         const leavesExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='leaves'").get()
         if (leavesExists) {
-          db.prepare(`INSERT OR IGNORE INTO leaves (id, user_id, start_date, end_date, type, reason, status, store_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
+          db.prepare(`INSERT OR IGNORE INTO leaves(id, user_id, start_date, end_date, type, reason, status, store_id) VALUES(?, ?, ?, ?, ?, ?, ?, ?)`)
             .run('leave-seed-1', userId, '2023-11-10', '2023-11-11', 'sick', 'Fever', 'approved', 'store-1')
         }
       } finally {
@@ -1103,9 +1103,9 @@ const dbHelpers = {
   // Products
   getAllProducts: (storeId) => {
     const products = db.prepare('SELECT * FROM products WHERE store_id = ? AND is_deleted = 0 ORDER BY updated_at DESC').all(storeId)
-    console.log(`getAllProducts for store ${storeId}: found ${products.length} products`)
+    console.log(`getAllProducts for store ${ storeId }: found ${ products.length } products`)
     if (products.length > 0) {
-      console.log(`Sample product from DB:`, JSON.stringify(toCamelCase(products[0])))
+      console.log(`Sample product from DB: `, JSON.stringify(toCamelCase(products[0])))
     }
     return products.map(toCamelCase)
   },
@@ -1117,8 +1117,8 @@ const dbHelpers = {
 
   addProduct: (product) => {
     const stmt = db.prepare(`
-      INSERT INTO products (id, name, sku, category, selling_price, purchase_price, quantity, store_id, last_used, unit, brand, barcode, min_stock, reorder_quantity, device_id, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      INSERT INTO products(id, name, sku, category, selling_price, purchase_price, quantity, store_id, last_used, unit, brand, barcode, min_stock, reorder_quantity, device_id, updated_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `)
     stmt.run(
       product.id, product.name, product.sku, product.category,
@@ -1151,7 +1151,7 @@ const dbHelpers = {
 
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${fieldMap[key]} = ?`)
+        fields.push(`${ fieldMap[key] } = ?`)
         values.push(updates[key])
       }
     })
@@ -1162,7 +1162,7 @@ const dbHelpers = {
     fields.push(`sync_status = 0`) // Dirty flag
     values.push(id)
 
-    const stmt = db.prepare(`UPDATE products SET ${fields.join(', ')} WHERE id = ?`)
+    const stmt = db.prepare(`UPDATE products SET ${ fields.join(', ') } WHERE id = ? `)
     stmt.run(...values)
 
     // Log Manual Stock Change if Quantity changed
@@ -1196,10 +1196,10 @@ const dbHelpers = {
     if (current && updates.quantity !== undefined && current.quantity !== updates.quantity) {
       const diff = updates.quantity - current.quantity
       db.prepare(`
-            INSERT INTO stock_logs (id, product_id, product_name, store_id, quantity_change, reason, device_id, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
+            INSERT INTO stock_logs(id, product_id, product_name, store_id, quantity_change, reason, device_id, created_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'))
           `).run(
-        `log-${Date.now()}`,
+        `log - ${ Date.now() } `,
         id,
         current.name,
         current.store_id,
@@ -1224,8 +1224,8 @@ const dbHelpers = {
 
   addCustomer: (customer) => {
     const stmt = db.prepare(`
-      INSERT INTO customers (id, name, phone, email, area, credit_balance, total_purchases, store_id, joined_at, device_id, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      INSERT INTO customers(id, name, phone, email, area, credit_balance, total_purchases, store_id, joined_at, device_id, updated_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `)
     stmt.run(
       customer.id, customer.name, customer.phone, customer.email,
@@ -1251,7 +1251,7 @@ const dbHelpers = {
 
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${fieldMap[key]} = ?`)
+        fields.push(`${ fieldMap[key] } = ?`)
         values.push(updates[key])
       }
     })
@@ -1262,7 +1262,7 @@ const dbHelpers = {
     fields.push(`sync_status = 0`) // Dirty flag for sync
     values.push(id)
 
-    const stmt = db.prepare(`UPDATE customers SET ${fields.join(', ')} WHERE id = ?`)
+    const stmt = db.prepare(`UPDATE customers SET ${ fields.join(', ') } WHERE id = ? `)
     stmt.run(...values)
     const result = db.prepare('SELECT * FROM customers WHERE id = ?').get(id)
     return toCamelCase(result)
@@ -1288,22 +1288,22 @@ const dbHelpers = {
       const items = sale.items
       for (const item of items) {
         const product = db.prepare('SELECT id, quantity, name, is_kit FROM products WHERE id = ?').get(item.productId)
-        if (!product) throw new Error(`Product ${item.productName} not found via ID`)
+        if (!product) throw new Error(`Product ${ item.productName } not found via ID`)
 
         if (product.is_kit) {
           const components = db.prepare('SELECT product_id, quantity FROM kit_items WHERE kit_id = ?').all(item.productId)
-          if (components.length === 0) throw new Error(`Kit ${product.name} has no components!`)
+          if (components.length === 0) throw new Error(`Kit ${ product.name } has no components!`)
 
           for (const comp of components) {
             const compProduct = db.prepare('SELECT quantity, name FROM products WHERE id = ?').get(comp.product_id)
             const totalNeeded = comp.quantity * item.quantity
             if (!compProduct || compProduct.quantity < totalNeeded) {
-              throw new Error(`Insufficient stock for kit component ${compProduct?.name || comp.product_id}. Available: ${compProduct?.quantity || 0}, Needed: ${totalNeeded}`)
+              throw new Error(`Insufficient stock for kit component ${ compProduct?.name || comp.product_id }.Available: ${ compProduct?.quantity || 0 }, Needed: ${ totalNeeded } `)
             }
           }
         } else {
           if (product.quantity < item.quantity) {
-            throw new Error(`Insufficient stock for ${product.name}. Available: ${product.quantity}, Requested: ${item.quantity}`)
+            throw new Error(`Insufficient stock for ${ product.name }.Available: ${ product.quantity }, Requested: ${ item.quantity } `)
           }
         }
       }
@@ -1314,16 +1314,16 @@ const dbHelpers = {
         if (customer && customer.credit_limit !== null) {
           const potentialBalance = customer.credit_balance + sale.totalAmount
           if (potentialBalance > customer.credit_limit) {
-            throw new Error(`Credit Limit Exceeded for ${customer.name}. Limit: $${customer.credit_limit}, Potential: $${potentialBalance.toFixed(2)}`)
+            throw new Error(`Credit Limit Exceeded for ${ customer.name }.Limit: $${ customer.credit_limit }, Potential: $${ potentialBalance.toFixed(2) } `)
           }
         }
       }
 
       // 2. Insert Sale
       const saleStmt = db.prepare(`
-        INSERT INTO sales (id, invoice_number, type, status, items, subtotal, discount_amount, tax_amount, total_amount, profit, payment_mode, account_id, customer_id, store_id, date, quotation_id, device_id, updated_at, sync_status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
-      `)
+        INSERT INTO sales(id, invoice_number, type, status, items, subtotal, discount_amount, tax_amount, total_amount, profit, payment_mode, account_id, customer_id, store_id, date, quotation_id, device_id, updated_at, sync_status)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
+  `)
       saleStmt.run(
         sale.id, sale.invoiceNumber, sale.type, sale.status || 'completed', JSON.stringify(sale.items),
         sale.subtotal || 0, sale.discountAmount || 0, sale.taxAmount || 0,
@@ -1334,9 +1334,9 @@ const dbHelpers = {
       // 2a. Insert Payments (Always generate records for audit)
       if (sale.payments && Array.isArray(sale.payments) && sale.payments.length > 0) {
         const payStmt = db.prepare(`
-          INSERT INTO sale_payments (id, sale_id, payment_mode, amount, account_id, sync_status, updated_at)
-          VALUES (?, ?, ?, ?, ?, 0, datetime('now'))
-        `)
+          INSERT INTO sale_payments(id, sale_id, payment_mode, amount, account_id, sync_status, updated_at)
+VALUES(?, ?, ?, ?, ?, 0, datetime('now'))
+  `)
         for (const p of sale.payments) {
           payStmt.run(p.id || crypto.randomUUID(), sale.id, p.paymentMode, p.amount, p.accountId)
           dbHelpers.updateAccountBalance(p.accountId, p.amount)
@@ -1345,9 +1345,9 @@ const dbHelpers = {
         // Fallback: Create single payment record if not credit
         const payId = crypto.randomUUID()
         db.prepare(`
-          INSERT INTO sale_payments (id, sale_id, payment_mode, amount, account_id, sync_status, updated_at)
-          VALUES (?, ?, ?, ?, ?, 0, datetime('now'))
-        `).run(payId, sale.id, sale.paymentMode || 'cash', sale.totalAmount, sale.accountId || 'acc-cash')
+          INSERT INTO sale_payments(id, sale_id, payment_mode, amount, account_id, sync_status, updated_at)
+VALUES(?, ?, ?, ?, ?, 0, datetime('now'))
+  `).run(payId, sale.id, sale.paymentMode || 'cash', sale.totalAmount, sale.accountId || 'acc-cash')
 
         dbHelpers.updateAccountBalance(sale.accountId || 'acc-cash', sale.totalAmount)
       }
@@ -1356,8 +1356,8 @@ const dbHelpers = {
       if (sale.status === 'work_order' || sale.workOrder) {
         const wo = sale.workOrder || {}
         db.prepare(`
-          INSERT INTO work_orders (id, sale_id, status, notes, store_id, updated_at, sync_status)
-          VALUES (?, ?, ?, ?, ?, datetime('now'), 0)
+          INSERT INTO work_orders(id, sale_id, status, notes, store_id, updated_at, sync_status)
+VALUES(?, ?, ?, ?, ?, datetime('now'), 0)
         `).run(wo.id || crypto.randomUUID(), sale.id, wo.status || 'pending', wo.notes || '', sale.storeId)
       }
 
@@ -1367,13 +1367,13 @@ const dbHelpers = {
         if (del.employeeId) {
           const driver = db.prepare('SELECT is_driver FROM users WHERE id = ?').get(del.employeeId)
           if (!driver || driver.is_driver !== 1) {
-            throw new Error(`Assignment Failed: User ${del.employeeId} is not a registered driver.`)
+            throw new Error(`Assignment Failed: User ${ del.employeeId } is not a registered driver.`)
           }
         }
         db.prepare(`
-          INSERT INTO deliveries (id, sale_id, employee_id, address, delivery_charge, is_cod, status, delivery_date, store_id, updated_at, sync_status)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
-        `).run(
+          INSERT INTO deliveries(id, sale_id, employee_id, address, delivery_charge, is_cod, status, delivery_date, store_id, updated_at, sync_status)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
+  `).run(
           del.id || crypto.randomUUID(), sale.id, del.employeeId, del.address || '',
           del.deliveryCharge || 0, del.isCod ? 1 : 0, del.status || 'pending',
           del.deliveryDate, sale.storeId
@@ -1383,8 +1383,8 @@ const dbHelpers = {
       // 3. Update Stock & Logs
       const updateStockStmt = db.prepare('UPDATE products SET quantity = quantity - ?, last_used = ?, updated_at = datetime(\'now\'), sync_status = 0 WHERE id = ?')
       const logStmt = db.prepare(`
-        INSERT INTO stock_logs (id, product_id, product_name, store_id, quantity_change, reason, reference_id, device_id, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        INSERT INTO stock_logs(id, product_id, product_name, store_id, quantity_change, reason, reference_id, device_id, created_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       `)
 
       for (const item of items) {
@@ -1395,7 +1395,7 @@ const dbHelpers = {
             const compNeeded = comp.quantity * item.quantity
             updateStockStmt.run(compNeeded, new Date().toISOString(), comp.product_id)
             logStmt.run(
-              `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+              `${ Date.now() } -${ Math.random().toString(36).substr(2, 9) } `,
               comp.product_id, comp.name, sale.storeId, -compNeeded, 'KIT_SALE_PART',
               sale.invoiceNumber, deviceId
             )
@@ -1403,7 +1403,7 @@ const dbHelpers = {
         } else {
           updateStockStmt.run(item.quantity, new Date().toISOString(), item.productId)
           logStmt.run(
-            `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+            `${ Date.now() } -${ Math.random().toString(36).substr(2, 9) } `,
             item.productId, item.productName, sale.storeId, -item.quantity, 'SALE',
             sale.invoiceNumber, deviceId
           )
@@ -1425,10 +1425,10 @@ const dbHelpers = {
         const commissionPercentage = 2.0 // Configurable default
         const commissionAmount = (sale.totalAmount * commissionPercentage) / 100
         const commStmt = db.prepare(`
-          INSERT INTO commissions (id, user_id, sale_id, amount, percentage, sync_status)
-          VALUES (?, ?, ?, ?, ?, 0)
+          INSERT INTO commissions(id, user_id, sale_id, amount, percentage, sync_status)
+VALUES(?, ?, ?, ?, ?, 0)
         `)
-        commStmt.run(`${sale.id}-comm`, sale.userId, sale.id, commissionAmount, commissionPercentage)
+        commStmt.run(`${ sale.id } -comm`, sale.userId, sale.id, commissionAmount, commissionPercentage)
       }
 
       // Feature 7: Loyalty Points
@@ -1436,10 +1436,10 @@ const dbHelpers = {
         const points = Math.floor(sale.totalAmount / 100) // 1 point per 100 rs
         if (points > 0) {
           dbHelpers.addLoyaltyPoints({
-            id: `${sale.id}-lp`,
+            id: `${ sale.id } -lp`,
             customerId: sale.customerId,
             points: points,
-            reason: `Sale ${sale.invoiceNumber}`,
+            reason: `Sale ${ sale.invoiceNumber } `,
             saleId: sale.id
           })
         }
@@ -1474,25 +1474,25 @@ const dbHelpers = {
 
     // 1. Sales Metrics
     const salesMetrics = db.prepare(`
-      SELECT 
-        SUM(total_amount) as total_revenue,
-        SUM(profit) as total_profit,
-        COUNT(*) as total_sales,
-        SUM(CASE WHEN date >= ? THEN total_amount ELSE 0 END) as today_revenue,
-        SUM(CASE WHEN date >= ? THEN profit ELSE 0 END) as today_profit
+SELECT
+SUM(total_amount) as total_revenue,
+  SUM(profit) as total_profit,
+  COUNT(*) as total_sales,
+  SUM(CASE WHEN date >= ? THEN total_amount ELSE 0 END) as today_revenue,
+  SUM(CASE WHEN date >= ? THEN profit ELSE 0 END) as today_profit
       FROM sales 
       WHERE store_id = ?
-    `).get(today, today, storeId)
+  `).get(today, today, storeId)
 
     // 2. Inventory Metrics
     const inventoryMetrics = db.prepare(`
-      SELECT 
-        SUM(quantity) as total_items,
-        SUM(quantity * purchase_price) as inventory_value,
-        COUNT(CASE WHEN quantity <= min_stock AND is_deleted = 0 THEN 1 END) as low_stock_count
+      SELECT
+SUM(quantity) as total_items,
+  SUM(quantity * purchase_price) as inventory_value,
+  COUNT(CASE WHEN quantity <= min_stock AND is_deleted = 0 THEN 1 END) as low_stock_count
       FROM products 
       WHERE store_id = ? AND is_deleted = 0
-    `).get(storeId)
+  `).get(storeId)
 
     // 3. Customers
     const customerCount = db.prepare('SELECT COUNT(*) as count FROM customers WHERE store_id = ?').get(storeId).count
@@ -1503,9 +1503,9 @@ const dbHelpers = {
       FROM sales s
       LEFT JOIN customers c ON s.customer_id = c.id
       WHERE s.store_id = ?
-      ORDER BY s.date DESC
+  ORDER BY s.date DESC
       LIMIT 5
-    `).all(storeId).map(toCamelCase)
+  `).all(storeId).map(toCamelCase)
 
     // 5. Low Stock Items
     const lowStockItems = db.prepare(`
@@ -1514,7 +1514,7 @@ const dbHelpers = {
       WHERE store_id = ? AND quantity <= min_stock AND is_deleted = 0
       ORDER BY quantity ASC
       LIMIT 5
-    `).all(storeId).map(toCamelCase)
+  `).all(storeId).map(toCamelCase)
 
     return {
       revenue: salesMetrics.total_revenue || 0,
@@ -1533,8 +1533,8 @@ const dbHelpers = {
 
   addUser: (user) => {
     const stmt = db.prepare(`
-      INSERT INTO users (id, name, email, username, first_name, last_name, password, role, is_staff, is_active, store_id, avatar, device_id, updated_at, sync_status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
+      INSERT INTO users(id, name, email, username, first_name, last_name, password, role, is_staff, is_active, store_id, avatar, device_id, updated_at, sync_status)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     `)
     const nameParts = (user.name || '').split(' ', 1)
     const firstName = user.firstName || nameParts[0] || ''
@@ -1572,7 +1572,7 @@ const dbHelpers = {
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${fieldMap[key]} = ?`)
+        fields.push(`${ fieldMap[key] } = ?`)
         let val = updates[key];
         if (key === 'password' && val) {
           val = bcrypt.hashSync(val, 10);
@@ -1582,7 +1582,7 @@ const dbHelpers = {
     })
     if (fields.length === 0) return dbHelpers.getAllUsers().find(u => u.id === id)
     values.push(id)
-    db.prepare(`UPDATE users SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ?`).run(...values)
+    db.prepare(`UPDATE users SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
     const result = db.prepare('SELECT * FROM users WHERE id = ?').get(id)
     return toCamelCase(result)
   },
@@ -1616,14 +1616,14 @@ const dbHelpers = {
 
   addSupplier: (supplier) => {
     const stmt = db.prepare(`
-      INSERT INTO suppliers (
-        id, supplier_code, company_name, first_name, last_name, email, phone, website,
-        address_line1, address_line2, city, state, zip_code, country,
-        account_number, opening_balance, payment_term_id, credit_limit, tax_number, currency,
-        current_balance, internal_notes, comments, logo, documents, status, rating,
-        is_preferred, is_blacklisted, store_id, device_id, updated_at
-      )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      INSERT INTO suppliers(
+  id, supplier_code, company_name, first_name, last_name, email, phone, website,
+  address_line1, address_line2, city, state, zip_code, country,
+  account_number, opening_balance, payment_term_id, credit_limit, tax_number, currency,
+  current_balance, internal_notes, comments, logo, documents, status, rating,
+  is_preferred, is_blacklisted, store_id, device_id, updated_at
+)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `)
     stmt.run(
       supplier.id, supplier.supplierCode || null, supplier.companyName, supplier.firstName, supplier.lastName,
@@ -1677,7 +1677,7 @@ const dbHelpers = {
 
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${fieldMap[key]} = ?`)
+        fields.push(`${ fieldMap[key] } = ?`)
         values.push(key.startsWith('is') ? (updates[key] ? 1 : 0) : updates[key])
       }
     })
@@ -1688,7 +1688,7 @@ const dbHelpers = {
     fields.push(`sync_status = 0`)
     values.push(id)
 
-    const stmt = db.prepare(`UPDATE suppliers SET ${fields.join(', ')} WHERE id = ?`)
+    const stmt = db.prepare(`UPDATE suppliers SET ${ fields.join(', ') } WHERE id = ? `)
     stmt.run(...values)
 
     const result = db.prepare('SELECT * FROM suppliers WHERE id = ?').get(id)
@@ -1707,9 +1707,9 @@ const dbHelpers = {
 
   addSupplierTransaction: (tx) => {
     const stmt = db.prepare(`
-      INSERT INTO supplier_transactions (id, supplier_id, type, amount, balance_after, date, reference_id, description, store_id, device_id)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `)
+      INSERT INTO supplier_transactions(id, supplier_id, type, amount, balance_after, date, reference_id, description, store_id, device_id)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `)
     stmt.run(
       tx.id, tx.supplierId, tx.type, tx.amount, tx.balanceAfter,
       tx.date, tx.referenceId, tx.description, tx.storeId, deviceId
@@ -1730,13 +1730,13 @@ const dbHelpers = {
     const purchases = db.prepare(`
       SELECT 'PURCHASE' as type, invoice_number as reference, total_amount as debit, 0 as credit, date 
       FROM purchases WHERE supplier = ?
-    `).all(supplier.company_name)
+  `).all(supplier.company_name)
 
     // Get all payments (transactions) for supplier
     const txs = db.prepare(`
       SELECT 'PAYMENT' as type, reference_id as reference, 0 as debit, amount as credit, date 
       FROM supplier_transactions WHERE supplier_id = ?
-    `).all(supplierId)
+  `).all(supplierId)
 
     // Combine and sort by date ascending for balance calculation
     const ledger = [...purchases, ...txs].sort((a, b) => new Date(a.date) - new Date(b.date))
@@ -1776,9 +1776,9 @@ const dbHelpers = {
 
   addSupplierCustomField: (field) => {
     const stmt = db.prepare(`
-      INSERT INTO supplier_custom_fields (id, name, field_type, is_required, show_on_receipt, hide_label, options, store_id, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-    `)
+      INSERT INTO supplier_custom_fields(id, name, field_type, is_required, show_on_receipt, hide_label, options, store_id, updated_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+  `)
     stmt.run(
       field.id, field.name, field.fieldType, field.isRequired ? 1 : 0,
       field.showOnReceipt ? 1 : 0, field.hideLabel ? 1 : 0, field.options, field.storeId
@@ -1794,10 +1794,10 @@ const dbHelpers = {
 
   saveSupplierCustomValue: (val) => {
     const stmt = db.prepare(`
-      INSERT INTO supplier_custom_values (id, supplier_id, field_id, value, updated_at)
-      VALUES (?, ?, ?, ?, datetime('now'))
+      INSERT INTO supplier_custom_values(id, supplier_id, field_id, value, updated_at)
+VALUES(?, ?, ?, ?, datetime('now'))
       ON CONFLICT(id) DO UPDATE SET value = excluded.value, updated_at = datetime('now')
-    `)
+  `)
     stmt.run(val.id, val.supplierId, val.fieldId, val.value)
     return true
   },
@@ -1808,8 +1808,8 @@ const dbHelpers = {
       SELECT r.*, s.company_name as supplier_name 
       FROM receivings r 
       JOIN suppliers s ON r.supplier_id = s.id 
-      WHERE r.store_id = ? 
-      ORDER BY r.updated_at DESC
+      WHERE r.store_id = ?
+  ORDER BY r.updated_at DESC
     `).all(storeId)
     return receivings.map(toCamelCase)
   },
@@ -1820,7 +1820,7 @@ const dbHelpers = {
       FROM receivings r 
       JOIN suppliers s ON r.supplier_id = s.id 
       WHERE r.id = ?
-    `)
+  `)
     const receiving = stmt.get(id)
     if (!receiving) return null
 
@@ -1834,13 +1834,13 @@ const dbHelpers = {
   addReceiving: (receiving) => {
     const transaction = db.transaction(() => {
       const stmt = db.prepare(`
-        INSERT INTO receivings (
-          id, receiving_number, supplier_id, purchase_order_id, total_amount, 
-          discount_total, amount_paid, amount_due, account_id, status, notes, 
-          custom_fields, store_id, device_id, updated_at
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-      `)
+        INSERT INTO receivings(
+    id, receiving_number, supplier_id, purchase_order_id, total_amount,
+    discount_total, amount_paid, amount_due, account_id, status, notes,
+    custom_fields, store_id, device_id, updated_at
+  )
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+  `)
 
       stmt.run(
         receiving.id, receiving.receivingNumber, receiving.supplierId,
@@ -1853,12 +1853,12 @@ const dbHelpers = {
 
       if (receiving.items && receiving.items.length > 0) {
         const itemStmt = db.prepare(`
-          INSERT INTO receiving_items (
-            id, receiving_id, product_id, product_name, cost, quantity, 
-            discount_pct, total, batch_number, expiry_date, serial_number, 
-            location, selling_price, upc, description, store_id, updated_at
-          )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+          INSERT INTO receiving_items(
+    id, receiving_id, product_id, product_name, cost, quantity,
+    discount_pct, total, batch_number, expiry_date, serial_number,
+    location, selling_price, upc, description, store_id, updated_at
+  )
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
         `)
 
         for (const item of receiving.items) {
@@ -1891,7 +1891,7 @@ const dbHelpers = {
 
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${fieldMap[key]} = ?`)
+        fields.push(`${ fieldMap[key] } = ?`)
         values.push(updates[key])
       }
     })
@@ -1900,7 +1900,7 @@ const dbHelpers = {
       fields.push(`updated_at = datetime('now')`)
       fields.push(`sync_status = 0`)
       values.push(id)
-      db.prepare(`UPDATE receivings SET ${fields.join(', ')} WHERE id = ?`).run(...values)
+      db.prepare(`UPDATE receivings SET ${ fields.join(', ') } WHERE id = ? `).run(...values)
     }
 
     // Special case: update items if provided
@@ -1908,13 +1908,13 @@ const dbHelpers = {
       const transaction = db.transaction(() => {
         db.prepare('DELETE FROM receiving_items WHERE receiving_id = ?').run(id)
         const itemStmt = db.prepare(`
-          INSERT INTO receiving_items (
-            id, receiving_id, product_id, product_name, cost, quantity, 
-            discount_pct, total, batch_number, expiry_date, serial_number, 
-            location, selling_price, upc, description, store_id, updated_at
-          )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-        `)
+          INSERT INTO receiving_items(
+  id, receiving_id, product_id, product_name, cost, quantity,
+  discount_pct, total, batch_number, expiry_date, serial_number,
+  location, selling_price, upc, description, store_id, updated_at
+)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+  `)
 
         const receiving = db.prepare('SELECT store_id FROM receivings WHERE id = ?').get(id)
         for (const item of updates.items) {
@@ -1941,18 +1941,18 @@ const dbHelpers = {
       // 1. Update Product Quantities & Purchase Prices
       const updateProdStmt = db.prepare('UPDATE products SET quantity = quantity + ?, purchase_price = ?, updated_at = datetime(\'now\'), sync_status = 0 WHERE id = ?')
       const logStmt = db.prepare(`
-        INSERT INTO stock_logs (id, product_id, product_name, store_id, quantity_change, reason, reference_id, device_id, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        INSERT INTO stock_logs(id, product_id, product_name, store_id, quantity_change, reason, reference_id, device_id, created_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       `)
 
       for (const item of receiving.items) {
         updateProdStmt.run(item.quantity, item.cost, item.productId)
-        logStmt.run(`${id}-${item.productId}-log`, item.productId, item.productName, receiving.storeId, item.quantity, 'receiving', receiving.receivingNumber, deviceId)
+        logStmt.run(`${ id } -${ item.productId } -log`, item.productId, item.productName, receiving.storeId, item.quantity, 'receiving', receiving.receivingNumber, deviceId)
       }
 
       // 2. Create Supplier Transaction (Purchase) & Update Balance
       const supplier = db.prepare('SELECT id, COALESCE(current_balance, 0) as current_balance FROM suppliers WHERE id = ?').get(receiving.supplierId)
-      if (!supplier) throw new Error(`Supplier ${receiving.supplierId} not found`)
+      if (!supplier) throw new Error(`Supplier ${ receiving.supplierId } not found`)
 
       const newBalance = supplier.current_balance + receiving.totalAmount
 
@@ -1960,14 +1960,14 @@ const dbHelpers = {
       db.prepare('UPDATE suppliers SET current_balance = ?, updated_at = datetime(\'now\'), sync_status = 0 WHERE id = ?').run(newBalance, receiving.supplierId)
 
       dbHelpers.addSupplierTransaction({
-        id: `stx-${Date.now()}`,
+        id: `stx - ${ Date.now() } `,
         supplierId: receiving.supplierId,
         type: 'purchase',
         amount: receiving.totalAmount,
         balanceAfter: newBalance,
         date: new Date().toISOString(),
         referenceId: receiving.receivingNumber,
-        description: `Receiving #${receiving.receivingNumber}`,
+        description: `Receiving #${ receiving.receivingNumber } `,
         storeId: receiving.storeId
       })
 
@@ -1979,23 +1979,23 @@ const dbHelpers = {
       // 4. Update Receiving Header
       db.prepare(`
         UPDATE receivings 
-        SET status = 'completed', amount_paid = ?, amount_due = ?, account_id = ?, 
-            completed_at = datetime('now'), updated_at = datetime('now'), sync_status = 0 
+        SET status = 'completed', amount_paid = ?, amount_due = ?, account_id = ?,
+  completed_at = datetime('now'), updated_at = datetime('now'), sync_status = 0 
         WHERE id = ?
-      `).run(amountPaid, receiving.totalAmount - amountPaid, accountId || null, id)
+  `).run(amountPaid, receiving.totalAmount - amountPaid, accountId || null, id)
 
       // 5. If payment made, create payment transaction
       if (amountPaid > 0) {
         const balanceAfterPayment = newBalance - amountPaid
         dbHelpers.addSupplierTransaction({
-          id: `stx-${Date.now()}-pay`,
+          id: `stx - ${ Date.now() } -pay`,
           supplierId: receiving.supplierId,
           type: 'payment',
           amount: amountPaid,
           balanceAfter: balanceAfterPayment,
           date: new Date().toISOString(),
           referenceId: receiving.receivingNumber,
-          description: `Payment for Receiving #${receiving.receivingNumber}`,
+          description: `Payment for Receiving #${ receiving.receivingNumber }`,
           storeId: receiving.storeId
         })
 
@@ -2024,14 +2024,14 @@ const dbHelpers = {
       const newBalance = supplier.current_balance - amount
 
       dbHelpers.addSupplierTransaction({
-        id: `stx-${Date.now()}`,
+        id: `stx - ${ Date.now() } `,
         supplierId: receiving.supplier_id,
         type: 'payment',
         amount: amount,
         balanceAfter: newBalance,
         date: new Date().toISOString(),
         referenceId: receiving.receiving_number,
-        description: `Partial payment for #${receiving.receiving_number}`,
+        description: `Partial payment for #${ receiving.receiving_number }`,
         storeId: receiving.store_id
       })
 
@@ -2058,28 +2058,28 @@ const dbHelpers = {
   // ── Invoice Module ──────────────────────────────────────────
   getInvoices: (storeId) => {
     const invoices = db.prepare(`
-      SELECT i.*, 
-             c.name as customer_name,
-             s.company_name as supplier_name
+      SELECT i.*,
+    c.name as customer_name,
+    s.company_name as supplier_name
       FROM invoices i
       LEFT JOIN customers c ON i.customer_id = c.id
       LEFT JOIN suppliers s ON i.supplier_id = s.id
       WHERE i.store_id = ?
-      ORDER BY i.date DESC
+  ORDER BY i.date DESC
     `).all(storeId)
     return invoices.map(toCamelCase)
   },
 
   getInvoiceById: (id) => {
     const invoice = db.prepare(`
-      SELECT i.*, 
-             c.name as customer_name,
-             s.company_name as supplier_name
+      SELECT i.*,
+  c.name as customer_name,
+  s.company_name as supplier_name
       FROM invoices i
       LEFT JOIN customers c ON i.customer_id = c.id
       LEFT JOIN suppliers s ON i.supplier_id = s.id
       WHERE i.id = ?
-    `).get(id)
+  `).get(id)
 
     if (!invoice) return null
 
@@ -2093,14 +2093,14 @@ const dbHelpers = {
   createInvoice: (invoice) => {
     const transaction = db.transaction(() => {
       const stmt = db.prepare(`
-        INSERT INTO invoices (
-          id, invoice_number, type, status, customer_id, supplier_id,
-          date, due_date, subtotal, discount_amount, tax_amount,
-          total_amount, amount_paid, amount_due, notes, store_id,
-          device_id, updated_at
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-      `)
+        INSERT INTO invoices(
+    id, invoice_number, type, status, customer_id, supplier_id,
+    date, due_date, subtotal, discount_amount, tax_amount,
+    total_amount, amount_paid, amount_due, notes, store_id,
+    device_id, updated_at
+  )
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+  `)
 
       stmt.run(
         invoice.id, invoice.invoiceNumber, invoice.type, invoice.status || 'draft',
@@ -2113,11 +2113,11 @@ const dbHelpers = {
 
       if (invoice.items && invoice.items.length > 0) {
         const itemStmt = db.prepare(`
-          INSERT INTO invoice_items (
-            id, invoice_id, product_id, description, quantity, unit_price,
-            discount_amount, tax_amount, total, store_id, updated_at
-          )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+          INSERT INTO invoice_items(
+    id, invoice_id, product_id, description, quantity, unit_price,
+    discount_amount, tax_amount, total, store_id, updated_at
+  )
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
         `)
 
         for (const item of invoice.items) {
@@ -2147,7 +2147,7 @@ const dbHelpers = {
 
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${fieldMap[key]} = ?`)
+        fields.push(`${ fieldMap[key] } = ?`)
         values.push(updates[key])
       }
     })
@@ -2156,19 +2156,19 @@ const dbHelpers = {
       fields.push(`updated_at = datetime('now')`)
       fields.push(`sync_status = 0`)
       values.push(id)
-      db.prepare(`UPDATE invoices SET ${fields.join(', ')} WHERE id = ?`).run(...values)
+      db.prepare(`UPDATE invoices SET ${ fields.join(', ') } WHERE id = ? `).run(...values)
     }
 
     if (updates.items) {
       const transaction = db.transaction(() => {
         db.prepare('DELETE FROM invoice_items WHERE invoice_id = ?').run(id)
         const itemStmt = db.prepare(`
-          INSERT INTO invoice_items (
-            id, invoice_id, product_id, description, quantity, unit_price,
-            discount_amount, tax_amount, total, store_id, updated_at
-          )
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-        `)
+          INSERT INTO invoice_items(
+  id, invoice_id, product_id, description, quantity, unit_price,
+  discount_amount, tax_amount, total, store_id, updated_at
+)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+  `)
 
         const inv = db.prepare('SELECT store_id FROM invoices WHERE id = ?').get(id)
         for (const item of updates.items) {
@@ -2225,9 +2225,9 @@ const dbHelpers = {
 
   addQuotation: (quotation) => {
     const stmt = db.prepare(`
-      INSERT INTO quotations (id, quotation_number, items, total_amount, customer_id, customer_name, customer_phone, store_id, date, expiry_date, status, notes, device_id, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-    `)
+      INSERT INTO quotations(id, quotation_number, items, total_amount, customer_id, customer_name, customer_phone, store_id, date, expiry_date, status, notes, device_id, updated_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+  `)
     return stmt.run(
       quotation.id, quotation.quotationNumber, JSON.stringify(quotation.items),
       quotation.totalAmount, quotation.customerId, quotation.customerName,
@@ -2241,9 +2241,9 @@ const dbHelpers = {
     const transaction = db.transaction(() => {
       // 1. Insert Purchase
       const stmt = db.prepare(`
-        INSERT INTO purchases (id, invoice_number, supplier, type, items, total_amount, store_id, account_id, date, device_id, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-      `)
+        INSERT INTO purchases(id, invoice_number, supplier, type, items, total_amount, store_id, account_id, date, device_id, updated_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+  `)
       stmt.run(
         purchase.id, purchase.invoiceNumber, purchase.supplier, purchase.type,
         JSON.stringify(purchase.items), purchase.totalAmount, purchase.storeId,
@@ -2257,15 +2257,15 @@ const dbHelpers = {
       const updateStockStmt = db.prepare('UPDATE products SET quantity = quantity + ?, updated_at = datetime(\'now\'), sync_status = 0 WHERE id = ?')
 
       const logStmt = db.prepare(`
-        INSERT INTO stock_logs (id, product_id, product_name, store_id, quantity_change, reason, reference_id, device_id, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        INSERT INTO stock_logs(id, product_id, product_name, store_id, quantity_change, reason, reference_id, device_id, created_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       `)
 
       for (const item of purchase.items) {
         updateStockStmt.run(item.quantity, item.productId)
 
         logStmt.run(
-          `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          `${ Date.now() } -${ Math.random().toString(36).substr(2, 9) } `,
           item.productId,
           item.productName,
           purchase.storeId,
@@ -2292,9 +2292,9 @@ const dbHelpers = {
 
   addTransaction: (transaction) => {
     const stmt = db.prepare(`
-      INSERT INTO transactions (id, type, amount, description, customer_id, customer_name, store_id, account_id, date, device_id, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-    `)
+      INSERT INTO transactions(id, type, amount, description, customer_id, customer_name, store_id, account_id, date, device_id, updated_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+  `)
     stmt.run(
       transaction.id, transaction.type, transaction.amount, transaction.description,
       transaction.customerId, transaction.customerName, transaction.storeId,
@@ -2327,11 +2327,11 @@ const dbHelpers = {
     }
 
     const stmt = db.prepare(`
-      INSERT INTO attendance (id, user_id, date, check_in, status, store_id, updated_at, sync_status)
-      VALUES (?, ?, ?, ?, ?, ?, datetime('now'), 0)
+      INSERT INTO attendance(id, user_id, date, check_in, status, store_id, updated_at, sync_status)
+VALUES(?, ?, ?, ?, ?, ?, datetime('now'), 0)
     `)
 
-    const id = `att-${Date.now()}`
+    const id = `att - ${ Date.now() } `
     const checkInTime = new Date().toISOString()
     // Simple logic: Late if after 9:30 AM
     const hour = new Date().getHours()
@@ -2377,10 +2377,10 @@ const dbHelpers = {
 
   applyLeave: (leave) => {
     const stmt = db.prepare(`
-        INSERT INTO leaves (id, user_id, start_date, end_date, type, reason, status, store_id, updated_at, sync_status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
+        INSERT INTO leaves(id, user_id, start_date, end_date, type, reason, status, store_id, updated_at, sync_status)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     `)
-    const id = `leave-${Date.now()}`
+    const id = `leave - ${ Date.now() } `
     stmt.run(id, leave.userId, leave.startDate, leave.endDate, leave.type, leave.reason, 'pending', leave.storeId)
     return { success: true, id }
   },
@@ -2390,8 +2390,8 @@ const dbHelpers = {
       SELECT l.*, u.name as user_name, u.role as user_role 
       FROM leaves l 
       JOIN users u ON l.user_id = u.id 
-      WHERE l.store_id = ? 
-      ORDER BY l.start_date DESC
+      WHERE l.store_id = ?
+  ORDER BY l.start_date DESC
     `).all(storeId).map(toCamelCase)
   },
 
@@ -2406,11 +2406,11 @@ const dbHelpers = {
       FROM shifts s 
       JOIN users u ON s.user_id = u.id 
       WHERE s.store_id = ?
-    `
+  `
     const params = [storeId]
 
     if (startDate && endDate) {
-      query += ` AND s.start_time BETWEEN ? AND ?`
+      query += ` AND s.start_time BETWEEN ? AND ? `
       params.push(startDate, endDate)
     }
 
@@ -2421,9 +2421,9 @@ const dbHelpers = {
 
   assignShift: (shift) => {
     const stmt = db.prepare(`
-      INSERT INTO shifts (id, user_id, store_id, start_time, end_time, type, status, updated_at) 
-      VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))
-    `)
+      INSERT INTO shifts(id, user_id, store_id, start_time, end_time, type, status, updated_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'))
+  `)
     stmt.run(
       shift.id, shift.userId, shift.storeId, shift.startTime,
       shift.endTime, shift.type, 'assigned'
@@ -2442,16 +2442,16 @@ const dbHelpers = {
 
 
     return db.prepare(`
-        SELECT 
-            u.id as user_id, 
-            u.name, 
-            COUNT(c.id) as sale_count, 
-            COALESCE(SUM(c.amount), 0) / (COALESCE(c.percentage, 2.0)/100.0) as estimated_revenue -- Reverse calc if needed, or just sum sales.total_amount joined
+SELECT
+u.id as user_id,
+  u.name,
+  COUNT(c.id) as sale_count,
+  COALESCE(SUM(c.amount), 0) / (COALESCE(c.percentage, 2.0) / 100.0) as estimated_revenue --Reverse calc if needed, or just sum sales.total_amount joined
         FROM users u
         LEFT JOIN commissions c ON u.id = c.user_id
         LEFT JOIN sales s ON c.sale_id = s.id
         WHERE u.store_id = ? AND s.date BETWEEN ? AND ?
-        GROUP BY u.id
+  GROUP BY u.id
     `).all(storeId, startDate, endDate).map(toCamelCase)
     // Wait, let's look at the complexity.
     // If I want to verify "Sales", I should probably link Sales to Users. 
@@ -2463,10 +2463,10 @@ const dbHelpers = {
         SELECT sl.*, p.name as product_name, p.sku
         FROM stock_logs sl
         JOIN products p ON sl.product_id = p.id
-        WHERE sl.store_id = ? 
-        AND sl.reason != 'SALE' -- Filter out normal sales
+        WHERE sl.store_id = ?
+  AND sl.reason != 'SALE' -- Filter out normal sales
         AND sl.created_at BETWEEN ? AND ?
-        ORDER BY sl.created_at DESC
+  ORDER BY sl.created_at DESC
     `).all(storeId, startDate, endDate).map(toCamelCase)
   },
 
@@ -2475,9 +2475,9 @@ const dbHelpers = {
     const transaction = db.transaction(() => {
       // Create transfer record
       const stmt = db.prepare(`
-        INSERT INTO stock_transfers (id, product_id, from_store_id, to_store_id, quantity, status, device_id, updated_at)
-        VALUES (?, ?, ?, ?, ?, 'pending', ?, datetime('now'))
-      `)
+        INSERT INTO stock_transfers(id, product_id, from_store_id, to_store_id, quantity, status, device_id, updated_at)
+VALUES(?, ?, ?, ?, ?, 'pending', ?, datetime('now'))
+  `)
       stmt.run(transfer.id, transfer.productId, transfer.fromStoreId, transfer.toStoreId, transfer.quantity, deviceId)
 
       // If status is completed, update stock in both stores
@@ -2524,13 +2524,13 @@ const dbHelpers = {
     const sales = db.prepare(`
       SELECT 'SALE' as type, invoice_number as reference, total_amount as debit, 0 as credit, date 
       FROM sales WHERE customer_id = ?
-    `).all(customerId)
+  `).all(customerId)
 
     // Get all payments (transactions) for customer
     const txs = db.prepare(`
       SELECT 'PAYMENT' as type, type as reference, 0 as debit, amount as credit, date 
       FROM transactions WHERE customer_id = ? AND type = 'cash_in'
-    `).all(customerId)
+  `).all(customerId)
 
     // Combine and sort by date ascending for balance calculation
     const ledger = [...sales, ...txs].sort((a, b) => new Date(a.date) - new Date(b.date))
@@ -2553,29 +2553,29 @@ const dbHelpers = {
   // 8. Barcode Designer/Printer (Utility)
   generateBarcode: (sku) => {
     // Return a mock SVG as a data URI
-    const barcodeText = `${sku}-${Date.now().toString().slice(-4)}`
+    const barcodeText = `${ sku } -${ Date.now().toString().slice(-4) } `
     const bars = barcodeText.split('').map((c, i) => {
       const width = (c.charCodeAt(0) % 4) + 1
-      return `<rect x="${i * 10}" y="0" width="${width}" height="40" fill="black"/>`
+      return `< rect x = "${i * 10}" y = "0" width = "${width}" height = "40" fill = "black" /> `
     }).join('')
 
     const svg = `
-      <svg xmlns="http://www.w3.org/2000/svg" width="250" height="80">
+  < svg xmlns = "http://www.w3.org/2000/svg" width = "250" height = "80" >
         <rect width="250" height="80" fill="white"/>
         <g transform="translate(10,10)">
           ${bars}
         </g>
         <text x="125" y="70" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" fill="black">${barcodeText}</text>
-      </svg>
-    `
-    return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
+      </svg >
+  `
+    return `data: image / svg + xml; base64, ${ Buffer.from(svg).toString('base64') } `
   },
 
   // Stores
   addStore: (store) => {
     const stmt = db.prepare(`
-      INSERT INTO stores (id, name, branch, address, phone, device_id, updated_at, sync_status)
-      VALUES (?, ?, ?, ?, ?, ?, datetime('now'), 0)
+      INSERT INTO stores(id, name, branch, address, phone, device_id, updated_at, sync_status)
+VALUES(?, ?, ?, ?, ?, ?, datetime('now'), 0)
     `)
     stmt.run(store.id, store.name, store.branch, store.address, store.phone, deviceId)
     return dbHelpers.getAllStores().find(s => s.id === store.id)
@@ -2592,7 +2592,7 @@ const dbHelpers = {
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${fieldMap[key]} = ?`)
+        fields.push(`${ fieldMap[key] } = ?`)
         values.push(updates[key])
       }
     })
@@ -2600,7 +2600,7 @@ const dbHelpers = {
     fields.push(`updated_at = datetime('now')`)
     fields.push(`sync_status = 0`)
     values.push(id)
-    db.prepare(`UPDATE stores SET ${fields.join(', ')} WHERE id = ?`).run(...values)
+    db.prepare(`UPDATE stores SET ${ fields.join(', ') } WHERE id = ? `).run(...values)
     return dbHelpers.getAllStores().find(s => s.id === id)
   },
 
@@ -2631,9 +2631,9 @@ const dbHelpers = {
 
   addCandidate: (candidate) => {
     const stmt = db.prepare(`
-      INSERT INTO candidates (id, name, email, phone, role, status, resume_text, score, skills, store_id, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-    `)
+      INSERT INTO candidates(id, name, email, phone, role, status, resume_text, score, skills, store_id, updated_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+  `)
     stmt.run(
       candidate.id, candidate.name, candidate.email, candidate.phone,
       candidate.role, candidate.status || 'applied', candidate.resumeText,
@@ -2661,7 +2661,7 @@ const dbHelpers = {
       FROM employees e
       LEFT JOIN users u ON e.user_id = u.id
       WHERE e.store_id = ?
-      ORDER BY e.updated_at DESC
+  ORDER BY e.updated_at DESC
     `).all(storeId).map(e => {
       const camelE = toCamelCase(e)
       // Ensure user name is normalized for the frontend item
@@ -2677,9 +2677,9 @@ const dbHelpers = {
 
   addEmployee: (employee) => {
     const stmt = db.prepare(`
-      INSERT INTO employees (id, user_id, department, designation, salary, joining_date, documents, store_id, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-    `)
+      INSERT INTO employees(id, user_id, department, designation, salary, joining_date, documents, store_id, updated_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+  `)
     stmt.run(
       employee.id, employee.userId, employee.department, employee.designation,
       employee.salary, employee.joiningDate, JSON.stringify(employee.documents || []),
@@ -2700,13 +2700,13 @@ const dbHelpers = {
   addItemKit: (kit) => {
     const transaction = db.transaction(() => {
       db.prepare(`
-        INSERT INTO item_kits (id, name, sku, category, selling_price, store_id, is_active, updated_at, sync_status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
+        INSERT INTO item_kits(id, name, sku, category, selling_price, store_id, is_active, updated_at, sync_status)
+VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
       `).run(kit.id, kit.name, kit.sku || null, kit.category, kit.sellingPrice, kit.storeId, kit.isActive ? 1 : 0)
 
       const itemStmt = db.prepare('INSERT INTO kit_items (id, kit_id, product_id, quantity) VALUES (?, ?, ?, ?)')
       for (const item of kit.items) {
-        itemStmt.run(`${kit.id}-${item.productId}`, kit.id, item.productId, item.quantity)
+        itemStmt.run(`${ kit.id } -${ item.productId } `, kit.id, item.productId, item.quantity)
       }
     })
     transaction()
@@ -2727,13 +2727,13 @@ const dbHelpers = {
         }
         Object.keys(updates).forEach(key => {
           if (fieldMap[key] !== undefined) {
-            fields.push(`${fieldMap[key]} = ?`)
+            fields.push(`${ fieldMap[key] } = ?`)
             values.push(key === 'isActive' ? (updates[key] ? 1 : 0) : updates[key])
           }
         })
         if (fields.length > 0) {
           values.push(id)
-          db.prepare(`UPDATE item_kits SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ?`).run(...values)
+          db.prepare(`UPDATE item_kits SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
         }
       }
 
@@ -2741,7 +2741,7 @@ const dbHelpers = {
         db.prepare('DELETE FROM kit_items WHERE kit_id = ?').run(id)
         const itemStmt = db.prepare('INSERT INTO kit_items (id, kit_id, product_id, quantity) VALUES (?, ?, ?, ?)')
         for (const item of updates.items) {
-          itemStmt.run(`${id}-${item.productId}`, id, item.productId, item.quantity)
+          itemStmt.run(`${ id } -${ item.productId } `, id, item.productId, item.quantity)
         }
       }
     })
@@ -2768,8 +2768,8 @@ const dbHelpers = {
 
   addCustomField: (field) => {
     db.prepare(`
-      INSERT INTO custom_fields (id, label, type, options, is_required, show_on_receipt, target_type, updated_at, sync_status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
+      INSERT INTO custom_fields(id, label, type, options, is_required, show_on_receipt, target_type, updated_at, sync_status)
+VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     `).run(
       field.id, field.label, field.type,
       JSON.stringify(field.options || []),
@@ -2793,7 +2793,7 @@ const dbHelpers = {
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${fieldMap[key]} = ?`)
+        fields.push(`${ fieldMap[key] } = ?`)
         let val = updates[key]
         if (key === 'options') val = JSON.stringify(val)
         if (key === 'isRequired' || key === 'showOnReceipt') val = val ? 1 : 0
@@ -2802,7 +2802,7 @@ const dbHelpers = {
     })
     if (fields.length > 0) {
       values.push(id)
-      db.prepare(`UPDATE custom_fields SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ?`).run(...values)
+      db.prepare(`UPDATE custom_fields SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
     }
     return dbHelpers.getAllCustomFields().find(f => f.id === id)
   },
@@ -2826,7 +2826,7 @@ const dbHelpers = {
       db.prepare('DELETE FROM product_custom_values WHERE product_id = ?').run(productId)
       const stmt = db.prepare('INSERT INTO product_custom_values (id, product_id, field_id, value) VALUES (?, ?, ?, ?)')
       for (const val of values) {
-        stmt.run(`${productId}-${val.fieldId}`, productId, val.fieldId, val.value)
+        stmt.run(`${ productId } -${ val.fieldId } `, productId, val.fieldId, val.value)
       }
     })
     transaction()
@@ -2837,7 +2837,7 @@ const dbHelpers = {
   bulkDeleteProducts: (ids) => {
     const placeholders = ids.map(() => '?').join(',')
     // Correctly handle stock logs and dependencies if needed, or just soft delete
-    db.prepare(`UPDATE products SET is_deleted = 1, updated_at = datetime('now'), sync_status = 0 WHERE id IN (${placeholders})`).run(...ids)
+    db.prepare(`UPDATE products SET is_deleted = 1, updated_at = datetime('now'), sync_status = 0 WHERE id IN(${ placeholders })`).run(...ids)
     return { success: true, count: ids.length }
   },
 
@@ -2854,14 +2854,14 @@ const dbHelpers = {
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${fieldMap[key]} = ?`)
+        fields.push(`${ fieldMap[key] } = ?`)
         values.push(key === 'barcodeEnabled' ? (updates[key] ? 1 : 0) : updates[key])
       }
     })
 
     if (fields.length > 0) {
       const placeholders = ids.map(() => '?').join(',')
-      db.prepare(`UPDATE products SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id IN (${placeholders})`).run(...values, ...ids)
+      db.prepare(`UPDATE products SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id IN(${ placeholders })`).run(...values, ...ids)
       return { success: true, count: ids.length }
     }
     return { success: false, message: 'No updates provided' }
@@ -2881,7 +2881,7 @@ const dbHelpers = {
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${fieldMap[key]} = ?`)
+        fields.push(`${ fieldMap[key] } = ?`)
         values.push(updates[key])
       }
     })
@@ -2889,15 +2889,15 @@ const dbHelpers = {
     fields.push(`updated_at = datetime('now')`)
     fields.push(`sync_status = 0`)
     values.push(id)
-    db.prepare(`UPDATE sales SET ${fields.join(', ')} WHERE id = ?`).run(...values)
+    db.prepare(`UPDATE sales SET ${ fields.join(', ') } WHERE id = ? `).run(...values)
     return dbHelpers.getAllSales().find(s => s.id === id)
   },
 
   getGiftCards: (storeId) => db.prepare('SELECT * FROM gift_cards WHERE store_id = ?').all(storeId).map(toCamelCase),
   addGiftCard: (gc) => {
     db.prepare(`
-      INSERT INTO gift_cards (id, card_number, value, balance, is_active, customer_id, store_id, updated_at, sync_status)
-      VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
+      INSERT INTO gift_cards(id, card_number, value, balance, is_active, customer_id, store_id, updated_at, sync_status)
+VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     `).run(gc.id, gc.cardNumber, gc.value, gc.balance, gc.isActive ? 1 : 0, gc.customerId, gc.storeId)
     return toCamelCase(db.prepare('SELECT * FROM gift_cards WHERE id = ?').get(gc.id))
   },
@@ -2911,13 +2911,13 @@ const dbHelpers = {
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key] !== undefined) {
-        fields.push(`${fieldMap[key]} = ?`)
+        fields.push(`${ fieldMap[key] } = ?`)
         values.push(key === 'isActive' ? (updates[key] ? 1 : 0) : updates[key])
       }
     })
     if (fields.length === 0) return null
     values.push(id)
-    db.prepare(`UPDATE gift_cards SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ?`).run(...values)
+    db.prepare(`UPDATE gift_cards SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
     return toCamelCase(db.prepare('SELECT * FROM gift_cards WHERE id = ?').get(id))
   },
 
@@ -2931,13 +2931,13 @@ const dbHelpers = {
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${fieldMap[key]} = ?`)
+        fields.push(`${ fieldMap[key] } = ?`)
         values.push(updates[key])
       }
     })
     if (fields.length === 0) return null
     values.push(id)
-    db.prepare(`UPDATE work_orders SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ?`).run(...values)
+    db.prepare(`UPDATE work_orders SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
     return toCamelCase(db.prepare('SELECT * FROM work_orders WHERE id = ?').get(id))
   },
 
@@ -2959,13 +2959,13 @@ const dbHelpers = {
             throw new Error(`Invalid Assignment: User is not a registered driver.`)
           }
         }
-        fields.push(`${fieldMap[key]} = ?`)
+        fields.push(`${ fieldMap[key] } = ?`)
         values.push(updates[key])
       }
     })
     if (fields.length === 0) return null
     values.push(id)
-    db.prepare(`UPDATE deliveries SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ?`).run(...values)
+    db.prepare(`UPDATE deliveries SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
     return toCamelCase(db.prepare('SELECT * FROM deliveries WHERE id = ?').get(id))
   },
 
@@ -2973,8 +2973,8 @@ const dbHelpers = {
   getDeliveryZones: (storeId) => db.prepare('SELECT * FROM delivery_zones WHERE store_id = ?').all(storeId).map(toCamelCase),
   addDeliveryZone: (zone) => {
     db.prepare(`
-      INSERT INTO delivery_zones (id, name, fee, is_active, store_id, updated_at, sync_status)
-      VALUES (?, ?, ?, ?, ?, datetime('now'), 0)
+      INSERT INTO delivery_zones(id, name, fee, is_active, store_id, updated_at, sync_status)
+VALUES(?, ?, ?, ?, ?, datetime('now'), 0)
     `).run(zone.id, zone.name, zone.fee, zone.isActive ? 1 : 0, zone.storeId)
     return toCamelCase(db.prepare('SELECT * FROM delivery_zones WHERE id = ?').get(zone.id))
   },
@@ -2988,13 +2988,13 @@ const dbHelpers = {
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key] !== undefined) {
-        fields.push(`${fieldMap[key]} = ?`)
+        fields.push(`${ fieldMap[key] } = ?`)
         values.push(key === 'isActive' ? (updates[key] ? 1 : 0) : updates[key])
       }
     })
     if (fields.length === 0) return null
     values.push(id)
-    db.prepare(`UPDATE delivery_zones SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ?`).run(...values)
+    db.prepare(`UPDATE delivery_zones SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
     return toCamelCase(db.prepare('SELECT * FROM delivery_zones WHERE id = ?').get(id))
   },
   deleteDeliveryZone: (id) => {
@@ -3004,17 +3004,17 @@ const dbHelpers = {
 
   // Store Configuration
   saveStoreConfig: (storeId, configData) => {
-    const key = `store_config_${storeId}`;
+    const key = `store_config_${ storeId } `;
     const stmt = db.prepare(`
-      INSERT INTO settings (key, value)
-      VALUES (?, ?)
+      INSERT INTO settings(key, value)
+VALUES(?, ?)
       ON CONFLICT(key) DO UPDATE SET value = excluded.value
-    `);
+  `);
     stmt.run(key, JSON.stringify(configData));
     return { success: true };
   },
   getStoreConfig: (storeId) => {
-    const key = `store_config_${storeId}`;
+    const key = `store_config_${ storeId } `;
     const result = db.prepare('SELECT value FROM settings WHERE key = ?').get(key);
     if (result && result.value) {
       try {
@@ -3035,13 +3035,13 @@ const dbHelpers = {
 
   addCheque(cheque) {
     const stmt = db.prepare(`
-      INSERT INTO cheques (
-        id, party_type, party_id, party_name, cheque_number, bank_name,
-        amount, issue_date, clearing_date, status, store_id, notes, device_id
-      ) VALUES (
-        @id, @partyType, @partyId, @partyName, @chequeNumber, @bankName,
-        @amount, @issueDate, @clearingDate, @status, @storeId, @notes, @deviceId
-      )
+      INSERT INTO cheques(
+    id, party_type, party_id, party_name, cheque_number, bank_name,
+    amount, issue_date, clearing_date, status, store_id, notes, device_id
+  ) VALUES(
+    @id, @partyType, @partyId, @partyName, @chequeNumber, @bankName,
+    @amount, @issueDate, @clearingDate, @status, @storeId, @notes, @deviceId
+  )
     `)
     return stmt.run({
       clearingDate: null,
@@ -3055,15 +3055,15 @@ const dbHelpers = {
     const fields = Object.keys(updates).map(key => {
       // camelCase to snake_case
       const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase()
-      return `${snakeKey} = @${key}`
+      return `${ snakeKey } = @${ key } `
     }).join(', ')
 
     // Always update updated_at and reset sync_status
     const stmt = db.prepare(`
       UPDATE cheques 
-      SET ${fields}, updated_at = datetime('now'), sync_status = 0 
+      SET ${ fields }, updated_at = datetime('now'), sync_status = 0 
       WHERE id = @id
-    `)
+  `)
     return stmt.run({ ...updates, id })
   },
 
@@ -3083,11 +3083,11 @@ const dbHelpers = {
     const dateFilter = (dateField) => {
       let clause = ''
       if (dateFrom) {
-        clause += ` AND ${dateField} >= @dateFrom`
+        clause += ` AND ${ dateField } >= @dateFrom`
         params.dateFrom = dateFrom
       }
       if (dateTo) {
-        clause += ` AND ${dateField} <= @dateTo`
+        clause += ` AND ${ dateField } <= @dateTo`
         params.dateTo = dateTo
       }
       return clause
@@ -3098,9 +3098,9 @@ const dbHelpers = {
         query = `
           SELECT date, COUNT(*) as count, SUM(total_amount) as total, SUM(profit) as profit
           FROM sales 
-          WHERE store_id = @storeId ${dateFilter('date')}
+          WHERE store_id = @storeId ${ dateFilter('date') }
           GROUP BY date ORDER BY date DESC
-        `
+  `
         break;
 
       case 'sales_by_product':
@@ -3114,9 +3114,9 @@ const dbHelpers = {
           SELECT p.name, p.sku, SUM(json_extract(item.value, '$.quantity')) as qty, SUM(json_extract(item.value, '$.price') * json_extract(item.value, '$.quantity')) as revenue
           FROM sales s, json_each(s.items) as item
           JOIN products p ON p.id = json_extract(item.value, '$.productId')
-          WHERE s.store_id = @storeId ${dateFilter('s.date')}
+          WHERE s.store_id = @storeId ${ dateFilter('s.date') }
           GROUP BY p.id ORDER BY revenue DESC
-        `
+  `
         break;
 
       case 'inventory_status':
@@ -3125,35 +3125,35 @@ const dbHelpers = {
           FROM products 
           WHERE store_id = @storeId AND is_deleted = 0
           ORDER BY quantity ASC
-        `
+  `
         break;
 
       case 'profit_loss':
         query = `
-          SELECT 
-            (SELECT SUM(total_amount) FROM sales WHERE store_id = @storeId ${dateFilter('date')}) as revenue,
-            (SELECT SUM(profit) FROM sales WHERE store_id = @storeId ${dateFilter('date')}) as gross_profit,
-            (SELECT SUM(total_amount) FROM receivings WHERE store_id = @storeId ${dateFilter('completed_at')}) as purchases,
-            (SELECT SUM(amount) FROM transactions WHERE store_id = @storeId AND type = 'expense' ${dateFilter('date')}) as expenses
+SELECT
+  (SELECT SUM(total_amount) FROM sales WHERE store_id = @storeId ${ dateFilter('date') }) as revenue,
+  (SELECT SUM(profit) FROM sales WHERE store_id = @storeId ${ dateFilter('date') }) as gross_profit,
+    (SELECT SUM(total_amount) FROM receivings WHERE store_id = @storeId ${ dateFilter('completed_at') }) as purchases,
+      (SELECT SUM(amount) FROM transactions WHERE store_id = @storeId AND type = 'expense' ${ dateFilter('date') }) as expenses
         `
         break;
 
       case 'tax_report':
         query = `
-          SELECT invoice_number, date, total_amount, (total_amount - profit) as taxable_value, (total_amount * 0.18) as tax_amount -- Sample 18% tax logic
+          SELECT invoice_number, date, total_amount, (total_amount - profit) as taxable_value, (total_amount * 0.18) as tax_amount --Sample 18 % tax logic
           FROM sales 
-          WHERE store_id = @storeId ${dateFilter('date')}
+          WHERE store_id = @storeId ${ dateFilter('date') }
           ORDER BY date DESC
-        `
+  `
         break;
 
       case 'cheque_report':
         query = `
           SELECT party_name, party_type, cheque_number, bank_name, amount, issue_date, status
           FROM cheques 
-          WHERE store_id = @storeId ${dateFilter('issue_date')}
+          WHERE store_id = @storeId ${ dateFilter('issue_date') }
           ORDER BY issue_date DESC
-        `
+  `
         break;
 
       case 'hr_attendance':
@@ -3161,19 +3161,19 @@ const dbHelpers = {
           SELECT u.name, a.date, a.check_in, a.check_out, a.status
           FROM attendance a
           JOIN users u ON u.id = a.user_id
-          WHERE a.store_id = @storeId ${dateFilter('a.date')}
+          WHERE a.store_id = @storeId ${ dateFilter('a.date') }
           ORDER BY a.date DESC
-        `
+  `
         break;
 
       case 'purchases_summary':
         query = `
-          SELECT supplier_id, (SELECT name FROM suppliers WHERE id = supplier_id) as supplier_name, 
-                 COUNT(*) as count, SUM(total_amount) as total
+          SELECT supplier_id, (SELECT name FROM suppliers WHERE id = supplier_id) as supplier_name,
+  COUNT(*) as count, SUM(total_amount) as total
           FROM receivings
-          WHERE store_id = @storeId ${dateFilter('completed_at')}
+          WHERE store_id = @storeId ${ dateFilter('completed_at') }
           GROUP BY supplier_id
-        `
+  `
         break;
 
       default:
@@ -3184,7 +3184,7 @@ const dbHelpers = {
       const results = db.prepare(query).all(params)
       return results.map(toCamelCase)
     } catch (err) {
-      console.error(`[Report] Error generating ${type}:`, err)
+      console.error(`[Report] Error generating ${ type }: `, err)
       return []
     }
   }
