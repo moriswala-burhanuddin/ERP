@@ -1,0 +1,38 @@
+name: Build ERP Desktop App
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build React
+        run: npm run build
+
+      - name: Build Electron App
+        run: npm run electron-build
+
+      - name: Upload Build Files
+        uses: actions/upload-artifact@v4
+        with:
+          name: ERP-${{ matrix.os }}
+          path: release/
