@@ -16,8 +16,8 @@
     "test:watch": "vitest",
     "electron": "electron .",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
-    "dist": "npm run build && electron-builder",
-    "dist:win": "npm run build && npx electron-builder --win nsis"
+    "dist": "npm run build && electron-builder --publish never",
+    "dist:win": "npm run build && npx electron-builder --win nsis --publish never"
   },
   "build": {
     "appId": "com.storeflow.erp",
