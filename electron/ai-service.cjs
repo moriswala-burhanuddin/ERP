@@ -146,13 +146,21 @@ async function processInvoiceOCR(imageBase64, existingProducts) {
                 {
                     role: "system",
                     content: `You are an expert Invoice OCR Assistant for a Hardware store.
-                    Analyze the provided image of a receipt or invoice.
+                    Analyze the provided image of a receipt, handwritten bill, or printed invoice.
+                    Your goal is to extract structured data even if the text is messy or handwritten.
+                    
                     Extract the following details into a JSON object:
-                    - supplier: The name of the vendor/store.
-                    - date: The date of purchase (YYYY-MM-DD).
-                    - totalAmount: The grand total of the invoice.
+                    - supplier: The name of the vendor/store (look for header text).
+                    - date: The date of purchase (YYYY-MM-DD). If year is missing, assume 2026.
+                    - totalAmount: The grand total shown on the bill.
                     - items: An array of objects: {"name": "...", "quantity": 1, "price": 0.00}
-
+                    
+                    IMPORTANT:
+                    1. For handwritten items, do your best to decipher the product names.
+                    2. If quantity is not specified, default to 1.
+                    3. If 'price' is not clear, look for the 'total' or 'amount' per line.
+                    4. BE PRECISE with numbers.
+                    
                     MATCHING HINT:
                     Here is a list of existing product names in our system: ${existingProducts.map(p => p.name).join(', ')}.
                     If an item on the receipt matches an existing product, use the EXACT name from the list provided.
@@ -162,7 +170,7 @@ async function processInvoiceOCR(imageBase64, existingProducts) {
                 {
                     role: "user",
                     content: [
-                        { type: "text", text: "Process this invoice image:" },
+                        { type: "text", text: "Carefully extract all data from this invoice image, especially focusing on legible handwritten parts:" },
                         {
                             type: "image_url",
                             image_url: {
@@ -172,7 +180,7 @@ async function processInvoiceOCR(imageBase64, existingProducts) {
                     ],
                 },
             ],
-            max_tokens: 1000,
+            max_tokens: 1500,
             temperature: 0,
             response_format: { type: "json_object" }
         });

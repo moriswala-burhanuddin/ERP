@@ -896,7 +896,7 @@ id, name, email,
   try {
     const nullPasswords = db.prepare("SELECT count(*) as count FROM users WHERE password IS NULL").get();
     if (nullPasswords && nullPasswords.count > 0) {
-      console.log(`[DB] Found ${ nullPasswords.count } users with missing passwords.Applying fix and forcing sync...`);
+      console.log(`[DB] Found ${nullPasswords.count} users with missing passwords.Applying fix and forcing sync...`);
       db.prepare("UPDATE users SET password = 'ChangeMe123!', sync_status = 0 WHERE password IS NULL").run();
     }
   } catch (e) { }
@@ -955,7 +955,7 @@ id, name, email,
   for (const user of usersToHash) {
     // Check if it's already a bcrypt hash (starts with $2a$ or $2b$)
     if (user.password && !user.password.startsWith('$2a$') && !user.password.startsWith('$2b$')) {
-      console.log(`[DB] Hashing plain - text password for user: ${ user.id } `);
+      console.log(`[DB] Hashing plain - text password for user: ${user.id} `);
       const hashedPassword = bcrypt.hashSync(user.password, 10);
       db.prepare("UPDATE users SET password = ? WHERE id = ?").run(hashedPassword, user.id);
     }
@@ -975,16 +975,16 @@ let deviceId = db.prepare('SELECT value FROM settings WHERE key = ?').get('devic
 if (!deviceId) {
   deviceId = crypto.randomUUID()
   db.prepare('INSERT INTO settings (key, value) VALUES (?, ?)').run('device_id', deviceId)
-  console.log(`Generated new device_id: ${ deviceId } `)
+  console.log(`Generated new device_id: ${deviceId} `)
 } else {
-  console.log(`Existing device_id: ${ deviceId } `)
+  console.log(`Existing device_id: ${deviceId} `)
 }
 
 // Seed initial data if tables are empty
 try {
   const storeCount = db.prepare('SELECT COUNT(*) as count FROM stores').get().count
   const productCount = db.prepare('SELECT COUNT(*) as count FROM products').get().count
-  console.log(`Current DB status - Stores: ${ storeCount }, Products: ${ productCount } `)
+  console.log(`Current DB status - Stores: ${storeCount}, Products: ${productCount} `)
 
   if (storeCount === 0 || productCount === 0) {
     console.log('Seeding initial data...')
@@ -1001,10 +1001,16 @@ try {
       'user-1', 'John Admin', 'admin@hardware.com', 'admin', 'store-1', deviceId
     )
 
-    // Insert accounts
-    db.prepare(`INSERT INTO accounts(id, name, type, balance, store_id, device_id) VALUES(?, ?, ?, ?, ?, ?)`).run(
-      'acc-1', 'Main Cash', 'cash', 5000, 'store-1', deviceId
-    )
+    // 3. Insert accounts for each store
+    const allStores = db.prepare('SELECT id FROM stores').all()
+    for (const s of allStores) {
+      const accountExists = db.prepare('SELECT COUNT(*) as count FROM accounts WHERE store_id = ?').get(s.id).count > 0
+      if (!accountExists) {
+        db.prepare(`INSERT INTO accounts(id, name, type, balance, store_id, device_id) VALUES(?, ?, ?, ?, ?, ?)`).run(
+          `acc-${s.id}`, 'Main Cash', 'cash', 5000, s.id, deviceId
+        )
+      }
+    }
 
     // Insert demo products with barcodes
     const products = [
@@ -1019,7 +1025,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `)
 
     products.forEach(p => {
-      console.log(`Inserting product: ${ p[1] } `)
+      console.log(`Inserting product: ${p[1]} `)
       const params = [...p]
       params.splice(11, 0, deviceId) // Insert deviceId at correct position
       insertProduct.run(...params)
@@ -1062,7 +1068,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
           checkOutTime.setHours(18, 0, 0)
 
           insertAtt.run(
-            `att - seed - ${ i } `, userId, dateStr,
+            `att - seed - ${i} `, userId, dateStr,
             checkInTime.toISOString(), checkOutTime.toISOString(),
             isLate ? 'late' : 'present', 'store-1'
           )
@@ -1103,7 +1109,7 @@ const dbHelpers = {
   // Products
   getAllProducts: (storeId) => {
     const products = db.prepare('SELECT * FROM products WHERE store_id = ? AND is_deleted = 0 ORDER BY updated_at DESC').all(storeId)
-    console.log(`getAllProducts for store ${ storeId }: found ${ products.length } products`)
+    console.log(`getAllProducts for store ${storeId}: found ${products.length} products`)
     if (products.length > 0) {
       console.log(`Sample product from DB: `, JSON.stringify(toCamelCase(products[0])))
     }
@@ -1151,7 +1157,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
 
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${ fieldMap[key] } = ?`)
+        fields.push(`${fieldMap[key]} = ?`)
         values.push(updates[key])
       }
     })
@@ -1162,7 +1168,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     fields.push(`sync_status = 0`) // Dirty flag
     values.push(id)
 
-    const stmt = db.prepare(`UPDATE products SET ${ fields.join(', ') } WHERE id = ? `)
+    const stmt = db.prepare(`UPDATE products SET ${fields.join(', ')} WHERE id = ? `)
     stmt.run(...values)
 
     // Log Manual Stock Change if Quantity changed
@@ -1199,7 +1205,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
             INSERT INTO stock_logs(id, product_id, product_name, store_id, quantity_change, reason, device_id, created_at)
 VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'))
           `).run(
-        `log - ${ Date.now() } `,
+        `log - ${Date.now()} `,
         id,
         current.name,
         current.store_id,
@@ -1251,7 +1257,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
 
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${ fieldMap[key] } = ?`)
+        fields.push(`${fieldMap[key]} = ?`)
         values.push(updates[key])
       }
     })
@@ -1262,7 +1268,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     fields.push(`sync_status = 0`) // Dirty flag for sync
     values.push(id)
 
-    const stmt = db.prepare(`UPDATE customers SET ${ fields.join(', ') } WHERE id = ? `)
+    const stmt = db.prepare(`UPDATE customers SET ${fields.join(', ')} WHERE id = ? `)
     stmt.run(...values)
     const result = db.prepare('SELECT * FROM customers WHERE id = ?').get(id)
     return toCamelCase(result)
@@ -1288,22 +1294,22 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       const items = sale.items
       for (const item of items) {
         const product = db.prepare('SELECT id, quantity, name, is_kit FROM products WHERE id = ?').get(item.productId)
-        if (!product) throw new Error(`Product ${ item.productName } not found via ID`)
+        if (!product) throw new Error(`Product ${item.productName} not found via ID`)
 
         if (product.is_kit) {
           const components = db.prepare('SELECT product_id, quantity FROM kit_items WHERE kit_id = ?').all(item.productId)
-          if (components.length === 0) throw new Error(`Kit ${ product.name } has no components!`)
+          if (components.length === 0) throw new Error(`Kit ${product.name} has no components!`)
 
           for (const comp of components) {
             const compProduct = db.prepare('SELECT quantity, name FROM products WHERE id = ?').get(comp.product_id)
             const totalNeeded = comp.quantity * item.quantity
             if (!compProduct || compProduct.quantity < totalNeeded) {
-              throw new Error(`Insufficient stock for kit component ${ compProduct?.name || comp.product_id }.Available: ${ compProduct?.quantity || 0 }, Needed: ${ totalNeeded } `)
+              throw new Error(`Insufficient stock for kit component ${compProduct?.name || comp.product_id}.Available: ${compProduct?.quantity || 0}, Needed: ${totalNeeded} `)
             }
           }
         } else {
           if (product.quantity < item.quantity) {
-            throw new Error(`Insufficient stock for ${ product.name }.Available: ${ product.quantity }, Requested: ${ item.quantity } `)
+            throw new Error(`Insufficient stock for ${product.name}.Available: ${product.quantity}, Requested: ${item.quantity} `)
           }
         }
       }
@@ -1314,7 +1320,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
         if (customer && customer.credit_limit !== null) {
           const potentialBalance = customer.credit_balance + sale.totalAmount
           if (potentialBalance > customer.credit_limit) {
-            throw new Error(`Credit Limit Exceeded for ${ customer.name }.Limit: $${ customer.credit_limit }, Potential: $${ potentialBalance.toFixed(2) } `)
+            throw new Error(`Credit Limit Exceeded for ${customer.name}.Limit: $${customer.credit_limit}, Potential: $${potentialBalance.toFixed(2)} `)
           }
         }
       }
@@ -1367,7 +1373,7 @@ VALUES(?, ?, ?, ?, ?, datetime('now'), 0)
         if (del.employeeId) {
           const driver = db.prepare('SELECT is_driver FROM users WHERE id = ?').get(del.employeeId)
           if (!driver || driver.is_driver !== 1) {
-            throw new Error(`Assignment Failed: User ${ del.employeeId } is not a registered driver.`)
+            throw new Error(`Assignment Failed: User ${del.employeeId} is not a registered driver.`)
           }
         }
         db.prepare(`
@@ -1395,7 +1401,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
             const compNeeded = comp.quantity * item.quantity
             updateStockStmt.run(compNeeded, new Date().toISOString(), comp.product_id)
             logStmt.run(
-              `${ Date.now() } -${ Math.random().toString(36).substr(2, 9) } `,
+              `${Date.now()} -${Math.random().toString(36).substr(2, 9)} `,
               comp.product_id, comp.name, sale.storeId, -compNeeded, 'KIT_SALE_PART',
               sale.invoiceNumber, deviceId
             )
@@ -1403,7 +1409,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
         } else {
           updateStockStmt.run(item.quantity, new Date().toISOString(), item.productId)
           logStmt.run(
-            `${ Date.now() } -${ Math.random().toString(36).substr(2, 9) } `,
+            `${Date.now()} -${Math.random().toString(36).substr(2, 9)} `,
             item.productId, item.productName, sale.storeId, -item.quantity, 'SALE',
             sale.invoiceNumber, deviceId
           )
@@ -1428,7 +1434,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
           INSERT INTO commissions(id, user_id, sale_id, amount, percentage, sync_status)
 VALUES(?, ?, ?, ?, ?, 0)
         `)
-        commStmt.run(`${ sale.id } -comm`, sale.userId, sale.id, commissionAmount, commissionPercentage)
+        commStmt.run(`${sale.id} -comm`, sale.userId, sale.id, commissionAmount, commissionPercentage)
       }
 
       // Feature 7: Loyalty Points
@@ -1436,10 +1442,10 @@ VALUES(?, ?, ?, ?, ?, 0)
         const points = Math.floor(sale.totalAmount / 100) // 1 point per 100 rs
         if (points > 0) {
           dbHelpers.addLoyaltyPoints({
-            id: `${ sale.id } -lp`,
+            id: `${sale.id} -lp`,
             customerId: sale.customerId,
             points: points,
-            reason: `Sale ${ sale.invoiceNumber } `,
+            reason: `Sale ${sale.invoiceNumber} `,
             saleId: sale.id
           })
         }
@@ -1572,7 +1578,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${ fieldMap[key] } = ?`)
+        fields.push(`${fieldMap[key]} = ?`)
         let val = updates[key];
         if (key === 'password' && val) {
           val = bcrypt.hashSync(val, 10);
@@ -1582,7 +1588,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     })
     if (fields.length === 0) return dbHelpers.getAllUsers().find(u => u.id === id)
     values.push(id)
-    db.prepare(`UPDATE users SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
+    db.prepare(`UPDATE users SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
     const result = db.prepare('SELECT * FROM users WHERE id = ?').get(id)
     return toCamelCase(result)
   },
@@ -1677,7 +1683,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
 
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${ fieldMap[key] } = ?`)
+        fields.push(`${fieldMap[key]} = ?`)
         values.push(key.startsWith('is') ? (updates[key] ? 1 : 0) : updates[key])
       }
     })
@@ -1688,7 +1694,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
     fields.push(`sync_status = 0`)
     values.push(id)
 
-    const stmt = db.prepare(`UPDATE suppliers SET ${ fields.join(', ') } WHERE id = ? `)
+    const stmt = db.prepare(`UPDATE suppliers SET ${fields.join(', ')} WHERE id = ? `)
     stmt.run(...values)
 
     const result = db.prepare('SELECT * FROM suppliers WHERE id = ?').get(id)
@@ -1891,7 +1897,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
 
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${ fieldMap[key] } = ?`)
+        fields.push(`${fieldMap[key]} = ?`)
         values.push(updates[key])
       }
     })
@@ -1900,7 +1906,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       fields.push(`updated_at = datetime('now')`)
       fields.push(`sync_status = 0`)
       values.push(id)
-      db.prepare(`UPDATE receivings SET ${ fields.join(', ') } WHERE id = ? `).run(...values)
+      db.prepare(`UPDATE receivings SET ${fields.join(', ')} WHERE id = ? `).run(...values)
     }
 
     // Special case: update items if provided
@@ -1947,12 +1953,12 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
 
       for (const item of receiving.items) {
         updateProdStmt.run(item.quantity, item.cost, item.productId)
-        logStmt.run(`${ id } -${ item.productId } -log`, item.productId, item.productName, receiving.storeId, item.quantity, 'receiving', receiving.receivingNumber, deviceId)
+        logStmt.run(`${id} -${item.productId} -log`, item.productId, item.productName, receiving.storeId, item.quantity, 'receiving', receiving.receivingNumber, deviceId)
       }
 
       // 2. Create Supplier Transaction (Purchase) & Update Balance
       const supplier = db.prepare('SELECT id, COALESCE(current_balance, 0) as current_balance FROM suppliers WHERE id = ?').get(receiving.supplierId)
-      if (!supplier) throw new Error(`Supplier ${ receiving.supplierId } not found`)
+      if (!supplier) throw new Error(`Supplier ${receiving.supplierId} not found`)
 
       const newBalance = supplier.current_balance + receiving.totalAmount
 
@@ -1960,14 +1966,14 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       db.prepare('UPDATE suppliers SET current_balance = ?, updated_at = datetime(\'now\'), sync_status = 0 WHERE id = ?').run(newBalance, receiving.supplierId)
 
       dbHelpers.addSupplierTransaction({
-        id: `stx - ${ Date.now() } `,
+        id: `stx - ${Date.now()} `,
         supplierId: receiving.supplierId,
         type: 'purchase',
         amount: receiving.totalAmount,
         balanceAfter: newBalance,
         date: new Date().toISOString(),
         referenceId: receiving.receivingNumber,
-        description: `Receiving #${ receiving.receivingNumber } `,
+        description: `Receiving #${receiving.receivingNumber} `,
         storeId: receiving.storeId
       })
 
@@ -1988,14 +1994,14 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       if (amountPaid > 0) {
         const balanceAfterPayment = newBalance - amountPaid
         dbHelpers.addSupplierTransaction({
-          id: `stx - ${ Date.now() } -pay`,
+          id: `stx - ${Date.now()} -pay`,
           supplierId: receiving.supplierId,
           type: 'payment',
           amount: amountPaid,
           balanceAfter: balanceAfterPayment,
           date: new Date().toISOString(),
           referenceId: receiving.receivingNumber,
-          description: `Payment for Receiving #${ receiving.receivingNumber }`,
+          description: `Payment for Receiving #${receiving.receivingNumber}`,
           storeId: receiving.storeId
         })
 
@@ -2024,14 +2030,14 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       const newBalance = supplier.current_balance - amount
 
       dbHelpers.addSupplierTransaction({
-        id: `stx - ${ Date.now() } `,
+        id: `stx - ${Date.now()} `,
         supplierId: receiving.supplier_id,
         type: 'payment',
         amount: amount,
         balanceAfter: newBalance,
         date: new Date().toISOString(),
         referenceId: receiving.receiving_number,
-        description: `Partial payment for #${ receiving.receiving_number }`,
+        description: `Partial payment for #${receiving.receiving_number}`,
         storeId: receiving.store_id
       })
 
@@ -2147,7 +2153,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
 
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${ fieldMap[key] } = ?`)
+        fields.push(`${fieldMap[key]} = ?`)
         values.push(updates[key])
       }
     })
@@ -2156,7 +2162,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       fields.push(`updated_at = datetime('now')`)
       fields.push(`sync_status = 0`)
       values.push(id)
-      db.prepare(`UPDATE invoices SET ${ fields.join(', ') } WHERE id = ? `).run(...values)
+      db.prepare(`UPDATE invoices SET ${fields.join(', ')} WHERE id = ? `).run(...values)
     }
 
     if (updates.items) {
@@ -2251,21 +2257,35 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       )
 
       // 2. Update Stock & Logs
-      // Simplified: Just update quantity for now. Price strategy is complex (FIFO/LIFO/Avg). 
-      // Let's assume we might want to update the product's purchase price to the latest one, or keep it.
-      // For now: update quantity.
       const updateStockStmt = db.prepare('UPDATE products SET quantity = quantity + ?, updated_at = datetime(\'now\'), sync_status = 0 WHERE id = ?')
 
       const logStmt = db.prepare(`
         INSERT INTO stock_logs(id, product_id, product_name, store_id, quantity_change, reason, reference_id, device_id, created_at)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       `)
 
       for (const item of purchase.items) {
+        // FK FIX: Ensure product exists before updating stock or logs
+        const productExists = db.prepare('SELECT COUNT(*) as count FROM products WHERE id = ?').get(item.productId).count > 0
+        if (!productExists) {
+          db.prepare(`
+            INSERT INTO products(id, name, sku, category, selling_price, purchase_price, quantity, store_id, updated_at)
+            VALUES(?, ?, ?, ?, ?, ?, 0, ?, datetime('now'))
+          `).run(
+            item.productId,
+            item.productName,
+            `AUTO-${Math.random().toString(36).substr(2, 5).toUpperCase()}`,
+            'AI Captured',
+            item.price * 1.5, // Default margin
+            item.price,
+            purchase.storeId
+          )
+        }
+
         updateStockStmt.run(item.quantity, item.productId)
 
         logStmt.run(
-          `${ Date.now() } -${ Math.random().toString(36).substr(2, 9) } `,
+          `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           item.productId,
           item.productName,
           purchase.storeId,
@@ -2331,7 +2351,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
 VALUES(?, ?, ?, ?, ?, ?, datetime('now'), 0)
     `)
 
-    const id = `att - ${ Date.now() } `
+    const id = `att - ${Date.now()} `
     const checkInTime = new Date().toISOString()
     // Simple logic: Late if after 9:30 AM
     const hour = new Date().getHours()
@@ -2380,7 +2400,7 @@ VALUES(?, ?, ?, ?, ?, ?, datetime('now'), 0)
         INSERT INTO leaves(id, user_id, start_date, end_date, type, reason, status, store_id, updated_at, sync_status)
 VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     `)
-    const id = `leave - ${ Date.now() } `
+    const id = `leave - ${Date.now()} `
     stmt.run(id, leave.userId, leave.startDate, leave.endDate, leave.type, leave.reason, 'pending', leave.storeId)
     return { success: true, id }
   },
@@ -2553,7 +2573,7 @@ VALUES(?, ?, ?, ?, ?, 'pending', ?, datetime('now'))
   // 8. Barcode Designer/Printer (Utility)
   generateBarcode: (sku) => {
     // Return a mock SVG as a data URI
-    const barcodeText = `${ sku } -${ Date.now().toString().slice(-4) } `
+    const barcodeText = `${sku} -${Date.now().toString().slice(-4)} `
     const bars = barcodeText.split('').map((c, i) => {
       const width = (c.charCodeAt(0) % 4) + 1
       return `< rect x = "${i * 10}" y = "0" width = "${width}" height = "40" fill = "black" /> `
@@ -2568,7 +2588,7 @@ VALUES(?, ?, ?, ?, ?, 'pending', ?, datetime('now'))
         <text x="125" y="70" font-family="monospace" font-size="14" font-weight="bold" text-anchor="middle" fill="black">${barcodeText}</text>
       </svg >
   `
-    return `data: image / svg + xml; base64, ${ Buffer.from(svg).toString('base64') } `
+    return `data: image / svg + xml; base64, ${Buffer.from(svg).toString('base64')} `
   },
 
   // Stores
@@ -2592,7 +2612,7 @@ VALUES(?, ?, ?, ?, ?, ?, datetime('now'), 0)
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${ fieldMap[key] } = ?`)
+        fields.push(`${fieldMap[key]} = ?`)
         values.push(updates[key])
       }
     })
@@ -2600,7 +2620,7 @@ VALUES(?, ?, ?, ?, ?, ?, datetime('now'), 0)
     fields.push(`updated_at = datetime('now')`)
     fields.push(`sync_status = 0`)
     values.push(id)
-    db.prepare(`UPDATE stores SET ${ fields.join(', ') } WHERE id = ? `).run(...values)
+    db.prepare(`UPDATE stores SET ${fields.join(', ')} WHERE id = ? `).run(...values)
     return dbHelpers.getAllStores().find(s => s.id === id)
   },
 
@@ -2706,7 +2726,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
 
       const itemStmt = db.prepare('INSERT INTO kit_items (id, kit_id, product_id, quantity) VALUES (?, ?, ?, ?)')
       for (const item of kit.items) {
-        itemStmt.run(`${ kit.id } -${ item.productId } `, kit.id, item.productId, item.quantity)
+        itemStmt.run(`${kit.id} -${item.productId} `, kit.id, item.productId, item.quantity)
       }
     })
     transaction()
@@ -2727,13 +2747,13 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
         }
         Object.keys(updates).forEach(key => {
           if (fieldMap[key] !== undefined) {
-            fields.push(`${ fieldMap[key] } = ?`)
+            fields.push(`${fieldMap[key]} = ?`)
             values.push(key === 'isActive' ? (updates[key] ? 1 : 0) : updates[key])
           }
         })
         if (fields.length > 0) {
           values.push(id)
-          db.prepare(`UPDATE item_kits SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
+          db.prepare(`UPDATE item_kits SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
         }
       }
 
@@ -2741,7 +2761,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
         db.prepare('DELETE FROM kit_items WHERE kit_id = ?').run(id)
         const itemStmt = db.prepare('INSERT INTO kit_items (id, kit_id, product_id, quantity) VALUES (?, ?, ?, ?)')
         for (const item of updates.items) {
-          itemStmt.run(`${ id } -${ item.productId } `, id, item.productId, item.quantity)
+          itemStmt.run(`${id} -${item.productId} `, id, item.productId, item.quantity)
         }
       }
     })
@@ -2793,7 +2813,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${ fieldMap[key] } = ?`)
+        fields.push(`${fieldMap[key]} = ?`)
         let val = updates[key]
         if (key === 'options') val = JSON.stringify(val)
         if (key === 'isRequired' || key === 'showOnReceipt') val = val ? 1 : 0
@@ -2802,7 +2822,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     })
     if (fields.length > 0) {
       values.push(id)
-      db.prepare(`UPDATE custom_fields SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
+      db.prepare(`UPDATE custom_fields SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
     }
     return dbHelpers.getAllCustomFields().find(f => f.id === id)
   },
@@ -2826,7 +2846,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
       db.prepare('DELETE FROM product_custom_values WHERE product_id = ?').run(productId)
       const stmt = db.prepare('INSERT INTO product_custom_values (id, product_id, field_id, value) VALUES (?, ?, ?, ?)')
       for (const val of values) {
-        stmt.run(`${ productId } -${ val.fieldId } `, productId, val.fieldId, val.value)
+        stmt.run(`${productId} -${val.fieldId} `, productId, val.fieldId, val.value)
       }
     })
     transaction()
@@ -2837,7 +2857,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
   bulkDeleteProducts: (ids) => {
     const placeholders = ids.map(() => '?').join(',')
     // Correctly handle stock logs and dependencies if needed, or just soft delete
-    db.prepare(`UPDATE products SET is_deleted = 1, updated_at = datetime('now'), sync_status = 0 WHERE id IN(${ placeholders })`).run(...ids)
+    db.prepare(`UPDATE products SET is_deleted = 1, updated_at = datetime('now'), sync_status = 0 WHERE id IN(${placeholders})`).run(...ids)
     return { success: true, count: ids.length }
   },
 
@@ -2854,14 +2874,14 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${ fieldMap[key] } = ?`)
+        fields.push(`${fieldMap[key]} = ?`)
         values.push(key === 'barcodeEnabled' ? (updates[key] ? 1 : 0) : updates[key])
       }
     })
 
     if (fields.length > 0) {
       const placeholders = ids.map(() => '?').join(',')
-      db.prepare(`UPDATE products SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id IN(${ placeholders })`).run(...values, ...ids)
+      db.prepare(`UPDATE products SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id IN(${placeholders})`).run(...values, ...ids)
       return { success: true, count: ids.length }
     }
     return { success: false, message: 'No updates provided' }
@@ -2881,7 +2901,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${ fieldMap[key] } = ?`)
+        fields.push(`${fieldMap[key]} = ?`)
         values.push(updates[key])
       }
     })
@@ -2889,7 +2909,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     fields.push(`updated_at = datetime('now')`)
     fields.push(`sync_status = 0`)
     values.push(id)
-    db.prepare(`UPDATE sales SET ${ fields.join(', ') } WHERE id = ? `).run(...values)
+    db.prepare(`UPDATE sales SET ${fields.join(', ')} WHERE id = ? `).run(...values)
     return dbHelpers.getAllSales().find(s => s.id === id)
   },
 
@@ -2911,13 +2931,13 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key] !== undefined) {
-        fields.push(`${ fieldMap[key] } = ?`)
+        fields.push(`${fieldMap[key]} = ?`)
         values.push(key === 'isActive' ? (updates[key] ? 1 : 0) : updates[key])
       }
     })
     if (fields.length === 0) return null
     values.push(id)
-    db.prepare(`UPDATE gift_cards SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
+    db.prepare(`UPDATE gift_cards SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
     return toCamelCase(db.prepare('SELECT * FROM gift_cards WHERE id = ?').get(id))
   },
 
@@ -2931,13 +2951,13 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${ fieldMap[key] } = ?`)
+        fields.push(`${fieldMap[key]} = ?`)
         values.push(updates[key])
       }
     })
     if (fields.length === 0) return null
     values.push(id)
-    db.prepare(`UPDATE work_orders SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
+    db.prepare(`UPDATE work_orders SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
     return toCamelCase(db.prepare('SELECT * FROM work_orders WHERE id = ?').get(id))
   },
 
@@ -2959,13 +2979,13 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
             throw new Error(`Invalid Assignment: User is not a registered driver.`)
           }
         }
-        fields.push(`${ fieldMap[key] } = ?`)
+        fields.push(`${fieldMap[key]} = ?`)
         values.push(updates[key])
       }
     })
     if (fields.length === 0) return null
     values.push(id)
-    db.prepare(`UPDATE deliveries SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
+    db.prepare(`UPDATE deliveries SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
     return toCamelCase(db.prepare('SELECT * FROM deliveries WHERE id = ?').get(id))
   },
 
@@ -2988,13 +3008,13 @@ VALUES(?, ?, ?, ?, ?, datetime('now'), 0)
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key] !== undefined) {
-        fields.push(`${ fieldMap[key] } = ?`)
+        fields.push(`${fieldMap[key]} = ?`)
         values.push(key === 'isActive' ? (updates[key] ? 1 : 0) : updates[key])
       }
     })
     if (fields.length === 0) return null
     values.push(id)
-    db.prepare(`UPDATE delivery_zones SET ${ fields.join(', ') }, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
+    db.prepare(`UPDATE delivery_zones SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
     return toCamelCase(db.prepare('SELECT * FROM delivery_zones WHERE id = ?').get(id))
   },
   deleteDeliveryZone: (id) => {
@@ -3004,7 +3024,7 @@ VALUES(?, ?, ?, ?, ?, datetime('now'), 0)
 
   // Store Configuration
   saveStoreConfig: (storeId, configData) => {
-    const key = `store_config_${ storeId } `;
+    const key = `store_config_${storeId} `;
     const stmt = db.prepare(`
       INSERT INTO settings(key, value)
 VALUES(?, ?)
@@ -3014,7 +3034,7 @@ VALUES(?, ?)
     return { success: true };
   },
   getStoreConfig: (storeId) => {
-    const key = `store_config_${ storeId } `;
+    const key = `store_config_${storeId} `;
     const result = db.prepare('SELECT value FROM settings WHERE key = ?').get(key);
     if (result && result.value) {
       try {
@@ -3055,13 +3075,13 @@ VALUES(?, ?)
     const fields = Object.keys(updates).map(key => {
       // camelCase to snake_case
       const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase()
-      return `${ snakeKey } = @${ key } `
+      return `${snakeKey} = @${key} `
     }).join(', ')
 
     // Always update updated_at and reset sync_status
     const stmt = db.prepare(`
       UPDATE cheques 
-      SET ${ fields }, updated_at = datetime('now'), sync_status = 0 
+      SET ${fields}, updated_at = datetime('now'), sync_status = 0 
       WHERE id = @id
   `)
     return stmt.run({ ...updates, id })
@@ -3083,11 +3103,11 @@ VALUES(?, ?)
     const dateFilter = (dateField) => {
       let clause = ''
       if (dateFrom) {
-        clause += ` AND ${ dateField } >= @dateFrom`
+        clause += ` AND ${dateField} >= @dateFrom`
         params.dateFrom = dateFrom
       }
       if (dateTo) {
-        clause += ` AND ${ dateField } <= @dateTo`
+        clause += ` AND ${dateField} <= @dateTo`
         params.dateTo = dateTo
       }
       return clause
@@ -3098,7 +3118,7 @@ VALUES(?, ?)
         query = `
           SELECT date, COUNT(*) as count, SUM(total_amount) as total, SUM(profit) as profit
           FROM sales 
-          WHERE store_id = @storeId ${ dateFilter('date') }
+          WHERE store_id = @storeId ${dateFilter('date')}
           GROUP BY date ORDER BY date DESC
   `
         break;
@@ -3114,7 +3134,7 @@ VALUES(?, ?)
           SELECT p.name, p.sku, SUM(json_extract(item.value, '$.quantity')) as qty, SUM(json_extract(item.value, '$.price') * json_extract(item.value, '$.quantity')) as revenue
           FROM sales s, json_each(s.items) as item
           JOIN products p ON p.id = json_extract(item.value, '$.productId')
-          WHERE s.store_id = @storeId ${ dateFilter('s.date') }
+          WHERE s.store_id = @storeId ${dateFilter('s.date')}
           GROUP BY p.id ORDER BY revenue DESC
   `
         break;
@@ -3131,10 +3151,10 @@ VALUES(?, ?)
       case 'profit_loss':
         query = `
 SELECT
-  (SELECT SUM(total_amount) FROM sales WHERE store_id = @storeId ${ dateFilter('date') }) as revenue,
-  (SELECT SUM(profit) FROM sales WHERE store_id = @storeId ${ dateFilter('date') }) as gross_profit,
-    (SELECT SUM(total_amount) FROM receivings WHERE store_id = @storeId ${ dateFilter('completed_at') }) as purchases,
-      (SELECT SUM(amount) FROM transactions WHERE store_id = @storeId AND type = 'expense' ${ dateFilter('date') }) as expenses
+  (SELECT SUM(total_amount) FROM sales WHERE store_id = @storeId ${dateFilter('date')}) as revenue,
+  (SELECT SUM(profit) FROM sales WHERE store_id = @storeId ${dateFilter('date')}) as gross_profit,
+    (SELECT SUM(total_amount) FROM receivings WHERE store_id = @storeId ${dateFilter('completed_at')}) as purchases,
+      (SELECT SUM(amount) FROM transactions WHERE store_id = @storeId AND type = 'expense' ${dateFilter('date')}) as expenses
         `
         break;
 
@@ -3142,7 +3162,7 @@ SELECT
         query = `
           SELECT invoice_number, date, total_amount, (total_amount - profit) as taxable_value, (total_amount * 0.18) as tax_amount --Sample 18 % tax logic
           FROM sales 
-          WHERE store_id = @storeId ${ dateFilter('date') }
+          WHERE store_id = @storeId ${dateFilter('date')}
           ORDER BY date DESC
   `
         break;
@@ -3151,7 +3171,7 @@ SELECT
         query = `
           SELECT party_name, party_type, cheque_number, bank_name, amount, issue_date, status
           FROM cheques 
-          WHERE store_id = @storeId ${ dateFilter('issue_date') }
+          WHERE store_id = @storeId ${dateFilter('issue_date')}
           ORDER BY issue_date DESC
   `
         break;
@@ -3161,7 +3181,7 @@ SELECT
           SELECT u.name, a.date, a.check_in, a.check_out, a.status
           FROM attendance a
           JOIN users u ON u.id = a.user_id
-          WHERE a.store_id = @storeId ${ dateFilter('a.date') }
+          WHERE a.store_id = @storeId ${dateFilter('a.date')}
           ORDER BY a.date DESC
   `
         break;
@@ -3171,7 +3191,7 @@ SELECT
           SELECT supplier_id, (SELECT name FROM suppliers WHERE id = supplier_id) as supplier_name,
   COUNT(*) as count, SUM(total_amount) as total
           FROM receivings
-          WHERE store_id = @storeId ${ dateFilter('completed_at') }
+          WHERE store_id = @storeId ${dateFilter('completed_at')}
           GROUP BY supplier_id
   `
         break;
@@ -3184,7 +3204,7 @@ SELECT
       const results = db.prepare(query).all(params)
       return results.map(toCamelCase)
     } catch (err) {
-      console.error(`[Report] Error generating ${ type }: `, err)
+      console.error(`[Report] Error generating ${type}: `, err)
       return []
     }
   }

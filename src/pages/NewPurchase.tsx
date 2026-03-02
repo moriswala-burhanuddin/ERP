@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { InvoiceReviewModal, ExtractedData } from '@/components/purchase/InvoiceReviewModal';
 
 interface CartItem {
   productId: string;
@@ -30,10 +31,17 @@ export default function NewPurchase() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [supplier, setSupplier] = useState('');
   const [purchaseType, setPurchaseType] = useState<'cash' | 'credit'>('cash');
-  const [accountId, setAccountId] = useState(accounts[0]?.id || '');
+  const [accountId, setAccountId] = useState('');
   const [showProductPicker, setShowProductPicker] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isOcrLoading, setIsOcrLoading] = useState(false);
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [extractedData, setExtractedData] = useState<ExtractedData | null>(null);
+
+  // Auto-select first account if none selected
+  if (!accountId && accounts.length > 0) {
+    setAccountId(accounts[0].id);
+  }
 
   const addToCart = (product: typeof products[0]) => {
     const existing = cart.find(item => item.productId === product.id);
@@ -73,19 +81,8 @@ export default function NewPurchase() {
             const result = await window.electronAPI.processInvoiceOCR(base64, products);
 
             if (result) {
-              if (result.supplier) setSupplier(result.supplier);
-
-              if (result.items && Array.isArray(result.items)) {
-                const newItems: CartItem[] = result.items.map(item => ({
-                  productId: item.productId || `manual-${Math.random().toString(36).substr(2, 9)}`,
-                  productName: item.name,
-                  quantity: item.quantity || 1,
-                  price: item.price || 0
-                }));
-                setCart(prev => [...prev, ...newItems]);
-
-                toast.success(`Receipt Captured: ${result.items.length} nodes injected.`);
-              }
+              setExtractedData(result);
+              setIsReviewModalOpen(true);
             }
           } catch (err: unknown) {
             toast.error("AI Capture Failure: Registry rejected receipt payload.");
@@ -127,6 +124,11 @@ export default function NewPurchase() {
   const handleSubmit = async () => {
     if (cart.length === 0 || !supplier) {
       toast.error("PROTOCOL REJECTED: Vendor node and item indices required.");
+      return;
+    }
+
+    if (!accountId) {
+      toast.error("LIQUIDITY ERROR: No fund source (Account) selected.");
       return;
     }
 
@@ -394,6 +396,29 @@ export default function NewPurchase() {
           </div>
         </div>
       )}
+
+      {/* Invoice Review Modal */}
+      <InvoiceReviewModal
+        isOpen={isReviewModalOpen}
+        onClose={() => setIsReviewModalOpen(false)}
+        extractedData={extractedData}
+        onConfirm={(data: ExtractedData) => {
+          if (data.supplier) setSupplier(data.supplier);
+
+          if (data.items && Array.isArray(data.items)) {
+            const newItems: CartItem[] = data.items.map(item => ({
+              productId: item.productId || `manual-${Math.random().toString(36).substr(2, 9)}`,
+              productName: item.name,
+              quantity: item.quantity || 1,
+              price: item.price || 0
+            }));
+            setCart(prev => [...prev, ...newItems]);
+            toast.success(`Acquisition Stream Infused: ${data.items.length} nodes added.`);
+          }
+          setIsReviewModalOpen(false);
+        }}
+        availableProducts={products}
+      />
     </div>
   );
 }
