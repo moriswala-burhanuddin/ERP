@@ -45,20 +45,20 @@ export function Sidebar() {
   const navItems = ROLE_SIDEBARS[userRole] || ROLE_SIDEBARS['user'];
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 h-screen bg-white text-gray-800 border-r border-gray-100 sticky top-0">
+    <aside className="hidden lg:flex flex-col w-64 h-screen bg-black text-white border-r border-gray-800 sticky top-0">
       {/* Clean Header */}
-      <div className="p-5 border-b border-gray-100 bg-gray-50/50">
+      <div className="p-5 border-b border-gray-800 bg-gray-900">
         <div className="flex items-center gap-3 mb-1">
           <div className="w-10 h-10 flex items-center justify-center">
             <img src="/invenza-bg.png" alt="Invenza Logo" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="text-xl font-black text-black tracking-tight leading-none">Invenza</h1>
+            <h1 className="text-xl font-black text-white tracking-tight leading-none">Invenza</h1>
             <span className="text-[10px] font-bold bg-green-100 px-2 py-0.5 rounded-full text-green-700">PRIME v1.0.1</span>
           </div>
         </div>
         {activeStore && (
-          <p className="text-xs text-gray-500 mt-2 font-medium">{activeStore.name} [{activeStore.branch}]</p>
+          <p className="text-xs text-gray-400 mt-2 font-medium">{activeStore.name} [{activeStore.branch}]</p>
         )}
       </div>
 
@@ -76,11 +76,11 @@ export function Sidebar() {
                 key={item.href}
                 onClick={() => navigate(item.href)}
                 className={`w-full flex items-center gap-3 px-3 py-2 text-[15px] font-medium rounded-xl transition-all ${isActive
-                  ? 'bg-black text-white shadow-sm'
-                  : 'text-gray-600 hover:bg-gray-100 hover:text-black'
+                  ? 'bg-white text-black shadow-sm'
+                  : 'text-gray-300 hover:bg-gray-800 hover:text-white'
                   }`}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-white' : 'text-gray-500'}`} />
+                <Icon className={`w-5 h-5 ${isActive ? 'text-black' : 'text-gray-400'}`} />
                 <span>{item.title}</span>
               </button>
             );
@@ -95,19 +95,19 @@ export function Sidebar() {
       <SyncStatus />
 
       {/* User Section (Docked to bottom) */}
-      <div className="p-4 border-t border-gray-100 bg-gray-50/50">
+      <div className="p-4 border-t border-gray-800 bg-gray-900">
         <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 bg-gray-200 flex items-center justify-center text-black text-sm font-semibold rounded-full">
+          <div className="w-9 h-9 bg-gray-700 flex items-center justify-center text-white text-sm font-semibold rounded-full">
             {currentUser?.name?.charAt(0) || 'U'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-black truncate">{currentUser?.name || 'User'}</p>
-            <p className="text-xs text-gray-500 capitalize">{currentUser?.role || 'user'}</p>
+            <p className="text-sm font-semibold text-white truncate">{currentUser?.name || 'User'}</p>
+            <p className="text-xs text-gray-400 capitalize">{currentUser?.role || 'user'}</p>
           </div>
         </div>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-white hover:bg-red-50 text-gray-700 hover:text-red-500 text-sm font-medium transition-colors border border-gray-200 rounded-xl"
+          className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-800 hover:bg-red-900 text-gray-300 hover:text-red-400 text-sm font-medium transition-colors border border-gray-700 rounded-xl"
         >
           <LogOut className="w-4 h-4" />
           Sign Out
