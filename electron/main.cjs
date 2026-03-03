@@ -1,8 +1,14 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const { autoUpdater } = require('electron-updater')
+const log = require('electron-log')
 
-// Force app name to ensure correct userData path (AppData/Roaming/invenza-erp)
-app.name = 'invenza-erp';
+// Configure logging
+autoUpdater.logger = log
+autoUpdater.logger.transports.file.level = 'info'
+log.info('[Main] App starting...')
+
+// Force app name to ensure correct userData path (AppData/Roaming/Invenza ERP)
+app.name = 'Invenza ERP';
 console.log('[MAIN] Forced App Name to:', app.name);
 console.log('[MAIN] Current UserData:', app.getPath('userData'));
 
@@ -1097,9 +1103,24 @@ function setupAutoUpdater() {
     });
 
     autoUpdater.on('error', (err) => {
-        console.error('[Updater] Error:', err);
+        log.error('[Updater] Error:', err);
+        if (mainWindow) {
+            mainWindow.webContents.send('updater:error', { message: err.message });
+        }
     });
 }
+
+// IPC: Manual check for updates (can be called from a hidden button or console)
+ipcMain.handle('updater:check', async () => {
+    log.info('[Updater] Manual check requested');
+    try {
+        const result = await autoUpdater.checkForUpdates();
+        return { success: true, info: result ? result.updateInfo : null };
+    } catch (err) {
+        log.error('[Updater] Manual check failed:', err);
+        return { success: false, error: err.message };
+    }
+});
 
 // IPC: Renderer clicked "Restart & Install"
 ipcMain.on('updater:install-now', () => {
@@ -1108,9 +1129,13 @@ ipcMain.on('updater:install-now', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 
 app.whenReady().then(() => {
-    console.log('[Main] App is ready, creating window');
+    log.info('[Main] App is ready, creating window');
     createWindow();
-    setupAutoUpdater();
+
+    // Wait slightly more to ensure React is mounted before checking
+    setTimeout(() => {
+        setupAutoUpdater();
+    }, 5000);
 })
 
 app.on('window-all-closed', () => {

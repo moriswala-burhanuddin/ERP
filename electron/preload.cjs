@@ -202,6 +202,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
     onUpdateAvailable: (callback) => ipcRenderer.on('updater:update-available', (_, info) => callback(info)),
     onDownloadProgress: (callback) => ipcRenderer.on('updater:download-progress', (_, info) => callback(info)),
     onUpdateDownloaded: (callback) => ipcRenderer.on('updater:update-downloaded', (_, info) => callback(info)),
-    // Call this when user clicks "Restart & Update"
+    onUpdaterError: (callback) => ipcRenderer.on('updater:error', (_, info) => callback(info)),
+
+    // Actions
+    checkForUpdates: () => ipcRenderer.invoke('updater:check'),
     installUpdate: () => ipcRenderer.send('updater:install-now'),
 })

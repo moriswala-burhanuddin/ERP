@@ -52,9 +52,28 @@ export function Sidebar() {
           <div className="w-10 h-10 flex items-center justify-center">
             <img src="/invenza-bg.png" alt="Invenza Logo" className="w-full h-full object-contain" />
           </div>
-          <div>
+          <div className="flex flex-col">
             <h1 className="text-xl font-black text-white tracking-tight leading-none">Invenza</h1>
-            <span className="text-[10px] font-bold bg-green-100 px-2 py-0.5 rounded-full text-green-700">PRIME v1.0.1</span>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="text-[10px] font-bold bg-green-900/50 px-2 py-0.5 rounded-full text-green-400 border border-green-800">
+                PRIME v1.0.1
+              </span>
+              <button
+                onClick={async () => {
+                  const api = (window as any).electronAPI;
+                  if (api?.checkForUpdates) {
+                    console.log('[Sidebar] Manual update check started...');
+                    const res = await api.checkForUpdates();
+                    console.log('[Sidebar] Check result:', res);
+                    if (!res.success) alert('Update check failed: ' + res.error);
+                    else if (!res.info) alert('No updates available.');
+                  }
+                }}
+                className="text-[10px] text-gray-500 hover:text-white transition-colors underline"
+              >
+                Check
+              </button>
+            </div>
           </div>
         </div>
         {activeStore && (

@@ -14,6 +14,8 @@ interface ElectronUpdaterAPI {
     onUpdateAvailable?: (cb: (info: UpdateInfo) => void) => void
     onDownloadProgress?: (cb: (info: DownloadProgress) => void) => void
     onUpdateDownloaded?: (cb: (info: UpdateInfo) => void) => void
+    onUpdaterError?: (cb: (info: { message: string }) => void) => void
+    checkForUpdates?: () => Promise<{ success: boolean, info?: unknown, error?: string }>
     installUpdate?: () => void
 }
 
@@ -28,9 +30,15 @@ export function UpdateNotification() {
 
     useEffect(() => {
         const api = getAPI()
-        if (!api) return
+        if (!api) {
+            console.log('[UpdateNotification] No Electron API found.')
+            return
+        }
+
+        console.log('[UpdateNotification] Initializing listeners...')
 
         api.onUpdateAvailable?.((info: UpdateInfo) => {
+            console.log('[UpdateNotification] Update available:', info.version)
             setVersion(info.version)
             setState('available')
         })
@@ -41,8 +49,13 @@ export function UpdateNotification() {
         })
 
         api.onUpdateDownloaded?.((info: UpdateInfo) => {
+            console.log('[UpdateNotification] Update ready to install.')
             setVersion(info.version)
             setState('ready')
+        })
+
+        api.onUpdaterError?.((info: { message: string }) => {
+            console.error('[UpdateNotification] Updater error:', info.message)
         })
     }, [])
 
