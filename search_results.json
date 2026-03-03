@@ -1,0 +1,18 @@
+{
+  "vite_react_shadcn_ts": {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\vite_react_shadcn_ts\\storeflow.db",
+    "error": "The module '\\\\?\\D:\\NEW-ERP\\storeflow-erp\\node_modules\\better-sqlite3\\build\\Release\\better_sqlite3.node'\nwas compiled against a different Node.js version using\nNODE_MODULE_VERSION 130. This version of Node.js requires\nNODE_MODULE_VERSION 127. Please try re-compiling or re-installing\nthe module (for instance, using `npm rebuild` or `npm install`)."
+  },
+  "invenza-erp": {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\invenza-erp\\storeflow.db",
+    "error": "The module '\\\\?\\D:\\NEW-ERP\\storeflow-erp\\node_modules\\better-sqlite3\\build\\Release\\better_sqlite3.node'\nwas compiled against a different Node.js version using\nNODE_MODULE_VERSION 130. This version of Node.js requires\nNODE_MODULE_VERSION 127. Please try re-compiling or re-installing\nthe module (for instance, using `npm rebuild` or `npm install`)."
+  },
+  "StoreFlow ERP": {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\StoreFlow ERP\\storeflow.db",
+    "status": "NOT_FOUND"
+  },
+  "Electron": {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\Electron\\storeflow.db",
+    "status": "NOT_FOUND"
+  }
+}

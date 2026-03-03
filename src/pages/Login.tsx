@@ -61,8 +61,8 @@ export default function Login() {
             <div className="relative mb-8 group">
               <div className="absolute -inset-4 bg-indigo-500/20 rounded-[2.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <div className="w-24 h-24 rounded-[2.5rem] bg-gradient-to-br from-indigo-500 to-emerald-500 p-[1px] shadow-2xl shadow-indigo-500/20 transition-transform duration-700 group-hover:scale-105 group-hover:rotate-6">
-                <div className="w-full h-full bg-[#0A0A0B] rounded-[2.4rem] flex items-center justify-center">
-                  <Fingerprint className="w-12 h-12 text-white" />
+                <div className="w-full h-full bg-[#0A0A0B] rounded-[2.4rem] flex items-center justify-center overflow-hidden">
+                  <img src="/invenza-bg.png" alt="Invenza Logo" className="w-[70%] h-[70%] object-contain" />
                 </div>
               </div>
               <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-[#141417]">
@@ -70,10 +70,10 @@ export default function Login() {
               </div>
             </div>
 
-            <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-3">StoreFlow<span className="text-indigo-500 text-5xl">.</span></h1>
+            <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-3">Invenza<span className="text-indigo-500 text-5xl">.</span></h1>
             <div className="flex items-center gap-3 bg-white/5 border border-white/5 px-5 py-2 rounded-full">
               <Cpu className="w-3.5 h-3.5 text-indigo-400" />
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Neural Core v2.4</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Quantum Core v3.0</span>
             </div>
           </div>
 

@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, Check, AlertCircle, ShoppingCart } from 'lucide-react';
+import { Trash2, Plus, Check, AlertCircle, ShoppingCart, Search } from 'lucide-react';
 import { cn } from "@/lib/utils";
 import { Product } from '@/lib/store-data';
 
@@ -56,12 +56,23 @@ export function InvoiceReviewModal({
         const newItems = [...data.items];
         newItems[index] = { ...newItems[index], ...updates };
 
-        // If name changes, try to re-match productId
-        if (updates.name) {
+        // If name changes, try to re-match productId (unless productId was manually set)
+        if (updates.name && !updates.productId) {
             const match = availableProducts.find(p => p.name.toLowerCase() === updates.name?.toLowerCase());
             newItems[index].productId = match ? match.id : null;
         }
 
+        setData({ ...data, items: newItems });
+    };
+
+    const handleLinkProduct = (index: number, product: Product) => {
+        const newItems = [...data.items];
+        newItems[index] = {
+            ...newItems[index],
+            name: product.name,
+            productId: product.id,
+            price: product.purchasePrice || newItems[index].price
+        };
         setData({ ...data, items: newItems });
     };
 
@@ -198,12 +209,35 @@ export function InvoiceReviewModal({
                                             </p>
                                         </div>
 
-                                        <button
-                                            onClick={() => handleRemoveItem(idx)}
-                                            className="p-3 text-slate-200 hover:text-rose-500 transition-colors mt-6"
-                                        >
-                                            <Trash2 className="w-4 h-4" />
-                                        </button>
+                                        <div className="flex flex-col gap-2 pt-6">
+                                            <button
+                                                onClick={() => handleRemoveItem(idx)}
+                                                className="p-3 text-slate-200 hover:text-rose-500 transition-colors"
+                                                title="Remove Junk Row"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+
+                                            {!isMatched && (
+                                                <div className="relative">
+                                                    <select
+                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        onChange={(e) => {
+                                                            const p = availableProducts.find(ap => ap.id === e.target.value);
+                                                            if (p) handleLinkProduct(idx, p);
+                                                        }}
+                                                    >
+                                                        <option value="">Link to Existing...</option>
+                                                        {availableProducts.map(p => (
+                                                            <option key={p.id} value={p.id}>{p.name}</option>
+                                                        ))}
+                                                    </select>
+                                                    <button className="p-3 text-slate-200 hover:text-indigo-600 transition-colors" title="Link to Inventory">
+                                                        <Search className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 );
                             })}
@@ -225,7 +259,15 @@ export function InvoiceReviewModal({
                                 Cancel
                             </Button>
                             <Button
-                                onClick={() => onConfirm(data)}
+                                onClick={() => {
+                                    // Safety Filter: Remove items with empty names or obvious junk keywords
+                                    const junkKeywords = ['total', 'tax', 'subtotal', 'vat', 'cash', 'change', 'balance'];
+                                    const filteredItems = data.items.filter(item =>
+                                        item.name.trim().length > 0 &&
+                                        !junkKeywords.some(kw => item.name.toLowerCase().includes(kw))
+                                    );
+                                    onConfirm({ ...data, items: filteredItems });
+                                }}
                                 className="h-14 px-12 bg-black text-white hover:bg-slate-900 rounded-[1.5rem] font-black uppercase text-[11px] tracking-widest shadow-xl shadow-black/20 hover:scale-[1.02] transition-all flex items-center gap-3"
                             >
                                 <ShoppingCart className="w-4 h-4" />

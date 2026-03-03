@@ -11,7 +11,7 @@ interface Message {
 
 const HRChatAssistant = () => {
     const [messages, setMessages] = useState<Message[]>([
-        { role: 'assistant', content: 'Hi! I am StoreFlow HR. Ask me about policies, leave balance, or your shifts.' }
+        { role: 'assistant', content: 'Hi! I am Invenza HR. Ask me about policies, leave balance, or your shifts.' }
     ]);
     const [input, setInput] = useState("");
     const [loading, setLoading] = useState(false);
@@ -68,8 +68,8 @@ const HRChatAssistant = () => {
                 {messages.map((m, i) => (
                     <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[80%] rounded-lg p-3 ${m.role === 'user'
-                                ? 'bg-indigo-600 text-white'
-                                : 'bg-slate-100 text-slate-800'
+                            ? 'bg-indigo-600 text-white'
+                            : 'bg-slate-100 text-slate-800'
                             }`}>
                             {m.content}
                         </div>

@@ -155,7 +155,12 @@ async function processInvoiceOCR(imageBase64, existingProducts) {
                     - totalAmount: The grand total shown on the bill.
                     - items: An array of objects: {"name": "...", "quantity": 1, "price": 0.00}
                     
-                    IMPORTANT:
+                    CRITICAL FILTERS: 
+                    1. DO NOT include "TOTAL", "SUBTOTAL", "TAX", "VAT", "CASH", "CHANGE", or delivery charges as items. 
+                    2. ONLY include actual physical products or services.
+                    3. If a row looks like junk text or a header, SKIP IT.
+                    
+                    INSTRUCTIONS:
                     1. For handwritten items, do your best to decipher the product names.
                     2. If quantity is not specified, default to 1.
                     3. If 'price' is not clear, look for the 'total' or 'amount' per line.

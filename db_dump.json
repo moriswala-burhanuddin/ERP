@@ -1,0 +1,52 @@
+{
+  "products": [
+    {
+      "store_id": "store-1",
+      "is_deleted": 0,
+      "count": 3
+    }
+  ],
+  "sales": [],
+  "stores": [
+    {
+      "id": "store-1",
+      "name": "Hardware Central",
+      "branch": "Main Branch",
+      "address": "123 Industrial Ave",
+      "phone": "+1 555-0100",
+      "device_id": "93c326be-8608-4597-a802-9d76d498a1ad",
+      "updated_at": "2026-03-02 19:03:22",
+      "sync_status": 1
+    }
+  ],
+  "settings": [
+    {
+      "key": "device_id",
+      "value": "93c326be-8608-4597-a802-9d76d498a1ad"
+    }
+  ],
+  "sample_product": {
+    "id": "prod-1",
+    "name": "Power Drill 18V",
+    "sku": "PWR-001",
+    "category": "Power Tools",
+    "selling_price": 89.99,
+    "purchase_price": 55,
+    "quantity": 24,
+    "store_id": "store-1",
+    "last_used": "2026-03-02 19:03:22",
+    "unit": "Pcs",
+    "brand": "DeWalt",
+    "barcode": "12345678",
+    "min_stock": 0,
+    "reorder_quantity": 0,
+    "is_deleted": 0,
+    "is_kit": 0,
+    "limited_qty": null,
+    "barcode_enabled": 1,
+    "tax_slab_id": null,
+    "device_id": "93c326be-8608-4597-a802-9d76d498a1ad",
+    "updated_at": "2026-03-02 19:03:22",
+    "sync_status": 1
+  }
+}

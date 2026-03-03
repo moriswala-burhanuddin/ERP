@@ -1,4 +1,10 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
+
+// Force app name to ensure correct userData path (AppData/Roaming/invenza-erp)
+app.name = 'invenza-erp';
+console.log('[MAIN] Forced App Name to:', app.name);
+console.log('[MAIN] Current UserData:', app.getPath('userData'));
+
 const path = require('path')
 const fs = require('fs')
 const { db, dbHelpers } = require('./db.cjs')
@@ -29,6 +35,15 @@ ipcMain.handle('db:deleteCheque', async (event, id) => {
 
 let mainWindow;
 let secondaryWindow;
+
+console.log('[MAIN] App Name:', app.getName());
+console.log('[MAIN] UserData Path:', app.getPath('userData'));
+try {
+    const stores = db.prepare('SELECT id, name FROM stores').all();
+    console.log('[MAIN] Available Stores in DB:', JSON.stringify(stores));
+} catch (e) {
+    console.error('[MAIN] DB Store Check Error:', e.message);
+}
 
 function createWindow() {
     mainWindow = new BrowserWindow({

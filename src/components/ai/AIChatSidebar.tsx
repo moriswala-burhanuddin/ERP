@@ -9,7 +9,7 @@ export function AIChatSidebar() {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState('');
     const [messages, setMessages] = useState<{ role: 'user' | 'ai', content: string }[]>([
-        { role: 'ai', content: 'Hi! I am your StoreFlow AI Analyst. Ask me anything about your sales, stock, or customers.' }
+        { role: 'ai', content: 'Hi! I am your Invenza AI Analyst. Ask me anything about your sales, stock, or customers.' }
     ]);
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -119,7 +119,7 @@ export function AIChatSidebar() {
                             <Send className="w-3 h-3 mr-2" /> SEND QUERY
                         </Button>
                     </form>
-                    <p className="text-[9px] text-slate-600 mt-2 text-center uppercase font-bold tracking-tight">StoreFlow AI v1.0 • GPT-4o-mini</p>
+                    <p className="text-[9px] text-slate-600 mt-2 text-center uppercase font-bold tracking-tight">Invenza AI v1.2 • GPT-4o-mini</p>
                 </div>
             </div>
         </>

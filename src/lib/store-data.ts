@@ -937,25 +937,7 @@ export const useERPStore = create<ERPState>()(
 
       // Auth Actions
       login: async (email, password) => {
-        // 1. Try Local Login (Offline / Demo Fallback)
-        const localUsers = get().users;
-        const localUser = localUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-        if (localUser) {
-          let isValid = false;
-          if (isElectron() && window.electronAPI.verifyPassword) {
-            isValid = await window.electronAPI.verifyPassword(localUser.id, password);
-          } else {
-            isValid = localUser.password === password;
-          }
-
-          if (isValid) {
-            set({ currentUser: localUser, isAuthenticated: true, activeStoreId: localUser.storeId || 'store-1' });
-            return { success: true };
-          }
-        }
-
-        // 2. Real API Login
+        // 1. First Priority: Real API Login (Cloud Sync)
         try {
           const { authApi } = await import('./auth-api');
           const result = await authApi.login(email, password);
@@ -963,7 +945,6 @@ export const useERPStore = create<ERPState>()(
           if (result.success && result.data) {
             const { access, refresh, user } = result.data;
 
-            // Map backend user to frontend user
             // Map backend user to frontend user with role normalization
             const rawRole = (user.role || 'user').toLowerCase();
             const validRoles: Role[] = ['admin', 'staff', 'user', 'hr_manager', 'super_admin', 'sales_manager', 'inventory_manager', 'accountant', 'employee'];
@@ -985,14 +966,37 @@ export const useERPStore = create<ERPState>()(
               activeStoreId: mappedUser.storeId
             });
             return { success: true };
-          } else {
+          }
+
+          // If API specifically returns an error (401, 404, etc.), don't fall back to local
+          // only fall back if it's a network/connection error.
+          if (!result.isNetworkError) {
             return { success: false, message: result.message };
           }
 
         } catch (error) {
-          console.error("Login Action Error:", error);
-          return { success: false, message: "An unexpected error occurred." };
+          console.log("[Auth] Cloud login unreachable, attempting local fallback...");
         }
+
+        // 2. Second Priority: Local Login (Offline / Demo Fallback)
+        const localUsers = get().users;
+        const localUser = localUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+        if (localUser) {
+          let isValid = false;
+          if (isElectron() && window.electronAPI.verifyPassword) {
+            isValid = await window.electronAPI.verifyPassword(localUser.id, password);
+          } else {
+            isValid = localUser.password === password;
+          }
+
+          if (isValid) {
+            set({ currentUser: localUser, isAuthenticated: true, activeStoreId: localUser.storeId || 'store-1' });
+            return { success: true };
+          }
+        }
+
+        return { success: false, message: "AUTHENTICATION_FAILURE: Invalid identifier or security key." };
       },
 
       logout: () => {
@@ -1928,11 +1932,14 @@ export const useERPStore = create<ERPState>()(
         };
 
         try {
+          console.log('[SYNC] Starting two-way sync...');
           // 1. PUSH
           const dirtyData = await window.electronAPI.getDirtyData();
+          console.log('[SYNC] Dirty data check complete:', dirtyData ? `${dirtyData.totalCount} records` : '0 records');
 
           if (dirtyData) {
             console.log('[SYNC] Push initiated');
+            console.log('[SYNC] Push payload size:', JSON.stringify(dirtyData).length);
             const response = await authenticatedFetch(`${API_URL}/sync/push`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -1942,22 +1949,35 @@ export const useERPStore = create<ERPState>()(
             // If we logged out during fetch, stop
             if (!get().isAuthenticated) return;
 
-            const result = await response.json();
+            let pushResult: Record<string, any> | null = null;
+            let pushText = '';
+            try {
+              pushText = await response.text();
+              if (response.headers.get('content-type')?.includes('application/json')) {
+                pushResult = JSON.parse(pushText);
+              }
+            } catch (e) {
+              console.error('[SYNC] Failed to parse push response');
+            }
 
             if (!response.ok) {
-              console.error('[SYNC] Push failed:', response.status, result);
-              // alert(`Sync failed: ${result.message || result.detail || 'Unknown error'}`);
-              // Use a toast or silent fail instead of alert to avoid spamming the user, 
-              // but for now keeping error log. Attempting to suppress the alert for auth errors.
-              if (response.status !== 401) {
-                console.error('Sync execution halted due to error');
-              }
+              console.error('[SYNC] Push failed with status:', response.status);
+              console.error('[SYNC] Push error detail:', pushText || pushResult);
               set({ isSyncing: false });
               return;
             }
 
-            if (response.ok && result.status === 'success' && result.synced_ids) {
-              await window.electronAPI.markAsSynced(result.synced_ids);
+            if (response.ok) {
+              // Build synced_ids from VPS response OR fall back to all records in local payload
+              // This prevents invalid local records (e.g. seed data) from looping as "pending" forever
+              const confirmedIds = (pushResult?.synced_ids && Object.keys(pushResult.synced_ids).length > 0)
+                ? pushResult.synced_ids
+                : Object.fromEntries(
+                  Object.entries((dirtyData as { payload: Record<string, { id: string }[]> }).payload || {}).map(([tbl, rows]) => [
+                    tbl, rows.map((r: { id: string }) => r.id)
+                  ])
+                );
+              await window.electronAPI.markAsSynced(confirmedIds);
               console.log('[SYNC] Push completed & marked');
             }
           }
@@ -1965,6 +1985,10 @@ export const useERPStore = create<ERPState>()(
           // 2. PULL
           const lastSync = await window.electronAPI.getLastPullTimestamp() || '2000-01-01T00:00:00.000Z';
           // Use authenticated fetch for pull as well
+          console.log('[SYNC] Pull initiated with:', {
+            store_id: activeStoreId,
+            last_sync: lastSync
+          });
           const pullResponse = await authenticatedFetch(`${API_URL}/sync/pull`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1974,12 +1998,30 @@ export const useERPStore = create<ERPState>()(
             }),
           });
 
+          let pullResult: Record<string, any> | null = null;
+          let pullText = '';
+          try {
+            pullText = await pullResponse.text();
+            if (pullResponse.headers.get('content-type')?.includes('application/json')) {
+              pullResult = JSON.parse(pullText);
+            }
+          } catch (e) {
+            console.error('[SYNC] Failed to parse pull response');
+          }
+
+          if (!pullResponse.ok) {
+            console.error('[SYNC] Pull failed with status:', pullResponse.status);
+            console.error('[SYNC] Pull error detail:', pullText || pullResult);
+            set({ isSyncing: false });
+            return;
+          }
+
           // If we logged out during fetch, stop
           if (!get().isAuthenticated) return;
 
-          if (pullResponse.ok) {
-            const pullResult = await pullResponse.json();
+          if (pullResponse.ok && pullResult) {
             if (pullResult.status === 'success' && pullResult.updates) {
+              console.log('[SYNC] Pull received updates for tables:', Object.keys(pullResult.updates));
               const applyResult = await window.electronAPI.applyCloudUpdates({
                 updates: pullResult.updates,
                 serverTime: pullResult.server_time
@@ -2038,6 +2080,8 @@ export const useERPStore = create<ERPState>()(
             dbAdapter.getReceivings ? dbAdapter.getReceivings(state.activeStoreId) as Promise<Receiving[]> : Promise.resolve([]),
             dbAdapter.getInvoices ? dbAdapter.getInvoices(state.activeStoreId) as Promise<Invoice[]> : Promise.resolve([])
           ]);
+
+          console.log(`[Store] Data loaded: ${products.length} products, ${sales.length} sales found locally.`);
 
           log(`[Store] Database results: ${products?.length || 0} products, ${customers?.length || 0} customers`);
 

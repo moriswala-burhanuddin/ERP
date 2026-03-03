@@ -1,10 +1,10 @@
 {
-  "name": "vite_react_shadcn_ts",
+  "name": "invenza-erp",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
-  "description": "StoreFlow ERP Desktop Application",
-  "author": "StoreFlow Team",
+  "description": "Invenza - Advanced Inventory & Management System",
+  "author": "Invenza Team",
   "main": "electron/main.cjs",
   "scripts": {
     "dev": "vite",
@@ -20,8 +20,8 @@
     "dist:win": "npm run build && npx electron-builder --win nsis --publish never"
   },
   "build": {
-    "appId": "com.storeflow.erp",
-    "productName": "StoreFlow ERP",
+    "appId": "com.invenza.erp",
+    "productName": "Invenza ERP",
     "directories": {
       "output": "release"
     },
@@ -67,7 +67,7 @@
         "dmg",
         "zip"
       ],
-      "icon": "build/icon.png",
+      "icon": "build/icon.icns",
       "category": "public.app-category.business"
     },
     "dmg": {

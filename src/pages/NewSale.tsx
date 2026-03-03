@@ -201,9 +201,15 @@ export default function NewSale() {
       toast.error("Customer Selection Mandatory for Credit");
       return;
     }
-    if (saleType !== 'credit' && remainingBalance > 0.01) {
-      toast.error(`Payment Shortfall: $${remainingBalance.toFixed(2)}`);
-      return;
+    // For non-credit sales: if no payments added, auto-apply full amount as cash
+    let finalPayments = payments;
+    if (saleType !== 'credit') {
+      if (finalPayments.length === 0) {
+        finalPayments = [{ mode: 'cash', amount: totalAmount, accountId: accountId }];
+      } else if (remainingBalance > 0.01) {
+        toast.error(`Payment Shortfall: $${remainingBalance.toFixed(2)}`);
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -223,8 +229,8 @@ export default function NewSale() {
         taxAmount,
         totalAmount,
         profit: totalProfit,
-        paymentMode: payments[0]?.mode || 'cash',
-        payments: payments.map(p => ({
+        paymentMode: finalPayments[0]?.mode || 'cash',
+        payments: finalPayments.map(p => ({
           id: generateId(),
           saleId: '',
           paymentMode: p.mode,
@@ -232,7 +238,7 @@ export default function NewSale() {
           accountId: p.accountId || accountId,
           giftCardId: p.giftCardId
         })),
-        accountId: payments.find(p => p.accountId)?.accountId || accountId,
+        accountId: finalPayments.find(p => p.accountId)?.accountId || accountId,
         customerId: customerId || undefined,
         quotationId: quotationId || undefined,
         storeId: activeStoreId,
@@ -307,12 +313,14 @@ export default function NewSale() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full h-14 bg-slate-50 border-none rounded-[1.2rem] pl-14 pr-6 text-sm font-bold focus:ring-2 focus:ring-black placeholder:text-slate-200 transition-all uppercase"
               />
-              {searchQuery && (
-                <div className="absolute top-16 left-0 right-0 bg-white rounded-[2rem] shadow-2xl border border-slate-100 p-4 max-h-[60vh] overflow-y-auto divide-y divide-slate-50">
-                  {searchItems.slice(0, 10).map(item => (
+              {searchQuery.trim() && (
+                <div className="absolute top-16 left-0 right-0 bg-white rounded-[2rem] shadow-2xl border border-slate-100 p-4 max-h-[60vh] overflow-y-auto divide-y divide-slate-50 z-[200]">
+                  {searchItems.length === 0 ? (
+                    <p className="text-center text-[10px] font-black text-slate-400 uppercase py-6 tracking-widest">No products found</p>
+                  ) : searchItems.slice(0, 10).map(item => (
                     <button
                       key={item.id}
-                      onClick={() => addToCart(item)}
+                      onClick={() => { addToCart(item); setSearchQuery(''); }}
                       className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-all group"
                     >
                       <div className="text-left">
@@ -476,12 +484,45 @@ export default function NewSale() {
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{cart.length} Items Indexed</p>
                   </div>
                 </div>
-                {!isElectron() && (
-                  <Button onClick={() => setSearchQuery(' ')} className="lg:hidden bg-indigo-600 text-white rounded-xl h-12 px-6 font-black uppercase text-[10px] tracking-widest">
-                    <Plus className="w-4 h-4 mr-2" /> Add Items
-                  </Button>
+                <Button onClick={() => setSearchQuery(' ')} className="lg:hidden bg-indigo-600 text-white rounded-xl h-12 px-6 font-black uppercase text-[10px] tracking-widest">
+                  <Plus className="w-4 h-4 mr-2" /> Add Items
+                </Button>
+              </div>
+
+              {/* Mobile Search Bar */}
+              <div className="lg:hidden mb-8 relative group">
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-black transition-colors" />
+                <input
+                  type="text"
+                  placeholder="Scan or Search Inventory..."
+                  value={searchQuery.trim() === '' ? '' : searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full h-14 bg-slate-50 border-none rounded-[1.2rem] pl-14 pr-6 text-sm font-bold focus:ring-2 focus:ring-black placeholder:text-slate-200 transition-all uppercase"
+                />
+                {searchQuery.trim() && (
+                  <div className="absolute top-16 left-0 right-0 bg-white rounded-[2rem] shadow-2xl border border-slate-100 p-4 max-h-[50vh] overflow-y-auto divide-y divide-slate-50 z-50">
+                    {searchItems.length === 0 ? (
+                      <p className="text-center text-[10px] font-black text-slate-400 uppercase py-6">No products found</p>
+                    ) : searchItems.slice(0, 10).map(item => (
+                      <button
+                        key={item.id}
+                        onClick={() => { addToCart(item); setSearchQuery(''); }}
+                        className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-all group"
+                      >
+                        <div className="text-left">
+                          <p className="font-black text-sm text-slate-900 group-hover:translate-x-1 transition-transform">{item.name}</p>
+                          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{item.sku} • {item.type === 'KIT' ? 'COMBO' : `${(item as Product & { type: 'PRODUCT' }).quantity} IN STOCK`}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-black text-slate-900">${item.sellingPrice.toLocaleString()}</p>
+                          <Plus className="w-4 h-4 text-indigo-600 inline ml-2" />
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 )}
               </div>
+
 
               {cart.length > 0 ? (
                 <div className="divide-y divide-slate-50">

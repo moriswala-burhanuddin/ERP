@@ -1,0 +1,14 @@
+{
+  "vite_react_shadcn_ts": {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\vite_react_shadcn_ts\\storeflow.db",
+    "products": 12,
+    "sales": 11,
+    "customers": 2
+  },
+  "invenza-erp": {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\invenza-erp\\storeflow.db",
+    "products": 3,
+    "sales": 0,
+    "customers": 0
+  }
+}

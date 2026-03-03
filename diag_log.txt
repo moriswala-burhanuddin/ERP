@@ -1,0 +1,6 @@
+Starting Diagnosis...
+[2026-03-03T10:49:55.397Z] DB Path: C:\Users\ADMIN\AppData\Roaming\Electron\storeflow.db
+[2026-03-03T10:49:55.407Z] ERROR: unable to open database file
+SqliteError: unable to open database file
+    at new Database (D:\NEW-ERP\storeflow-erp\node_modules\better-sqlite3\lib\database.js:69:26)
+    at D:\NEW-ERP\storeflow-erp\diag_electron_v2.cjs:19:20

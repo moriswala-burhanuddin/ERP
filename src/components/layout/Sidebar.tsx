@@ -49,12 +49,12 @@ export function Sidebar() {
       {/* Clean Header */}
       <div className="p-5 border-b border-gray-100 bg-gray-50/50">
         <div className="flex items-center gap-3 mb-1">
-          <div className="p-1.5 bg-black rounded-lg text-white shadow-sm">
-            <Hexagon className="w-5 h-5 fill-current" />
+          <div className="w-10 h-10 flex items-center justify-center">
+            <img src="/invenza-bg.png" alt="Invenza Logo" className="w-full h-full object-contain" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-black tracking-tight">StoreFlow</h1>
-            <span className="text-[10px] font-semibold bg-gray-200 px-2 py-0.5 rounded-full text-gray-600">v2.0.4</span>
+            <h1 className="text-xl font-black text-black tracking-tight leading-none">Invenza</h1>
+            <span className="text-[10px] font-bold bg-green-100 px-2 py-0.5 rounded-full text-green-700">PRIME v3.0</span>
           </div>
         </div>
         {activeStore && (

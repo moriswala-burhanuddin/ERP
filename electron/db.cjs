@@ -2,12 +2,50 @@ const Database = require("better-sqlite3")
 const path = require("path")
 const crypto = require("crypto")
 const bcrypt = require("bcryptjs")
+const fs = require("fs")
 const { app } = require('electron')
 
 // Centralized database path in its own data directory
-const dbPath = app
-  ? path.join(app.getPath('userData'), 'storeflow.db')
-  : path.join(__dirname, 'storeflow.db')
+const userDataPath = app ? app.getPath('userData') : __dirname;
+const dbPath = path.join(userDataPath, 'storeflow.db');
+
+// Migration Logic: If the new DB doesn't exist OR is empty, check for old boilerplate names
+let shouldMigrate = false;
+if (app) {
+  const appData = app.getPath('appData');
+  const possibleOldPaths = [
+    path.join(appData, 'vite_react_shadcn_ts', 'storeflow.db'),
+    path.join(appData, 'invenza-erp', 'storeflow.db'),
+    path.join(appData, 'StoreFlow ERP', 'storeflow.db'),
+    path.join(appData, 'Electron', 'storeflow.db')
+  ];
+
+  if (!fs.existsSync(dbPath) || fs.statSync(dbPath).size < 50000) {
+    for (const oldPath of possibleOldPaths) {
+      if (fs.existsSync(oldPath) && oldPath !== dbPath) {
+        console.log(`[DB] Found potential data source: ${oldPath} (${fs.statSync(oldPath).size} bytes)`);
+        // If the new one exists but is small, and the old one is significantly larger, migrate
+        if (!fs.existsSync(dbPath) || fs.statSync(oldPath).size > fs.statSync(dbPath).size) {
+          console.log('[DB] Decided to migrate from:', oldPath);
+          try {
+            if (!fs.existsSync(userDataPath)) {
+              fs.mkdirSync(userDataPath, { recursive: true });
+            }
+            if (fs.existsSync(dbPath)) {
+              fs.renameSync(dbPath, dbPath + '.backup-' + Date.now());
+            }
+            fs.copyFileSync(oldPath, dbPath);
+            console.log('[DB] Migration successful!');
+            shouldMigrate = true;
+            break; // Found and migrated
+          } catch (err) {
+            console.error('[DB] Migration failed:', err.message);
+          }
+        }
+      }
+    }
+  }
+}
 
 console.log('[DB] Connecting to:', dbPath)
 const db = new Database(dbPath)
@@ -1476,64 +1514,73 @@ VALUES(?, ?, ?, ?, ?, 0)
   getAllUsers: () => db.prepare('SELECT id, name, email, username, first_name, last_name, role, is_staff, is_active, store_id, avatar, password FROM users').all().map(toCamelCase),
 
   getDashboardMetrics: (storeId) => {
-    const today = new Date().toISOString().split('T')[0]
+    try {
+      const today = new Date().toISOString().split('T')[0]
 
-    // 1. Sales Metrics
-    const salesMetrics = db.prepare(`
-SELECT
-SUM(total_amount) as total_revenue,
-  SUM(profit) as total_profit,
-  COUNT(*) as total_sales,
-  SUM(CASE WHEN date >= ? THEN total_amount ELSE 0 END) as today_revenue,
-  SUM(CASE WHEN date >= ? THEN profit ELSE 0 END) as today_profit
-      FROM sales 
-      WHERE store_id = ?
-  `).get(today, today, storeId)
+      // 1. Sales Metrics
+      const salesMetrics = db.prepare(`
+        SELECT
+          SUM(total_amount) as total_revenue,
+          SUM(profit) as total_profit,
+          COUNT(*) as total_sales,
+          SUM(CASE WHEN date >= ? THEN total_amount ELSE 0 END) as today_revenue,
+          SUM(CASE WHEN date >= ? THEN profit ELSE 0 END) as today_profit
+        FROM sales 
+        WHERE store_id = ?
+      `).get(today, today, storeId)
 
-    // 2. Inventory Metrics
-    const inventoryMetrics = db.prepare(`
-      SELECT
-SUM(quantity) as total_items,
-  SUM(quantity * purchase_price) as inventory_value,
-  COUNT(CASE WHEN quantity <= min_stock AND is_deleted = 0 THEN 1 END) as low_stock_count
-      FROM products 
-      WHERE store_id = ? AND is_deleted = 0
-  `).get(storeId)
+      // 2. Inventory Metrics
+      const inventoryMetrics = db.prepare(`
+        SELECT
+          SUM(quantity) as total_items,
+          SUM(quantity * purchase_price) as inventory_value,
+          COUNT(CASE WHEN quantity <= min_stock AND is_deleted = 0 THEN 1 END) as low_stock_count
+        FROM products 
+        WHERE store_id = ? AND is_deleted = 0
+      `).get(storeId)
 
-    // 3. Customers
-    const customerCount = db.prepare('SELECT COUNT(*) as count FROM customers WHERE store_id = ?').get(storeId).count
+      // 3. Customers
+      const customerCount = db.prepare('SELECT COUNT(*) as count FROM customers WHERE store_id = ?').get(storeId)?.count || 0
 
-    // 4. Recent Activity (Last 5 Sales)
-    const recentSales = db.prepare(`
-      SELECT s.id, s.invoice_number, s.total_amount, s.date, c.name as customer_name
-      FROM sales s
-      LEFT JOIN customers c ON s.customer_id = c.id
-      WHERE s.store_id = ?
-  ORDER BY s.date DESC
-      LIMIT 5
-  `).all(storeId).map(toCamelCase)
+      // 4. Recent Activity (Last 5 Sales)
+      const recentSales = db.prepare(`
+        SELECT s.id, s.invoice_number, s.total_amount, s.date, c.name as customer_name
+        FROM sales s
+        LEFT JOIN customers c ON s.customer_id = c.id
+        WHERE s.store_id = ?
+        ORDER BY s.date DESC
+        LIMIT 5
+      `).all(storeId).map(toCamelCase)
 
-    // 5. Low Stock Items
-    const lowStockItems = db.prepare(`
-      SELECT id, name, quantity, min_stock, sku
-      FROM products
-      WHERE store_id = ? AND quantity <= min_stock AND is_deleted = 0
-      ORDER BY quantity ASC
-      LIMIT 5
-  `).all(storeId).map(toCamelCase)
+      // 5. Low Stock Items
+      const lowStockItems = db.prepare(`
+        SELECT id, name, quantity, min_stock, sku
+        FROM products
+        WHERE store_id = ? AND quantity <= min_stock AND is_deleted = 0
+        ORDER BY quantity ASC
+        LIMIT 5
+      `).all(storeId).map(toCamelCase)
 
-    return {
-      revenue: salesMetrics.total_revenue || 0,
-      todayRevenue: salesMetrics.today_revenue || 0,
-      profit: salesMetrics.total_profit || 0,
-      todayProfit: salesMetrics.today_profit || 0,
-      totalSales: salesMetrics.total_sales || 0,
-      inventoryValue: inventoryMetrics.inventory_value || 0,
-      totalItems: inventoryMetrics.total_items || 0,
-      lowStockCount: inventoryMetrics.low_stock_count || 0,
-      customerCount,
-      recentSales,
-      lowStockItems
+      return {
+        revenue: salesMetrics?.total_revenue || 0,
+        todayRevenue: salesMetrics?.today_revenue || 0,
+        profit: salesMetrics?.total_profit || 0,
+        todayProfit: salesMetrics?.today_profit || 0,
+        totalSales: salesMetrics?.total_sales || 0,
+        inventoryValue: inventoryMetrics?.inventory_value || 0,
+        totalItems: inventoryMetrics?.total_items || 0,
+        lowStockCount: inventoryMetrics?.low_stock_count || 0,
+        customerCount,
+        recentSales,
+        lowStockItems
+      }
+    } catch (err) {
+      console.error('[DB] Error getting dashboard metrics:', err.message)
+      return {
+        revenue: 0, todayRevenue: 0, profit: 0, todayProfit: 0,
+        totalSales: 0, inventoryValue: 0, totalItems: 0, lowStockCount: 0,
+        customerCount: 0, recentSales: [], lowStockItems: []
+      }
     }
   },
 
@@ -3113,101 +3160,101 @@ VALUES(?, ?)
       return clause
     }
 
-    switch (type) {
-      case 'sales_summary':
-        query = `
+    try {
+      switch (type) {
+        case 'sales_summary':
+          query = `
           SELECT date, COUNT(*) as count, SUM(total_amount) as total, SUM(profit) as profit
           FROM sales 
           WHERE store_id = @storeId ${dateFilter('date')}
           GROUP BY date ORDER BY date DESC
   `
-        break;
+          break;
 
-      case 'sales_by_product':
-        // We parse the items JSON in JS usually, but for a report we might need a more complex query 
-        // if we had a sale_items table. Let's check if we have sale_items. 
-        // Looking at the schema, sales.items is a JSON string.
-        // For production, a sale_items table is better. 
-        // For now, we'll fetch sales and process in JS or use SQLite JSON if available.
-        // better-sqlite3 supports JSON.
-        query = `
+        case 'sales_by_product':
+          // We parse the items JSON in JS usually, but for a report we might need a more complex query 
+          // if we had a sale_items table. Let's check if we have sale_items. 
+          // Looking at the schema, sales.items is a JSON string.
+          // For production, a sale_items table is better. 
+          // For now, we'll fetch sales and process in JS or use SQLite JSON if available.
+          // better-sqlite3 supports JSON.
+          query = `
           SELECT p.name, p.sku, SUM(json_extract(item.value, '$.quantity')) as qty, SUM(json_extract(item.value, '$.price') * json_extract(item.value, '$.quantity')) as revenue
           FROM sales s, json_each(s.items) as item
           JOIN products p ON p.id = json_extract(item.value, '$.productId')
           WHERE s.store_id = @storeId ${dateFilter('s.date')}
           GROUP BY p.id ORDER BY revenue DESC
   `
-        break;
+          break;
 
-      case 'inventory_status':
-        query = `
+        case 'inventory_status':
+          query = `
           SELECT name, sku, category, quantity, purchase_price, (quantity * purchase_price) as value
           FROM products 
           WHERE store_id = @storeId AND is_deleted = 0
           ORDER BY quantity ASC
   `
-        break;
+          break;
 
-      case 'profit_loss':
-        query = `
+        case 'profit_loss':
+          query = `
 SELECT
   (SELECT SUM(total_amount) FROM sales WHERE store_id = @storeId ${dateFilter('date')}) as revenue,
   (SELECT SUM(profit) FROM sales WHERE store_id = @storeId ${dateFilter('date')}) as gross_profit,
     (SELECT SUM(total_amount) FROM receivings WHERE store_id = @storeId ${dateFilter('completed_at')}) as purchases,
       (SELECT SUM(amount) FROM transactions WHERE store_id = @storeId AND type = 'expense' ${dateFilter('date')}) as expenses
         `
-        break;
+          break;
 
-      case 'tax_report':
-        query = `
+        case 'tax_report':
+          query = `
           SELECT invoice_number, date, total_amount, (total_amount - profit) as taxable_value, (total_amount * 0.18) as tax_amount --Sample 18 % tax logic
           FROM sales 
           WHERE store_id = @storeId ${dateFilter('date')}
           ORDER BY date DESC
   `
-        break;
+          break;
 
-      case 'cheque_report':
-        query = `
+        case 'cheque_report':
+          query = `
           SELECT party_name, party_type, cheque_number, bank_name, amount, issue_date, status
           FROM cheques 
           WHERE store_id = @storeId ${dateFilter('issue_date')}
           ORDER BY issue_date DESC
   `
-        break;
+          break;
 
-      case 'hr_attendance':
-        query = `
+        case 'hr_attendance':
+          query = `
           SELECT u.name, a.date, a.check_in, a.check_out, a.status
           FROM attendance a
           JOIN users u ON u.id = a.user_id
           WHERE a.store_id = @storeId ${dateFilter('a.date')}
           ORDER BY a.date DESC
   `
-        break;
+          break;
 
-      case 'purchases_summary':
-        query = `
+        case 'purchases_summary':
+          query = `
           SELECT supplier_id, (SELECT name FROM suppliers WHERE id = supplier_id) as supplier_name,
   COUNT(*) as count, SUM(total_amount) as total
           FROM receivings
           WHERE store_id = @storeId ${dateFilter('completed_at')}
           GROUP BY supplier_id
   `
-        break;
+          break;
 
-      default:
-        return []
-    }
+        default:
+          return []
+      }
 
-    try {
       const results = db.prepare(query).all(params)
       return results.map(toCamelCase)
     } catch (err) {
       console.error(`[Report] Error generating ${type}: `, err)
       return []
     }
-  }
+  },
 }
 
 module.exports = { db, dbHelpers, deviceId }

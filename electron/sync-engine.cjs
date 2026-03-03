@@ -113,27 +113,44 @@ const syncEngine = {
                     if (!TABLE_NAMES.includes(table)) continue;
                     if (!rows || rows.length === 0) continue;
 
-                    const sampleRow = rows[0];
-                    const columns = Object.keys(sampleRow).filter(k => k !== 'sync_status');
+                    // Get actual columns from local SQLite schema
+                    const localCols = new Set(
+                        db.prepare(`PRAGMA table_info(${table})`).all().map(c => c.name)
+                    );
 
-                    // Preparation for UPSERT with conflict resolution
-                    // We only update if local sync_status is 1 (synced) OR server updated_at is newer
-                    const updateSets = columns.map(col => `${col} = excluded.${col}`).join(', ');
+                    // Filter incoming data to only include columns that exist locally
+                    const sampleRow = rows[0];
+                    const columns = Object.keys(sampleRow).filter(k =>
+                        k !== 'sync_status' && localCols.has(k)
+                    );
+
+                    if (columns.length === 0) {
+                        console.log(`[SyncEngine] No matching columns for table ${table}, skipping.`);
+                        continue;
+                    }
+
+                    // Build UPSERT: server is source of truth during pull
+                    const updateSets = columns
+                        .filter(col => col !== 'id')
+                        .map(col => `${col} = excluded.${col}`)
+                        .join(', ');
+
                     const sql = `
                         INSERT INTO ${table} (${columns.join(', ')}, sync_status) 
                         VALUES (${columns.map(() => '?').join(', ')}, 1)
                         ON CONFLICT(id) DO UPDATE SET 
                             ${updateSets},
                             sync_status = 1
-                        WHERE 
-                            sync_status = 1 
-                            OR (datetime(excluded.updated_at) > datetime(updated_at))
                     `;
                     const stmt = db.prepare(sql);
 
                     for (const row of rows) {
-                        const values = columns.map(col => row[col]);
-                        stmt.run(...values);
+                        try {
+                            const values = columns.map(col => row[col] ?? null);
+                            stmt.run(...values);
+                        } catch (rowErr) {
+                            console.error(`[SyncEngine] Skipping row in ${table}:`, rowErr.message);
+                        }
                     }
                 }
             });

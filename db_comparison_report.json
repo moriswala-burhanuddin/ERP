@@ -1,0 +1,114 @@
+[
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\Adobe\\GUDE\\sqliteResumeTransfer.db",
+    "products": 0,
+    "sales": 0,
+    "size": 28672,
+    "mtime": "2025-12-24T12:05:57.553Z"
+  },
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\invenza-erp\\storeflow.db",
+    "products": 3,
+    "sales": 0,
+    "size": 499712,
+    "mtime": "2026-03-03T08:54:22.675Z"
+  },
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\Opera Software\\Opera Stable\\Default\\CdmStorage.db",
+    "products": 0,
+    "sales": 0,
+    "size": 163840,
+    "mtime": "2026-02-12T12:37:02.366Z"
+  },
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\Opera Software\\Opera Stable\\Default\\wallpapers.db",
+    "products": 0,
+    "sales": 0,
+    "size": 12288,
+    "mtime": "2026-02-12T12:35:04.252Z"
+  },
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\pgAdmin\\pgadmin4.db",
+    "products": 0,
+    "sales": 0,
+    "size": 274432,
+    "mtime": "2026-02-16T11:42:15.180Z"
+  },
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\vite_react_shadcn_ts\\backups\\backup-2026-02-12T07-50-15-428Z.db",
+    "products": 5,
+    "sales": 2,
+    "size": 192512,
+    "mtime": "2026-02-12T07:49:57.977Z"
+  },
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\vite_react_shadcn_ts\\backups\\backup-2026-02-12T10-36-47-738Z.db",
+    "products": 6,
+    "sales": 3,
+    "size": 192512,
+    "mtime": "2026-02-12T09:56:22.737Z"
+  },
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\vite_react_shadcn_ts\\backups\\backup-2026-02-12T11-45-17-114Z.db",
+    "products": 7,
+    "sales": 4,
+    "size": 192512,
+    "mtime": "2026-02-12T11:35:55.457Z"
+  },
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\vite_react_shadcn_ts\\backups\\backup-2026-02-26T17-47-25-040Z.db",
+    "products": 9,
+    "sales": 11,
+    "size": 499712,
+    "mtime": "2026-02-26T17:36:19.016Z"
+  },
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\vite_react_shadcn_ts\\backups\\backup-2026-02-26T17-51-23-563Z.db",
+    "products": 9,
+    "sales": 11,
+    "size": 499712,
+    "mtime": "2026-02-26T17:36:19.016Z"
+  },
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\vite_react_shadcn_ts\\storeflow.db",
+    "products": 12,
+    "sales": 11,
+    "size": 507904,
+    "mtime": "2026-03-03T09:59:39.375Z"
+  },
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\XnViewMP\\Thumb.db",
+    "products": 0,
+    "sales": 0,
+    "size": 40960,
+    "mtime": "2025-08-31T06:47:41.728Z"
+  },
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\XnViewMP\\XnView.db",
+    "products": 0,
+    "sales": 0,
+    "size": 303104,
+    "mtime": "2025-08-31T06:49:02.629Z"
+  },
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\Zoom\\data\\in_progress_infos.db",
+    "products": 0,
+    "sales": 0,
+    "size": 5120,
+    "mtime": "2025-08-27T11:59:03.153Z"
+  },
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\Zoom\\data\\process_monitoring.db",
+    "products": 0,
+    "sales": 0,
+    "size": 6144,
+    "mtime": "2025-11-26T12:38:03.684Z"
+  },
+  {
+    "path": "C:\\Users\\ADMIN\\AppData\\Roaming\\Zoom\\data\\zoomus.zmdb.default.noenc.rlock.db",
+    "products": 0,
+    "sales": 0,
+    "size": 3072,
+    "mtime": "2026-03-03T10:41:51.288Z"
+  }
+]
