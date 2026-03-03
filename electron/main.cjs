@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
+const { autoUpdater } = require('electron-updater')
 
 // Force app name to ensure correct userData path (AppData/Roaming/invenza-erp)
 app.name = 'invenza-erp';
@@ -1049,9 +1050,67 @@ ipcMain.on('customer-display:update', (event, data) => {
 
 console.log('[Main] IPC Handlers registered successfully');
 
+// ─── Auto-Updater Setup ──────────────────────────────────────────────────────
+function setupAutoUpdater() {
+    // Do not check for updates in dev mode
+    if (!app.isPackaged) {
+        console.log('[Updater] Dev mode — skipping update check.');
+        return;
+    }
+
+    autoUpdater.autoDownload = true;       // Download in background silently
+    autoUpdater.autoInstallOnAppQuit = true; // Install when the user quits normally
+
+    // Check for update immediately when app opens
+    autoUpdater.checkForUpdates().catch(err => {
+        console.error('[Updater] Check failed:', err);
+    });
+
+    // Update is available — notify renderer so it can show a banner
+    autoUpdater.on('update-available', (info) => {
+        console.log('[Updater] Update available:', info.version);
+        if (mainWindow) {
+            mainWindow.webContents.send('updater:update-available', { version: info.version });
+        }
+    });
+
+    // No update — just log
+    autoUpdater.on('update-not-available', () => {
+        console.log('[Updater] App is up to date.');
+    });
+
+    // Download progress (optional — we send to renderer so it can show %)
+    autoUpdater.on('download-progress', (progress) => {
+        if (mainWindow) {
+            mainWindow.webContents.send('updater:download-progress', {
+                percent: Math.floor(progress.percent)
+            });
+        }
+    });
+
+    // Update has been fully downloaded — prompt user to restart
+    autoUpdater.on('update-downloaded', (info) => {
+        console.log('[Updater] Update downloaded:', info.version);
+        if (mainWindow) {
+            mainWindow.webContents.send('updater:update-downloaded', { version: info.version });
+        }
+    });
+
+    autoUpdater.on('error', (err) => {
+        console.error('[Updater] Error:', err);
+    });
+}
+
+// IPC: Renderer clicked "Restart & Install"
+ipcMain.on('updater:install-now', () => {
+    autoUpdater.quitAndInstall(false, true); // silent=false, forceRunAfter=true
+});
+// ─────────────────────────────────────────────────────────────────────────────
+
 app.whenReady().then(() => {
     console.log('[Main] App is ready, creating window');
     createWindow();
+    setupAutoUpdater();
 })
 
 app.on('window-all-closed', () => {

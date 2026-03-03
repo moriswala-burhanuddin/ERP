@@ -196,4 +196,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // Reports
     getReport: (type, storeId, dateFrom, dateTo) => ipcRenderer.invoke('db:getReport', type, storeId, dateFrom, dateTo),
+
+    // ─── Auto-Updater ─────────────────────────────────────────────────────────
+    // Call these from React to listen for update notifications
+    onUpdateAvailable: (callback) => ipcRenderer.on('updater:update-available', (_, info) => callback(info)),
+    onDownloadProgress: (callback) => ipcRenderer.on('updater:download-progress', (_, info) => callback(info)),
+    onUpdateDownloaded: (callback) => ipcRenderer.on('updater:update-downloaded', (_, info) => callback(info)),
+    // Call this when user clicks "Restart & Update"
+    installUpdate: () => ipcRenderer.send('updater:install-now'),
 })

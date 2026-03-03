@@ -1,7 +1,7 @@
 {
   "name": "invenza-erp",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "Invenza - Advanced Inventory & Management System",
   "author": "Invenza Team",
@@ -17,7 +17,8 @@
     "electron": "electron .",
     "rebuild": "electron-rebuild -f -w better-sqlite3",
     "dist": "npm run build && electron-builder --publish never",
-    "dist:win": "npm run build && npx electron-builder --win nsis --publish never"
+    "dist:win": "npm run build && npx electron-builder --win nsis --publish always",
+    "dist:publish": "npm run build && electron-builder --publish always"
   },
   "build": {
     "appId": "com.invenza.erp",
@@ -25,6 +26,13 @@
     "directories": {
       "output": "release"
     },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "moriswala-burhanuddin",
+        "repo": "ERP"
+      }
+    ],
     "files": [
       "dist/**/*",
       "electron/**/*",
@@ -39,23 +47,26 @@
       "node_modules/file-uri-to-path/**/*"
     ],
     "win": {
-      "target": [
-        {
-          "target": "nsis",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "zip",
-          "arch": [
-            "x64"
-          ]
-        }
-      ],
+      "target": "nsis",
       "icon": "build/icon.ico",
       "forceCodeSigning": false
     },
+    "extraResources": [
+      {
+        "from": "backend",
+        "to": "backend",
+        "filter": [
+          "**/*",
+          "!**/.git",
+          "!**/db.sqlite3",
+          "!**/__pycache__",
+          "!**/*.pyc",
+          "!**/venv",
+          "!**/.venv",
+          "!**/release*"
+        ]
+      }
+    ],
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
@@ -124,6 +135,7 @@
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "dotenv": "^17.2.4",
+    "electron-updater": "^6.8.3",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
     "lucide-react": "^0.462.0",
@@ -146,12 +158,12 @@
     "zustand": "^5.0.10"
   },
   "optionalDependencies": {
-    "better-sqlite3": "^12.6.2",
-    "electron": "33.0.0",
     "@rollup/rollup-darwin-arm64": "^4.24.0",
     "@rollup/rollup-darwin-x64": "^4.24.0",
     "@swc/core-darwin-arm64": "^1.13.2",
-    "@swc/core-darwin-x64": "^1.13.2"
+    "@swc/core-darwin-x64": "^1.13.2",
+    "better-sqlite3": "^12.6.2",
+    "electron": "33.0.0"
   },
   "devDependencies": {
     "@electron/rebuild": "^4.0.3",

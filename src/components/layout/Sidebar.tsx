@@ -54,7 +54,7 @@ export function Sidebar() {
           </div>
           <div>
             <h1 className="text-xl font-black text-black tracking-tight leading-none">Invenza</h1>
-            <span className="text-[10px] font-bold bg-green-100 px-2 py-0.5 rounded-full text-green-700">PRIME v3.0</span>
+            <span className="text-[10px] font-bold bg-green-100 px-2 py-0.5 rounded-full text-green-700">PRIME v1.0.1</span>
           </div>
         </div>
         {activeStore && (

@@ -10,6 +10,9 @@ on:
       - "package.json"
       - "vite.config.*"
 
+permissions:
+  contents: write   # Required so electron-builder can publish to GitHub Releases
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
@@ -33,11 +36,7 @@ jobs:
       - name: Build React
         run: npm run build
 
-      - name: Build Electron App
-        run: npm run dist
-
-      - name: Upload Build Files
-        uses: actions/upload-artifact@v4
-        with:
-          name: ERP-${{ matrix.os }}
-          path: release/
+      - name: Build & Publish Electron App
+        run: npm run dist:publish
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

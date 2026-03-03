@@ -6,6 +6,7 @@ import { HashRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import HRLayout from "./pages/hr/layout/HRLayout";
 import { AIChatSidebar } from "@/components/ai/AIChatSidebar";
+import { UpdateNotification } from "@/components/UpdateNotification";
 
 // Pages
 import Login from "./pages/Login";
@@ -173,6 +174,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <AIChatSidebar />
+          <UpdateNotification />
           <HashRouter>
             <Routes>
               {/* ... same routes ... */}
