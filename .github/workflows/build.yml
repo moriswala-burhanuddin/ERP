@@ -2,13 +2,8 @@ name: Build ERP Desktop App
 
 on:
   push:
-    branches:
-      - main
-    paths:
-      - "electron/**"
-      - "src/**"
-      - "package.json"
-      - "vite.config.*"
+    tags:
+      - "v*"           # Trigger ONLY when you push a version tag like v1.0.1
 
 permissions:
   contents: write   # Required so electron-builder can publish to GitHub Releases
