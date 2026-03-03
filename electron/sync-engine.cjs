@@ -113,6 +113,8 @@ const syncEngine = {
                     if (!TABLE_NAMES.includes(table)) continue;
                     if (!rows || rows.length === 0) continue;
 
+                    console.log(`[SyncEngine] Applying ${rows.length} updates for ${table}`);
+
                     // Get actual columns from local SQLite schema
                     const localCols = new Set(
                         db.prepare(`PRAGMA table_info(${table})`).all().map(c => c.name)

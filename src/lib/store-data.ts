@@ -1963,8 +1963,7 @@ export const useERPStore = create<ERPState>()(
             if (!response.ok) {
               console.error('[SYNC] Push failed with status:', response.status);
               console.error('[SYNC] Push error detail:', pushText || pushResult);
-              set({ isSyncing: false });
-              return;
+              // We do NOT return here, we want to try PULLING anyway
             }
 
             if (response.ok) {
