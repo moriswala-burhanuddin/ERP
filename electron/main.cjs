@@ -7,10 +7,18 @@ autoUpdater.logger = log
 autoUpdater.logger.transports.file.level = 'info'
 log.info('[Main] App starting...')
 
-// Force app name to ensure correct userData path (AppData/Roaming/Invenza ERP)
-app.name = 'Invenza ERP';
-console.log('[MAIN] Forced App Name to:', app.name);
-console.log('[MAIN] Current UserData:', app.getPath('userData'));
+// IPC for version
+ipcMain.handle('system:getVersion', () => {
+    const version = app.getVersion();
+    log.info('[Main] Returning app version:', version);
+    return version;
+});
+
+// Force app name to ensure correct userData path (AppData/Roaming/invenza-erp)
+app.name = 'invenza-erp';
+log.info('[MAIN] Forced App Name to:', app.name);
+log.info('[MAIN] Current UserData:', app.getPath('userData'));
+log.info('[MAIN] App Version:', app.getVersion());
 
 const path = require('path')
 const fs = require('fs')

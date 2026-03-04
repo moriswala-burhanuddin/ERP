@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -42,6 +43,23 @@ export function Sidebar() {
 
   // Get items based on role, default to 'user' if no role
   const userRole = currentUser?.role || 'user';
+  const [appVersion, setAppVersion] = useState('v1.0.1');
+
+  useEffect(() => {
+    const fetchVersion = async () => {
+      console.log('[Sidebar] Fetching app version...');
+      const api = (window as any).electronAPI;
+      if (api?.getVersion) {
+        const v = await api.getVersion();
+        console.log('[Sidebar] Main process reported version:', v);
+        setAppVersion(`v${v}`);
+      } else {
+        console.warn('[Sidebar] electronAPI.getVersion not found!');
+      }
+    };
+    fetchVersion();
+  }, []);
+
   const navItems = ROLE_SIDEBARS[userRole] || ROLE_SIDEBARS['user'];
 
   return (
@@ -56,7 +74,7 @@ export function Sidebar() {
             <h1 className="text-xl font-black text-white tracking-tight leading-none">Invenza</h1>
             <div className="flex items-center gap-2 mt-1">
               <span className="text-[10px] font-bold bg-green-900/50 px-2 py-0.5 rounded-full text-green-400 border border-green-800">
-                PRIME v1.0.1
+                PRIME {appVersion}
               </span>
               <button
                 onClick={async () => {
