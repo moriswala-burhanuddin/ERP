@@ -229,7 +229,7 @@ export default function NewSale() {
         taxAmount,
         totalAmount,
         profit: totalProfit,
-        paymentMode: finalPayments[0]?.mode || 'cash',
+        paymentMode: finalPayments.length > 0 ? finalPayments[0].mode : (saleType === 'credit' ? 'store_credit' : 'cash'),
         payments: finalPayments.map(p => ({
           id: generateId(),
           saleId: '',

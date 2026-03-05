@@ -16,10 +16,9 @@ const Payroll = ({ isEmployeeView = false }: PayrollProps) => {
         fetchPayroll();
     }, [fetchPayroll]);
 
-    const displayPayrolls = hrPayroll.length > 0 ? hrPayroll : [
-        { id: '1', employeeId: isEmployeeView ? (currentUser?.name || "Self") : "Alice Smith", month: "January 2026", basicSalary: 50000, deductions: 2000, allowances: 5000, netSalary: 53000, status: "paid" },
-        { id: '2', employeeId: isEmployeeView ? (currentUser?.name || "Self") : "Bob Chen", month: "January 2026", basicSalary: 45000, deductions: 1800, allowances: 4000, netSalary: 47200, status: "pending" },
-    ];
+    const displayPayrolls = isEmployeeView
+        ? hrPayroll.filter(p => p.employeeId === currentUser?.employeeId)
+        : hrPayroll;
 
     const totalNet = displayPayrolls.reduce((sum, r) => sum + r.netSalary, 0);
     const totalDeductions = displayPayrolls.reduce((sum, r) => sum + r.deductions, 0);
@@ -35,9 +34,9 @@ const Payroll = ({ isEmployeeView = false }: PayrollProps) => {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Fiscal Compensation Engine</h1>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Payroll</h1>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">
-                                {isEmployeeView ? 'Personal Payslip Registry' : `${displayPayrolls.length} Compensation Records`}
+                                {isEmployeeView ? 'Your Salary Records' : `${displayPayrolls.length} Payroll Records`}
                             </p>
                         </div>
                     </div>
@@ -85,7 +84,7 @@ const Payroll = ({ isEmployeeView = false }: PayrollProps) => {
                             <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600">
                                 <CreditCard className="w-5 h-5" />
                             </div>
-                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Compensation Ledger</h3>
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Salary Records</h3>
                         </div>
                     </div>
 
@@ -138,8 +137,8 @@ const Payroll = ({ isEmployeeView = false }: PayrollProps) => {
                     ) : (
                         <div className="py-32 text-center opacity-30 flex flex-col items-center">
                             <Ghost className="w-24 h-24 text-slate-100 mb-8" />
-                            <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Ledger Null</h3>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 max-w-lg mx-auto leading-relaxed">No fiscal compensation records found.</p>
+                            <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">No Payroll Data</h3>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 max-w-lg mx-auto leading-relaxed">No payroll records found for this period.</p>
                         </div>
                     )}
                 </div>

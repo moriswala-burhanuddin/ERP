@@ -58,17 +58,20 @@ export const ROLE_SIDEBARS: Record<Role, NavItem[]> = {
     // HR Manager
     hr_manager: [
         { title: "HR Dashboard", href: "/hr", icon: LayoutDashboard },
+        { title: "Mark Attendance", href: "/employee/attendance", icon: Calendar },
+        { title: "Apply Leave", href: "/employee/leave", icon: FileText },
         { title: "Employees", href: "/hr/employees", icon: Users },
         { title: "Attendance", href: "/hr/attendance", icon: Calendar },
         { title: "Leaves", href: "/hr/leaves", icon: FileText },
         { title: "Payroll", href: "/hr/payroll", icon: CreditCard },
         { title: "Performance", href: "/hr/performance", icon: BarChart3 },
-        { title: "HR Assistant", href: "/hr/chat", icon: MessageSquare },
     ],
 
     // Sales Manager
     sales_manager: [
         { title: "Sales Dashboard", href: "/sales", icon: LayoutDashboard },
+        { title: "Mark Attendance", href: "/employee/attendance", icon: Calendar },
+        { title: "Apply Leave", href: "/employee/leave", icon: FileText },
         { title: "New Sale", href: "/sales/new", icon: ShoppingCart },
         { title: "Invoices", href: "/invoices", icon: FileText },
         { title: "Quotations", href: "/sales/quotations", icon: FileText },
@@ -79,6 +82,8 @@ export const ROLE_SIDEBARS: Record<Role, NavItem[]> = {
     // Inventory Manager
     inventory_manager: [
         { title: "Inventory Dashboard", href: "/products", icon: LayoutDashboard },
+        { title: "Mark Attendance", href: "/employee/attendance", icon: Calendar },
+        { title: "Apply Leave", href: "/employee/leave", icon: FileText },
         { title: "Inventory Summary", href: "/stock-summary", icon: Package },
         { title: "Stock Journal", href: "/stock-journal", icon: ClipboardList },
         { title: "Suppliers", href: "/suppliers", icon: Truck },
@@ -89,6 +94,8 @@ export const ROLE_SIDEBARS: Record<Role, NavItem[]> = {
     // Accountant
     accountant: [
         { title: "Finance Dashboard", href: "/transactions", icon: LayoutDashboard },
+        { title: "Mark Attendance", href: "/employee/attendance", icon: Calendar },
+        { title: "Apply Leave", href: "/employee/leave", icon: FileText },
         { title: "Ledger", href: "/accounts", icon: BookOpen },
         { title: "Profit & Loss", href: "/profit-loss", icon: PieChart },
         { title: "Purchases", href: "/purchases", icon: ShoppingCart },
@@ -104,8 +111,6 @@ export const ROLE_SIDEBARS: Record<Role, NavItem[]> = {
         { title: "My Dashboard", href: "/employee/dashboard", icon: LayoutDashboard },
         { title: "Mark Attendance", href: "/employee/attendance", icon: Calendar },
         { title: "Apply Leave", href: "/employee/leave", icon: FileText },
-        { title: "My Payslips", href: "/employee/payslip", icon: CreditCard },
-        { title: "Work History", href: "/employee/history", icon: ClipboardList },
     ],
 
     // Fallbacks

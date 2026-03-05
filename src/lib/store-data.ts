@@ -27,6 +27,7 @@ export interface User {
   isDriver?: boolean;
   deviceId?: string;
   updatedAt?: string;
+  employeeId?: string;
   password?: string;
 }
 
@@ -71,8 +72,10 @@ export interface Employee {
   updatedAt?: string;
   user?: {
     name: string;
-    email?: string;
-    avatar?: string;
+    email: string;
+    role: string;
+    isActive?: boolean;
+    avatar?: string | null;
   };
 }
 
@@ -613,7 +616,7 @@ export interface HRAttendance {
 export interface HRLeave {
   id: string;
   employeeId: string;
-  type: 'annual' | 'sick' | 'unpaid' | 'other';
+  type: 'sick' | 'casual' | 'earned' | 'unpaid';
   startDate: string;
   endDate: string;
   status: 'pending' | 'approved' | 'rejected';
@@ -875,6 +878,9 @@ interface ERPState {
   fetchLeaves: () => Promise<void>;
   updateLeaveStatus: (id: string, status: HRLeave['status']) => Promise<void>;
   fetchPayroll: () => Promise<void>;
+  addEmployee: (employee: Omit<User, 'id'> & Omit<Employee, 'id' | 'userId'>) => Promise<void>;
+  updateEmployee: (id: string, updates: Partial<Employee> & { user?: Partial<User> }) => Promise<void>;
+  deleteEmployee: (id: string) => Promise<void>;
 
   // Security Actions
   addActivityLog: (log: Omit<ActivityLog, 'id' | 'timestamp' | 'userId' | 'userName' | 'storeId'>) => void;
@@ -950,12 +956,19 @@ export const useERPStore = create<ERPState>()(
             const validRoles: Role[] = ['admin', 'staff', 'user', 'hr_manager', 'super_admin', 'sales_manager', 'inventory_manager', 'accountant', 'employee'];
             const normalizedRole = validRoles.includes(rawRole as Role) ? (rawRole as Role) : 'user';
 
+            let employeeId = user.employee_id || user.employeeId;
+            // Robustness: If the ID looks like a user placeholder, ignore it and let local refresh fix it
+            if (employeeId?.startsWith('user-')) {
+              employeeId = undefined;
+            }
+
             const mappedUser: User = {
               id: user.id || 'user-unknown',
               name: user.name || user.email?.split('@')[0] || 'Unknown User',
               email: user.email || '',
               role: normalizedRole,
               storeId: user.store_id || 'store-1',
+              employeeId: employeeId,
             };
 
             set({
@@ -968,32 +981,46 @@ export const useERPStore = create<ERPState>()(
             return { success: true };
           }
 
-          // If API specifically returns an error (401, 404, etc.), don't fall back to local
-          // only fall back if it's a network/connection error.
+          // If it's a network error OR an auth error (401/404), try local fallback.
+          // Locally added employees might not have reached the cloud yet.
           if (!result.isNetworkError) {
-            return { success: false, message: result.message };
+            console.log(`[Auth] Cloud login failed: ${result.message}. Trying local fallback...`);
           }
-
         } catch (error) {
-          console.log("[Auth] Cloud login unreachable, attempting local fallback...");
+          console.log("[Auth] Cloud login error, attempting local fallback...");
         }
 
         // 2. Second Priority: Local Login (Offline / Demo Fallback)
         const localUsers = get().users;
+        console.log(`[Auth] Attempting local login for: ${email}. Available local users:`, localUsers.map(u => u.email));
         const localUser = localUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
 
         if (localUser) {
+          console.log(`[Auth] Found local user: ${localUser.name} (${localUser.id}). Verifying password...`);
           let isValid = false;
           if (isElectron() && window.electronAPI.verifyPassword) {
             isValid = await window.electronAPI.verifyPassword(localUser.id, password);
+            console.log(`[Auth] Electron password verification result: ${isValid}`);
           } else {
             isValid = localUser.password === password;
+            console.log(`[Auth] Mock/Web password verification result: ${isValid}`);
           }
 
           if (isValid) {
-            set({ currentUser: localUser, isAuthenticated: true, activeStoreId: localUser.storeId || 'store-1' });
+            console.log(`[Auth] Local login successful for: ${localUser.email}`);
+            set({
+              currentUser: localUser,
+              isAuthenticated: true,
+              accessToken: 'mock-local-token',
+              refreshToken: 'mock-local-refresh',
+              activeStoreId: localUser.storeId || 'store-1'
+            });
             return { success: true };
+          } else {
+            console.log(`[Auth] Local login failed: Invalid password for ${localUser.email}`);
           }
+        } else {
+          console.log(`[Auth] Local user not found in store registry for: ${email}`);
         }
 
         return { success: false, message: "AUTHENTICATION_FAILURE: Invalid identifier or security key." };
@@ -1890,7 +1917,9 @@ export const useERPStore = create<ERPState>()(
       // Database sync - Load data from Electron SQLite when available
       syncData: async () => {
         const { isSyncing, accessToken, refreshToken, activeStoreId, loadFromDatabase, logout } = get();
-        if (isSyncing || !accessToken || !isElectron()) return;
+
+        // Skip sync for mock tokens/local sessions to avoid 401 logouts
+        if (isSyncing || !accessToken || !isElectron() || accessToken === 'mock-local-token') return;
 
         set({ isSyncing: true });
 
@@ -2080,9 +2109,27 @@ export const useERPStore = create<ERPState>()(
             dbAdapter.getInvoices ? dbAdapter.getInvoices(state.activeStoreId) as Promise<Invoice[]> : Promise.resolve([])
           ]);
 
-          console.log(`[Store] Data loaded: ${products.length} products, ${sales.length} sales found locally.`);
+          console.log(`[Store] Data loaded: ${products?.length || 0} products, ${sales?.length || 0} sales found locally.`);
+          console.log(`[Store] Users loaded from DB:`, users?.length || 0);
 
-          log(`[Store] Database results: ${products?.length || 0} products, ${customers?.length || 0} customers`);
+          const updatedUsers = (users && users.length > 0) ? users : (users?.length === 0 ? [] : state.users);
+
+          // Refresh currentUser if logged in
+          let updatedCurrentUser = state.currentUser;
+          if (state.currentUser && updatedUsers.length > 0) {
+            const freshUser = updatedUsers.find(u => u.id === state.currentUser?.id);
+            if (freshUser) {
+              console.log(`[Store] Refreshing currentUser profile for: ${freshUser.email}. EmployeeID: ${freshUser.employeeId}`);
+              updatedCurrentUser = {
+                ...state.currentUser,
+                ...freshUser,
+                // Ensure we don't accidentally lose fields that freshUser might miss (unlikely but safe)
+                name: freshUser.name || state.currentUser.name,
+                role: freshUser.role || state.currentUser.role,
+                employeeId: freshUser.employeeId || state.currentUser.employeeId,
+              };
+            }
+          }
 
           set({
             products: products || state.products,
@@ -2093,7 +2140,8 @@ export const useERPStore = create<ERPState>()(
             transactions: transactions || state.transactions,
             accounts: accounts || state.accounts,
             stores: stores || state.stores,
-            users: users || state.users,
+            users: updatedUsers,
+            currentUser: updatedCurrentUser,
             stockTransfers: stockTransfers || state.stockTransfers,
             expenseCategories: expenseCategories || state.expenseCategories,
             taxSlabs: taxSlabs || state.taxSlabs,
@@ -2267,8 +2315,9 @@ export const useERPStore = create<ERPState>()(
       checkIn: async () => {
         const { currentUser, activeStoreId } = get();
         if (!currentUser) return { success: false, message: 'User not logged in' };
+        if (!currentUser.employeeId) return { success: false, message: 'No employee profile linked to this user' };
         try {
-          const result = await dbAdapter.checkIn(currentUser.id, activeStoreId);
+          const result = await dbAdapter.checkIn(currentUser.employeeId, activeStoreId);
           if (result?.success) {
             await get().fetchAttendance();
             return { success: true };
@@ -2283,8 +2332,9 @@ export const useERPStore = create<ERPState>()(
       checkOut: async () => {
         const { currentUser } = get();
         if (!currentUser) return { success: false, message: 'User not logged in' };
+        if (!currentUser.employeeId) return { success: false, message: 'No employee profile linked to this user' };
         try {
-          const result = await dbAdapter.checkOut(currentUser.id);
+          const result = await dbAdapter.checkOut(currentUser.employeeId);
           if (result?.success) {
             await get().fetchAttendance();
             return { success: true };
@@ -2300,17 +2350,17 @@ export const useERPStore = create<ERPState>()(
         const { currentUser } = get();
         // If not admin/super_admin/hr_manager, only fetch for current user
         const isAdmin = ['admin', 'super_admin', 'hr_manager'].includes(currentUser?.role || '');
-        const userId = isAdmin ? undefined : currentUser?.id;
-        const data = await dbAdapter.getAttendance(userId, startDate, endDate);
+        const employeeId = isAdmin ? undefined : currentUser?.employeeId;
+        const data = await dbAdapter.getAttendance(employeeId, startDate, endDate);
         if (data) set({ hrAttendance: data });
       },
 
       applyLeave: async (leave) => {
         const { currentUser, activeStoreId } = get();
-        if (!currentUser) return;
+        if (!currentUser || !currentUser.employeeId) return;
         const result = await dbAdapter.applyLeave({
           ...leave,
-          userId: currentUser.id,
+          employeeId: currentUser.employeeId,
           storeId: activeStoreId
         });
         if (result?.success) {
@@ -2333,9 +2383,24 @@ export const useERPStore = create<ERPState>()(
       fetchPayroll: async () => {
         const { currentUser, activeStoreId } = get();
         if (!currentUser) return;
-        const userId = currentUser.role === 'admin' ? undefined : currentUser.id;
-        const data = await dbAdapter.getPayroll(activeStoreId, userId);
+        const employeeId = currentUser.role === 'admin' ? undefined : currentUser.employeeId;
+        const data = await dbAdapter.getPayroll(activeStoreId, employeeId);
         if (data) set({ hrPayroll: data });
+      },
+
+      addEmployee: async (employeeData) => {
+        await dbAdapter.addEmployee(employeeData);
+        await get().loadFromDatabase();
+      },
+
+      updateEmployee: async (id, updates) => {
+        await dbAdapter.updateEmployee(id, updates);
+        await get().loadFromDatabase();
+      },
+
+      deleteEmployee: async (id) => {
+        await dbAdapter.deleteEmployee(id);
+        await get().loadFromDatabase();
       },
 
       // Cheque Actions Implementation

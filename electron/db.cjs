@@ -9,7 +9,6 @@ const { app } = require('electron')
 const userDataPath = app ? app.getPath('userData') : __dirname;
 const dbPath = path.join(userDataPath, 'storeflow.db');
 
-// Migration Logic: If the new DB doesn't exist OR is empty, check for old boilerplate names
 let shouldMigrate = false;
 if (app) {
   const appData = app.getPath('appData');
@@ -47,8 +46,67 @@ if (app) {
   }
 }
 
-console.log('[DB] Connecting to:', dbPath)
+console.log('[DB] Connecting to: ', dbPath)
 const db = new Database(dbPath)
+// VERY IMPORTANT: Keep foreign keys OFF while we fix schema and data mismatches
+db.pragma('foreign_keys = OFF');
+
+// Schema Integrity Fix: Ensure HR tables reference employees(id), not users(id)
+try {
+  const tablesToFix = ['attendance', 'leaves', 'shifts'];
+  for (const table of tablesToFix) {
+    const fks = db.prepare(`PRAGMA foreign_key_list(${table})`).all();
+    const wrongFK = fks.find(fk => fk.table === 'users' && fk.from === 'employee_id');
+
+    if (wrongFK) {
+      console.log(`[DB] Schema Fix Required: ${table} references 'users' instead of 'employees'. Re-creating table...`);
+
+      // 1. Get original schema (to keep other columns/types)
+      const createSql = db.prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name=?`).get(table).sql;
+      const correctedSql = createSql.replace(/REFERENCES users\(id\)/g, "REFERENCES employees(id)")
+        .replace(/REFERENCES "users"\(id\)/g, "REFERENCES employees(id)");
+
+      db.transaction(() => {
+        // 2. Rename old
+        db.exec(`ALTER TABLE ${table} RENAME TO ${table}_old`);
+
+        // 3. Create new with correct schema
+        db.exec(correctedSql);
+
+        // 4. Copy data (carefully)
+        // Note: We don't fix IDs here, that happens in the cleanup migration below
+        db.exec(`INSERT INTO ${table} SELECT * FROM ${table}_old`);
+
+        // 5. Drop old
+        db.exec(`DROP TABLE ${table}_old`);
+      })();
+      console.log(`[DB] Schema Fix Completed for ${table}.`);
+    }
+  }
+} catch (err) {
+  console.error('[DB] Schema Fix FAILED:', err.message);
+}
+
+console.log('[DB] Initialization Diagnostics:');
+console.log('[DB] UserDataPath:', userDataPath);
+console.log('[DB] DB Path:', dbPath);
+if (fs.existsSync(dbPath)) {
+  console.log('[DB] File exists, size:', fs.statSync(dbPath).size);
+} else {
+  console.log('[DB] File DOES NOT exist at this path.');
+}
+
+// Startup Health Check
+try {
+  const stores = db.prepare("SELECT id FROM stores").all();
+  console.log('[DB] Health Check - Stores in DB:', stores.map(s => s.id).join(', '));
+  const empCount = db.prepare("SELECT COUNT(*) as count FROM employees").get().count;
+  console.log('[DB] Health Check - Employees in DB:', empCount);
+  const userCount = db.prepare("SELECT COUNT(*) as count FROM users").get().count;
+  console.log('[DB] Health Check - Users in DB:', userCount);
+} catch (e) {
+  console.error('[DB] Health Check FAILED:', e.message);
+}
 
 // Create tables with sync_status and updated_at everywhere
 db.exec(`
@@ -121,6 +179,7 @@ db.exec(`
     email TEXT,
     area TEXT,
     credit_balance REAL DEFAULT 0,
+    credit_limit REAL DEFAULT 0,
     total_purchases REAL DEFAULT 0,
     store_id TEXT NOT NULL,
     joined_at TEXT NOT NULL,
@@ -172,7 +231,7 @@ db.exec(`
     tax_amount REAL DEFAULT 0,
     total_amount REAL NOT NULL,
     profit REAL NOT NULL,
-    payment_mode TEXT CHECK(payment_mode IN ('cash', 'card', 'wallet')) NOT NULL,
+    payment_mode TEXT NOT NULL,
     account_id TEXT NOT NULL,
     customer_id TEXT,
     store_id TEXT NOT NULL,
@@ -337,7 +396,7 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS attendance (
     id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
+    employee_id TEXT NOT NULL,
     date TEXT NOT NULL,
     check_in TEXT,
     check_out TEXT,
@@ -345,13 +404,13 @@ db.exec(`
     store_id TEXT NOT NULL,
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     sync_status INTEGER DEFAULT 0,
-    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (employee_id) REFERENCES employees(id),
     FOREIGN KEY (store_id) REFERENCES stores(id)
   );
 
   CREATE TABLE IF NOT EXISTS leaves (
     id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
+    employee_id TEXT NOT NULL,
     start_date TEXT NOT NULL,
     end_date TEXT NOT NULL,
     type TEXT CHECK(type IN ('sick', 'casual', 'earned', 'unpaid')) NOT NULL,
@@ -360,13 +419,13 @@ db.exec(`
     store_id TEXT NOT NULL,
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     sync_status INTEGER DEFAULT 0,
-    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (employee_id) REFERENCES employees(id),
     FOREIGN KEY (store_id) REFERENCES stores(id)
   );
 
   CREATE TABLE IF NOT EXISTS shifts (
     id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL,
+    employee_id TEXT NOT NULL,
     store_id TEXT NOT NULL,
     start_time TEXT NOT NULL,
     end_time TEXT NOT NULL,
@@ -374,7 +433,7 @@ db.exec(`
     status TEXT CHECK(status IN ('assigned', 'completed', 'cancelled')) DEFAULT 'assigned',
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     sync_status INTEGER DEFAULT 0,
-    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (employee_id) REFERENCES employees(id),
     FOREIGN KEY (store_id) REFERENCES stores(id)
   );
 
@@ -806,10 +865,63 @@ try {
   addColumn('supplier_transactions', 'updated_at TEXT NOT NULL DEFAULT ' + DEFAULT_TS);
 
   // Deliveries & Work Orders
-  addColumn('deliveries', 'delivery_charge REAL DEFAULT 0');
-  addColumn('deliveries', 'is_cod INTEGER DEFAULT 0');
   addColumn('deliveries', 'delivery_date TEXT');
   addColumn('work_orders', 'notes TEXT');
+  addColumn('customers', 'credit_limit REAL DEFAULT 0');
+
+  // Sales Payment Mode Constraint Migration (Remove restrictive CHECK)
+  const salesSchema = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='sales'").get();
+
+  // Debug log to a file so we can see what's happening
+  fs.appendFileSync('db_migration_log.txt', `[${new Date().toISOString()}] Sales Schema: ${salesSchema ? salesSchema.sql : 'NOT FOUND'}\n`);
+
+  if (salesSchema && salesSchema.sql.includes("payment_mode") && salesSchema.sql.includes("CHECK") && salesSchema.sql.includes("'wallet'")) {
+    fs.appendFileSync('db_migration_log.txt', `[${new Date().toISOString()}] Starting sales table migration...\n`);
+    db.transaction(() => {
+      // 1. Rename existing table
+      db.prepare("ALTER TABLE sales RENAME TO sales_old").run();
+
+      // 2. Create new table without the constraint
+      db.exec(`
+        CREATE TABLE sales (
+          id TEXT PRIMARY KEY,
+          invoice_number TEXT UNIQUE NOT NULL,
+          type TEXT CHECK(type IN ('retail', 'cash', 'credit')) NOT NULL,
+          status TEXT DEFAULT 'completed',
+          items TEXT NOT NULL,
+          subtotal REAL DEFAULT 0,
+          discount_amount REAL DEFAULT 0,
+          tax_amount REAL DEFAULT 0,
+          total_amount REAL NOT NULL,
+          profit REAL NOT NULL,
+          payment_mode TEXT NOT NULL,
+          account_id TEXT NOT NULL,
+          customer_id TEXT,
+          store_id TEXT NOT NULL,
+          date TEXT NOT NULL,
+          quotation_id TEXT,
+          device_id TEXT,
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          sync_status INTEGER DEFAULT 0,
+          FOREIGN KEY (account_id) REFERENCES accounts(id),
+          FOREIGN KEY (customer_id) REFERENCES customers(id),
+          FOREIGN KEY (store_id) REFERENCES stores(id)
+        )
+      `);
+
+      // 3. Copy data
+      db.prepare("INSERT INTO sales SELECT * FROM sales_old").run();
+
+      // 4. Create indexes that were lost
+      db.prepare("CREATE INDEX IF NOT EXISTS idx_sales_store ON sales(store_id)").run();
+      db.prepare("CREATE INDEX IF NOT EXISTS idx_sales_date_store ON sales(store_id, date)").run();
+
+      fs.appendFileSync('db_migration_log.txt', `[${new Date().toISOString()}] Sales table migration completed successfully.\n`);
+      console.log("[DB] Sales table migration completed successfully.");
+    })();
+  } else {
+    fs.appendFileSync('db_migration_log.txt', `[${new Date().toISOString()}] Sales table migration NOT NEEDED or condition not met.\n`);
+  }
 
   // Invoices migration for existing installs
   const invoicesTableInfo = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='invoices'").get();
@@ -1003,7 +1115,104 @@ id, name, email,
   db.prepare('CREATE INDEX IF NOT EXISTS idx_sales_date_store ON sales(store_id, date)').run();
   db.prepare('CREATE INDEX IF NOT EXISTS idx_products_store_active ON products(store_id, is_deleted)').run();
   db.prepare('CREATE INDEX IF NOT EXISTS idx_customers_store ON customers(store_id)').run();
-  db.prepare('CREATE INDEX IF NOT EXISTS idx_stock_logs_product ON stock_logs(product_id)').run();
+  // Phase 12: HR Migration (user_id -> employee_id)
+  const hrTables = ['attendance', 'leaves', 'shifts'];
+  for (const table of hrTables) {
+    const info = db.prepare(`PRAGMA table_info(${table})`).all();
+    if (info.some(col => col.name === 'user_id')) {
+      console.log(`[DB] Migrating ${table} table to employee_id...`);
+      try {
+        db.transaction(() => {
+          db.exec(`ALTER TABLE ${table} RENAME TO ${table}_old`);
+
+          // Create new table (definitions already updated above, but use explicit here for safety during migration)
+          if (table === 'attendance') {
+            db.exec(`
+              CREATE TABLE attendance (
+                id TEXT PRIMARY KEY,
+                employee_id TEXT NOT NULL,
+                date TEXT NOT NULL,
+                check_in TEXT,
+                check_out TEXT,
+                status TEXT CHECK(status IN ('present', 'late', 'absent', 'half_day')) DEFAULT 'present',
+                store_id TEXT NOT NULL,
+                updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+                sync_status INTEGER DEFAULT 0,
+                FOREIGN KEY (employee_id) REFERENCES employees(id),
+                FOREIGN KEY (store_id) REFERENCES stores(id)
+              )
+            `);
+          } else if (table === 'leaves') {
+            db.exec(`
+              CREATE TABLE leaves (
+                id TEXT PRIMARY KEY,
+                employee_id TEXT NOT NULL,
+                start_date TEXT NOT NULL,
+                end_date TEXT NOT NULL,
+                type TEXT CHECK(type IN ('sick', 'casual', 'earned', 'unpaid')) NOT NULL,
+                reason TEXT,
+                status TEXT CHECK(status IN ('pending', 'approved', 'rejected')) DEFAULT 'pending',
+                store_id TEXT NOT NULL,
+                updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+                sync_status INTEGER DEFAULT 0,
+                FOREIGN KEY (employee_id) REFERENCES employees(id),
+                FOREIGN KEY (store_id) REFERENCES stores(id)
+              )
+            `);
+          } else if (table === 'shifts') {
+            db.exec(`
+              CREATE TABLE shifts (
+                id TEXT PRIMARY KEY,
+                employee_id TEXT NOT NULL,
+                store_id TEXT NOT NULL,
+                start_time TEXT NOT NULL,
+                end_time TEXT NOT NULL,
+                type TEXT CHECK(type IN ('morning', 'evening', 'full')) NOT NULL,
+                status TEXT CHECK(status IN ('assigned', 'completed', 'cancelled')) DEFAULT 'assigned',
+                updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+                sync_status INTEGER DEFAULT 0,
+                FOREIGN KEY (employee_id) REFERENCES employees(id),
+                FOREIGN KEY (store_id) REFERENCES stores(id)
+              )
+            `);
+          }
+
+          // Move data, mapping user_id to employee_id
+          if (table === 'attendance') {
+            db.exec(`
+              INSERT INTO attendance (id, employee_id, date, check_in, check_out, status, store_id, updated_at, sync_status) 
+              SELECT t.id, e.id as employee_id, t.date, t.check_in, t.check_out, t.status, t.store_id, t.updated_at, t.sync_status
+              FROM attendance_old t
+              JOIN employees e ON t.user_id = e.user_id
+            `).run();
+          } else if (table === 'leaves') {
+            db.exec(`
+              INSERT INTO leaves (id, employee_id, start_date, end_date, type, reason, status, store_id, updated_at, sync_status)
+              SELECT t.id, e.id as employee_id, t.start_date, t.end_date, t.type, t.reason, t.status, t.store_id, t.updated_at, t.sync_status
+              FROM leaves_old t
+              JOIN employees e ON t.user_id = e.user_id
+            `);
+          } else if (table === 'shifts') {
+            db.exec(`
+              INSERT INTO shifts (id, employee_id, store_id, start_time, end_time, type, status, updated_at, sync_status)
+              SELECT t.id, e.id as employee_id, t.store_id, t.start_time, t.end_time, t.type, t.status, t.updated_at, t.sync_status
+              FROM shifts_old t
+              JOIN employees e ON t.user_id = e.user_id
+            `);
+          }
+
+          // Note: If some users didn't have employee records, they are lost in HR history.
+          // This is acceptable as we are enforcing the User-Employee link now.
+
+          db.exec(`DROP TABLE ${table}_old`);
+        })();
+        console.log(`[DB] ${table} migrated successfully.`);
+      } catch (e) {
+        console.error(`[DB] Failed to migrate ${table}:`, e.message);
+      }
+    }
+  }
+
 } catch (err) {
   console.error('[DB] Migration Error:', err);
 }
@@ -1017,6 +1226,78 @@ if (!deviceId) {
 } else {
   console.log(`Existing device_id: ${deviceId} `)
 }
+
+// Attendance & Leaves Migration
+try {
+  const tableInfoAtt = db.prepare("PRAGMA table_info(attendance)").all();
+  const hasUserIdAtt = tableInfoAtt.some(col => col.name === 'user_id');
+  const hasEmployeeIdAtt = tableInfoAtt.some(col => col.name === 'employee_id');
+
+  if (hasUserIdAtt && !hasEmployeeIdAtt) {
+    console.log("[DB] Migrating attendance table: user_id -> employee_id");
+    db.exec("ALTER TABLE attendance RENAME COLUMN user_id TO employee_id");
+  }
+} catch (e) { }
+
+// Phase 14: HR Data Integrity Cleanup (Fix user_id being used as employee_id)
+try {
+  const users = db.prepare("SELECT id, store_id FROM users").all();
+  const insertEmp = db.prepare(`
+    INSERT OR IGNORE INTO employees(id, user_id, department, designation, salary, joining_date, store_id)
+    VALUES(?, ?, ?, ?, ?, ?, ?)
+  `);
+
+  db.transaction(() => {
+    for (const u of users) {
+      // Check if user already has an employee profile
+      const existing = db.prepare("SELECT id FROM employees WHERE user_id = ?").get(u.id);
+      if (!existing) {
+        const empId = `emp-${u.id.replace('user-', '')}-${Math.floor(Math.random() * 1000)}`;
+        insertEmp.run(empId, u.id, 'Management', 'Staff', 0, new Date().toISOString().split('T')[0], u.store_id || 'store-1');
+        console.log(`[DB] Created missing employee profile ${empId} for user ${u.id}`);
+      }
+    }
+  })();
+
+  // Correct mismatched employee_id and store_id in attendance/leaves
+  const hrTables = ['attendance', 'leaves', 'shifts'];
+  db.transaction(() => {
+    for (const table of hrTables) {
+      // Find records where employee_id matches a user_id
+      const recordsToFix = db.prepare(`
+            SELECT t.id, t.employee_id, t.store_id, e.id as correct_employee_id, e.store_id as correct_store_id
+            FROM ${table} t
+            JOIN employees e ON t.employee_id = e.user_id
+          `).all();
+
+      if (recordsToFix.length > 0) {
+        console.log(`[DB] Fixing ${recordsToFix.length} records in ${table} using incorrect employee_id/store_id...`);
+        const updateStmt = db.prepare(`UPDATE ${table} SET employee_id = ?, store_id = ? WHERE id = ?`);
+        for (const rec of recordsToFix) {
+          updateStmt.run(rec.correct_employee_id, rec.correct_store_id || rec.store_id || 'store-1', rec.id);
+        }
+      }
+    }
+  })();
+} catch (integrityErr) {
+  console.error('[DB] Integrity Cleanup Error:', integrityErr.message);
+}
+try {
+  const tableInfoLeaves = db.prepare("PRAGMA table_info(leaves)").all();
+  const hasUserIdLeaves = tableInfoLeaves.some(col => col.name === 'user_id');
+  const hasEmployeeIdLeaves = tableInfoLeaves.some(col => col.name === 'employee_id');
+
+  if (hasUserIdLeaves && !hasEmployeeIdLeaves) {
+    console.log("[DB] Migrating leaves table: user_id -> employee_id");
+    db.exec("ALTER TABLE leaves RENAME COLUMN user_id TO employee_id");
+  }
+} catch (err) {
+  console.warn("[DB] Migration error (non-critical):", err.message);
+}
+
+// FINALLY: Re-enable foreign keys after all migrations and fixes are done
+console.log('[DB] Enabling Foreign Key Enforcement...');
+db.pragma('foreign_keys = ON');
 
 // Seed initial data if tables are empty
 try {
@@ -1100,13 +1381,14 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
           const isLate = d.getDay() === 1 || Math.random() < 0.2
           const checkInHour = isLate ? 10 : 9
           const checkInMin = Math.floor(Math.random() * 30)
+
           const checkInTime = new Date(d)
           checkInTime.setHours(checkInHour, checkInMin, 0)
           const checkOutTime = new Date(d)
-          checkOutTime.setHours(18, 0, 0)
+          checkOutTime.setHours(18, Math.floor(Math.random() * 30), 0)
 
           insertAtt.run(
-            `att - seed - ${i} `, userId, dateStr,
+            `att-seed-${i}`, userId, dateStr,
             checkInTime.toISOString(), checkOutTime.toISOString(),
             isLate ? 'late' : 'present', 'store-1'
           )
@@ -1268,12 +1550,12 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'))
 
   addCustomer: (customer) => {
     const stmt = db.prepare(`
-      INSERT INTO customers(id, name, phone, email, area, credit_balance, total_purchases, store_id, joined_at, device_id, updated_at)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      INSERT INTO customers(id, name, phone, email, area, credit_balance, credit_limit, total_purchases, store_id, joined_at, device_id, updated_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `)
     stmt.run(
       customer.id, customer.name, customer.phone, customer.email,
-      customer.area, customer.creditBalance || 0, customer.totalPurchases || 0,
+      customer.area, customer.creditBalance || 0, customer.creditLimit || 0, customer.totalPurchases || 0,
       customer.storeId, customer.joinedAt, deviceId
     )
     const result = db.prepare('SELECT * FROM customers WHERE id = ?').get(customer.id)
@@ -1290,6 +1572,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       email: 'email',
       area: 'area',
       creditBalance: 'credit_balance',
+      creditLimit: 'credit_limit',
       totalPurchases: 'total_purchases'
     }
 
@@ -1355,10 +1638,11 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       // Check Credit Limit if credit sale
       if (sale.type === 'credit' && sale.customerId) {
         const customer = db.prepare('SELECT credit_balance, credit_limit, name FROM customers WHERE id = ?').get(sale.customerId)
-        if (customer && customer.credit_limit !== null) {
-          const potentialBalance = customer.credit_balance + sale.totalAmount
+        // Only enforce if limit is set and greater than 0
+        if (customer && customer.credit_limit !== null && customer.credit_limit > 0) {
+          const potentialBalance = (customer.credit_balance || 0) + sale.totalAmount
           if (potentialBalance > customer.credit_limit) {
-            throw new Error(`Credit Limit Exceeded for ${customer.name}.Limit: $${customer.credit_limit}, Potential: $${potentialBalance.toFixed(2)} `)
+            throw new Error(`Credit Limit Exceeded for ${customer.name}. Limit: $${customer.credit_limit}, Potential: $${potentialBalance.toFixed(2)}`)
           }
         }
       }
@@ -1511,7 +1795,7 @@ VALUES(?, ?, ?, ?, ?, 0)
 
   // Generic getters
   getAllStores: () => db.prepare('SELECT * FROM stores').all().map(toCamelCase),
-  getAllUsers: () => db.prepare('SELECT id, name, email, username, first_name, last_name, role, is_staff, is_active, store_id, avatar, password FROM users').all().map(toCamelCase),
+  getAllUsers: () => db.prepare('SELECT u.*, e.id as employee_id FROM users u LEFT JOIN employees e ON u.id = e.user_id').all().map(toCamelCase),
 
   getDashboardMetrics: (storeId) => {
     try {
@@ -2249,14 +2533,20 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
 
 
   deleteUser: (id) => {
-    // Delete all dependent records first
-    db.prepare('DELETE FROM employees WHERE user_id = ?').run(id)
-    db.prepare('DELETE FROM commissions WHERE user_id = ?').run(id)
-    db.prepare('DELETE FROM attendance WHERE user_id = ?').run(id)
-    db.prepare('DELETE FROM leaves WHERE user_id = ?').run(id)
-    db.prepare('DELETE FROM shifts WHERE user_id = ?').run(id)
+    // Get linked employee ID if any
+    const emp = db.prepare('SELECT id FROM employees WHERE user_id = ?').get(id);
 
-    return db.prepare('DELETE FROM users WHERE id = ?').run(id)
+    // Delete all dependent records first
+    if (emp) {
+      db.prepare('DELETE FROM attendance WHERE employee_id = ?').run(emp.id);
+      db.prepare('DELETE FROM leaves WHERE employee_id = ?').run(emp.id);
+      db.prepare('DELETE FROM shifts WHERE employee_id = ?').run(emp.id);
+      db.prepare('DELETE FROM employees WHERE id = ?').run(emp.id);
+    }
+
+    db.prepare('DELETE FROM commissions WHERE user_id = ?').run(id);
+
+    return db.prepare('DELETE FROM users WHERE id = ?').run(id);
   },
 
   getAllAccounts: (storeId) => db.prepare('SELECT * FROM accounts WHERE store_id = ?').all(storeId).map(toCamelCase),
@@ -2385,20 +2675,40 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
   // ... existing Phase 11 code ...
 
   // HR & Attendance Features (Phase 1)
-  checkIn: (userId, storeId) => {
+  checkIn: (employeeId, storeId) => {
     const today = new Date().toISOString().split('T')[0]
-    const existing = db.prepare('SELECT * FROM attendance WHERE user_id = ? AND date = ?').get(userId, today)
+    console.log(`[DB] checkIn attempt: employeeId=${employeeId}, storeId=${storeId}`);
 
+    // Safety check: is it a valid employee profile ID?
+    const emp = db.prepare("SELECT id FROM employees WHERE id = ?").get(employeeId);
+    if (!emp) {
+      console.error(`[DB] ERROR: Employee ID ${employeeId} not found in employees table.`);
+      if (employeeId?.startsWith('user-')) {
+        throw new Error(`Invalid Employee ID: ${employeeId}. Please logout and login again to refresh your profile.`);
+      }
+      throw new Error(`No employee profile found for ID: ${employeeId}`);
+    }
+
+    // Explicit Store check
+    const store = db.prepare("SELECT id FROM stores WHERE id = ?").get(storeId);
+    if (!store) {
+      console.error(`[DB] ERROR: Store ID ${storeId} not found in stores table.`);
+      const allStores = db.prepare("SELECT id FROM stores").all();
+      console.log(`[DB] Available stores:`, allStores.map(s => s.id));
+      throw new Error(`Invalid Store ID: ${storeId}. This session may be corrupted. Please logout and login again.`);
+    }
+
+    const existing = db.prepare('SELECT * FROM attendance WHERE employee_id = ? AND date = ?').get(employeeId, today)
     if (existing) {
-      throw new Error('User already checked in today.')
+      throw new Error('Employee already checked in today.')
     }
 
     const stmt = db.prepare(`
-      INSERT INTO attendance(id, user_id, date, check_in, status, store_id, updated_at, sync_status)
-VALUES(?, ?, ?, ?, ?, ?, datetime('now'), 0)
+      INSERT INTO attendance(id, employee_id, date, check_in, status, store_id, updated_at, sync_status)
+      VALUES(?, ?, ?, ?, ?, ?, datetime('now'), 0)
     `)
 
-    const id = `att - ${Date.now()} `
+    const id = `att-${Date.now()}`
     const checkInTime = new Date().toISOString()
     // Simple logic: Late if after 9:30 AM
     const hour = new Date().getHours()
@@ -2408,13 +2718,24 @@ VALUES(?, ?, ?, ?, ?, ?, datetime('now'), 0)
       status = 'late'
     }
 
-    stmt.run(id, userId, today, checkInTime, status, storeId)
+    console.log(`[DB] Inserting attendance record: id=${id}, emp=${employeeId}, store=${storeId}`);
+    try {
+      stmt.run(id, employeeId, today, checkInTime, status, storeId)
+    } catch (err) {
+      console.error(`[DB] INSERT FAILED: ${err.message}`);
+      console.log(`[DB] Diagnostic State:`);
+      console.log(`  - Table Info (attendance):`, JSON.stringify(db.prepare("PRAGMA table_info(attendance)").all()));
+      console.log(`  - Foreign Key List (attendance):`, JSON.stringify(db.prepare("PRAGMA foreign_key_list(attendance)").all()));
+      console.log(`  - Employee profile:`, JSON.stringify(db.prepare("SELECT * FROM employees WHERE id = ?").get(employeeId)));
+      console.log(`  - Store record:`, JSON.stringify(db.prepare("SELECT * FROM stores WHERE id = ?").get(storeId)));
+      throw err;
+    }
     return { success: true, checkInTime, status }
   },
 
-  checkOut: (userId) => {
+  checkOut: (employeeId) => {
     const today = new Date().toISOString().split('T')[0]
-    const existing = db.prepare('SELECT * FROM attendance WHERE user_id = ? AND date = ?').get(userId, today)
+    const existing = db.prepare('SELECT * FROM attendance WHERE employee_id = ? AND date = ?').get(employeeId, today)
 
     if (!existing) {
       throw new Error('No check-in record found for today.')
@@ -2425,7 +2746,7 @@ VALUES(?, ?, ?, ?, ?, ?, datetime('now'), 0)
     return { success: true, checkOutTime }
   },
 
-  getAttendance: (userId, startDate, endDate) => {
+  getAttendance: (employeeId, startDate, endDate) => {
     // If no dates provided, get last 30 days
     if (!startDate) {
       const d = new Date()
@@ -2434,21 +2755,70 @@ VALUES(?, ?, ?, ?, ?, ?, datetime('now'), 0)
       endDate = new Date().toISOString().split('T')[0]
     }
 
-    if (userId) {
-      return db.prepare('SELECT * FROM attendance WHERE user_id = ? AND date BETWEEN ? AND ? ORDER BY date DESC').all(userId, startDate, endDate).map(toCamelCase)
+    if (employeeId) {
+      return db.prepare('SELECT * FROM attendance WHERE employee_id = ? AND date BETWEEN ? AND ? ORDER BY date DESC').all(employeeId, startDate, endDate).map(toCamelCase)
     } else {
-      // Admin view: all users
-      return db.prepare('SELECT a.*, u.name as name, u.avatar FROM attendance a JOIN users u ON a.user_id = u.id WHERE a.date BETWEEN ? AND ? ORDER BY a.date DESC').all(startDate, endDate).map(toCamelCase)
+      // Admin view: all users. Use LEFT JOIN to avoid losing records during cleanup
+      return db.prepare(`
+        SELECT a.*, u.name as name, u.avatar 
+        FROM attendance a 
+        LEFT JOIN employees e ON a.employee_id = e.id 
+        LEFT JOIN users u ON e.user_id = u.id 
+        WHERE a.date BETWEEN ? AND ? 
+        ORDER BY a.date DESC
+      `).all(startDate, endDate).map(toCamelCase)
     }
   },
 
+  getPayroll: (storeId, employeeId) => {
+    // If the table doesn't exist yet, return empty
+    const tableExists = db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name='payroll'").get();
+    if (!tableExists) {
+      // Create it if missing
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS payroll (
+          id TEXT PRIMARY KEY,
+          employee_id TEXT NOT NULL,
+          month TEXT NOT NULL,
+          basic_salary REAL DEFAULT 0,
+          allowances REAL DEFAULT 0,
+          deductions REAL DEFAULT 0,
+          net_salary REAL DEFAULT 0,
+          status TEXT CHECK(status IN ('pending', 'paid')) DEFAULT 'pending',
+          payment_date TEXT,
+          store_id TEXT NOT NULL,
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          sync_status INTEGER DEFAULT 0,
+          FOREIGN KEY (employee_id) REFERENCES employees(id),
+          FOREIGN KEY (store_id) REFERENCES stores(id)
+        )
+      `);
+    }
+
+    let query = `
+      SELECT p.*, u.name as user_name, e.department, e.designation
+      FROM payroll p
+      LEFT JOIN employees e ON p.employee_id = e.id
+      LEFT JOIN users u ON e.user_id = u.id
+      WHERE p.store_id = ?
+    `;
+    const params = [storeId];
+    if (employeeId) {
+      query += ` AND p.employee_id = ? `;
+      params.push(employeeId);
+    }
+    query += ` ORDER BY p.month DESC `;
+    return db.prepare(query).all(...params).map(toCamelCase);
+  },
+
+
   applyLeave: (leave) => {
     const stmt = db.prepare(`
-        INSERT INTO leaves(id, user_id, start_date, end_date, type, reason, status, store_id, updated_at, sync_status)
+        INSERT INTO leaves(id, employee_id, start_date, end_date, type, reason, status, store_id, updated_at, sync_status)
 VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     `)
     const id = `leave - ${Date.now()} `
-    stmt.run(id, leave.userId, leave.startDate, leave.endDate, leave.type, leave.reason, 'pending', leave.storeId)
+    stmt.run(id, leave.employeeId, leave.startDate, leave.endDate, leave.type, leave.reason, 'pending', leave.storeId)
     return { success: true, id }
   },
 
@@ -2456,11 +2826,13 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     return db.prepare(`
       SELECT l.*, u.name as user_name, u.role as user_role 
       FROM leaves l 
-      JOIN users u ON l.user_id = u.id 
+      LEFT JOIN employees e ON l.employee_id = e.id
+      LEFT JOIN users u ON e.user_id = u.id 
       WHERE l.store_id = ?
-  ORDER BY l.start_date DESC
+      ORDER BY l.start_date DESC
     `).all(storeId).map(toCamelCase)
   },
+
 
   updateLeaveStatus: (id, status) => {
     return db.prepare("UPDATE leaves SET status = ?, updated_at = datetime('now') WHERE id = ?").run(status, id)
@@ -2471,7 +2843,8 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     let query = `
       SELECT s.*, u.name as user_name, u.role as user_role 
       FROM shifts s 
-      JOIN users u ON s.user_id = u.id 
+      LEFT JOIN employees e ON s.employee_id = e.id
+      LEFT JOIN users u ON e.user_id = u.id 
       WHERE s.store_id = ?
   `
     const params = [storeId]
@@ -2488,11 +2861,11 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
 
   assignShift: (shift) => {
     const stmt = db.prepare(`
-      INSERT INTO shifts(id, user_id, store_id, start_time, end_time, type, status, updated_at)
+      INSERT INTO shifts(id, employee_id, store_id, start_time, end_time, type, status, updated_at)
 VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'))
   `)
     stmt.run(
-      shift.id, shift.userId, shift.storeId, shift.startTime,
+      shift.id, shift.employeeId, shift.storeId, shift.startTime,
       shift.endTime, shift.type, 'assigned'
     )
     return toCamelCase(db.prepare('SELECT * FROM shifts WHERE id = ?').get(shift.id))
@@ -2713,6 +3086,23 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     return db.prepare("UPDATE candidates SET status = ?, updated_at = datetime('now') WHERE id = ?").run(status, id)
   },
 
+  getEmployees: (storeId) => {
+    return db.prepare('SELECT e.*, u.name, u.email, u.role, u.avatar FROM employees e JOIN users u ON e.user_id = u.id WHERE e.store_id = ?')
+      .all(storeId)
+      .map(row => {
+        const camel = toCamelCase(row);
+        return {
+          ...camel,
+          user: {
+            name: camel.name,
+            email: camel.email,
+            role: camel.role,
+            avatar: camel.avatar
+          }
+        };
+      });
+  },
+
   getCommissions: (storeId) => {
     return db.prepare('SELECT * FROM commissions WHERE sale_id IN (SELECT id FROM sales WHERE store_id = ?)').all(storeId).map(toCamelCase)
   },
@@ -2724,35 +3114,152 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
   // Employees (HR)
   getEmployees: (storeId) => {
     return db.prepare(`
-      SELECT e.*, u.name as user_name, u.email as user_email, u.avatar as user_avatar
+      SELECT e.*, u.name as user_name, u.email as user_email, u.role as user_role, u.avatar as user_avatar, u.is_active as user_is_active
       FROM employees e
       LEFT JOIN users u ON e.user_id = u.id
       WHERE e.store_id = ?
-  ORDER BY e.updated_at DESC
+      ORDER BY e.updated_at DESC
     `).all(storeId).map(e => {
       const camelE = toCamelCase(e)
-      // Ensure user name is normalized for the frontend item
       return {
         ...camelE,
         user: {
-          name: e.user_name || e.user_email?.split('@')[0] || e.user_id?.split('-')[1] || 'Staff Member'
+          name: e.user_name || e.user_email?.split('@')[0] || 'Staff Member',
+          email: e.user_email || '',
+          role: e.user_role || 'employee',
+          isActive: e.user_is_active === 1,
+          avatar: e.user_avatar || null
         },
         documents: JSON.parse(camelE.documents || '[]')
       }
     })
   },
 
-  addEmployee: (employee) => {
-    const stmt = db.prepare(`
-      INSERT INTO employees(id, user_id, department, designation, salary, joining_date, documents, store_id, updated_at)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
-  `)
-    stmt.run(
-      employee.id, employee.userId, employee.department, employee.designation,
-      employee.salary, employee.joiningDate, JSON.stringify(employee.documents || []),
-      employee.storeId
-    )
-    return toCamelCase(db.prepare('SELECT * FROM employees WHERE id = ?').get(employee.id))
+  // Primary onboarding entry point: HR creates employee → system auto-creates linked user account
+  addEmployee: (data) => {
+    const userId = data.userId || `user-${Date.now()}`
+    const employeeId = data.id || `emp-${Date.now()}`
+
+    const createBoth = db.transaction(() => {
+      // 1. Create the User account (login credentials)
+      const nameParts = (data.name || '').split(' ')
+      const firstName = data.firstName || nameParts[0] || ''
+      const lastName = data.lastName || nameParts.slice(1).join(' ') || ''
+      const password = data.password ? bcrypt.hashSync(data.password, 10) : bcrypt.hashSync('ChangeMe123!', 10)
+      const role = data.role || 'employee'
+
+      db.prepare(`
+        INSERT INTO users(id, name, email, username, first_name, last_name, password, role, is_staff, is_active, store_id, device_id, updated_at, sync_status)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, datetime('now'), 0)
+      `).run(
+        userId, data.name, data.email, data.email,
+        firstName, lastName, password, role,
+        (role !== 'employee' && role !== 'user') ? 1 : 0,
+        data.storeId, deviceId
+      )
+
+      // 2. Create the Employee HR profile linked to the user
+      db.prepare(`
+        INSERT INTO employees(id, user_id, department, designation, salary, joining_date, documents, store_id, updated_at, sync_status)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
+      `).run(
+        employeeId, userId,
+        data.department || 'General',
+        data.designation || data.role?.replace(/_/g, ' ').toUpperCase() || 'Staff',
+        data.salary || 0,
+        data.joiningDate || new Date().toISOString().split('T')[0],
+        JSON.stringify(data.documents || []),
+        data.storeId
+      )
+    })
+
+    createBoth()
+
+    // Return the full employee with user info
+    const emp = db.prepare(`
+      SELECT e.*, u.name as user_name, u.email as user_email, u.role as user_role, u.avatar as user_avatar
+      FROM employees e
+      LEFT JOIN users u ON e.user_id = u.id
+      WHERE e.id = ?
+    `).get(employeeId)
+
+    if (!emp) return null
+    const camelE = toCamelCase(emp)
+    return {
+      ...camelE,
+      user: {
+        name: emp.user_name || '',
+        email: emp.user_email || '',
+        role: emp.user_role || 'employee'
+      },
+      documents: JSON.parse(camelE.documents || '[]')
+    }
+  },
+
+  updateEmployee: (id, updates) => {
+    const fields = []
+    const values = []
+    const fieldMap = {
+      department: 'department',
+      designation: 'designation',
+      salary: 'salary',
+      joiningDate: 'joining_date',
+      documents: 'documents'
+    }
+    Object.keys(updates).forEach(key => {
+      if (fieldMap[key]) {
+        fields.push(`${fieldMap[key]} = ?`)
+        values.push(key === 'documents' ? JSON.stringify(updates[key]) : updates[key])
+      }
+    })
+    if (fields.length > 0) {
+      fields.push(`updated_at = datetime('now')`)
+      fields.push(`sync_status = 0`)
+      values.push(id)
+      db.prepare(`UPDATE employees SET ${fields.join(', ')} WHERE id = ?`).run(...values)
+    }
+
+    // Also update linked user fields if provided
+    const emp = db.prepare('SELECT user_id FROM employees WHERE id = ?').get(id)
+    if (emp && emp.user_id) {
+      const userFields = []
+      const userValues = []
+      const userFieldMap = { name: 'name', email: 'email', role: 'role' }
+      Object.keys(updates).forEach(key => {
+        if (userFieldMap[key]) {
+          userFields.push(`${userFieldMap[key]} = ?`)
+          userValues.push(updates[key])
+        }
+      })
+      if (updates.password) {
+        userFields.push('password = ?')
+        userValues.push(bcrypt.hashSync(updates.password, 10))
+      }
+      if (userFields.length > 0) {
+        userValues.push(emp.user_id)
+        db.prepare(`UPDATE users SET ${userFields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ?`).run(...userValues)
+      }
+    }
+
+    const result = db.prepare(`
+      SELECT e.*, u.name as user_name, u.email as user_email, u.role as user_role, u.avatar as user_avatar
+      FROM employees e LEFT JOIN users u ON e.user_id = u.id
+      WHERE e.id = ?
+    `).get(id)
+    if (!result) return null
+    const camelR = toCamelCase(result)
+    return { ...camelR, user: { name: result.user_name, email: result.user_email, role: result.user_role }, documents: JSON.parse(camelR.documents || '[]') }
+  },
+
+  deleteEmployee: (id) => {
+    // Deactivate the linked user account but keep the record for audit
+    const emp = db.prepare('SELECT user_id FROM employees WHERE id = ?').get(id)
+    if (emp && emp.user_id) {
+      db.prepare("UPDATE users SET is_active = 0, updated_at = datetime('now'), sync_status = 0 WHERE id = ?").run(emp.user_id)
+    }
+    db.prepare("UPDATE employees SET updated_at = datetime('now'), sync_status = 0 WHERE id = ?").run(id)
+    db.prepare('DELETE FROM employees WHERE id = ?').run(id)
+    return { success: true }
   },
 
   // Item Kits CRUD
@@ -3228,7 +3735,8 @@ SELECT
           query = `
           SELECT u.name, a.date, a.check_in, a.check_out, a.status
           FROM attendance a
-          JOIN users u ON u.id = a.user_id
+          JOIN employees e ON e.id = a.employee_id
+          JOIN users u ON u.id = e.user_id
           WHERE a.store_id = @storeId ${dateFilter('a.date')}
           ORDER BY a.date DESC
   `

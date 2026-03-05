@@ -90,7 +90,7 @@ export default function Sales() {
         for (const row of rows) {
           try {
             await addSale({
-              type: (row.Type?.toLowerCase() as 'cash' | 'credit' | 'retail') || 'cash',
+              type: (row.type?.toLowerCase() as 'cash' | 'credit' | 'retail') || (row.Type?.toLowerCase() as 'cash' | 'credit' | 'retail') || 'cash',
               status: 'completed',
               items: [],
               subtotal: parseFloat(row.Amount) || 0,
@@ -98,7 +98,7 @@ export default function Sales() {
               taxAmount: 0,
               totalAmount: parseFloat(row.Amount) || 0,
               profit: parseFloat(row.Profit) || 0,
-              paymentMode: (row.Payment?.toLowerCase() as 'cash' | 'card' | 'upi' | 'gift_card' | 'store_credit') || 'cash',
+              paymentMode: (row.paymentMode?.toLowerCase() as 'cash' | 'card' | 'upi' | 'gift_card' | 'store_credit') || (row.Payment?.toLowerCase() as 'cash' | 'card' | 'upi' | 'gift_card' | 'store_credit') || 'cash',
               accountId: 'account-1',
               storeId: activeStoreId,
               date: row.Date ? new Date(row.Date).toISOString() : new Date().toISOString()

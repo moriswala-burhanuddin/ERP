@@ -3,9 +3,9 @@ import { Badge } from "@/components/ui/badge";
 import { AlertTriangle, Clock, TrendingDown } from "lucide-react";
 
 export interface RiskEmployee {
-    userId: string;
+    employeeId: string;
     name: string;
-    riskScore: 'High' | 'Medium' | 'Low';
+    riskLevel: 'High' | 'Medium' | 'Low';
     insight: string;
     consistencyScore: number;
 }
@@ -16,7 +16,7 @@ interface AttendanceRiskCardProps {
 }
 
 export const AttendanceRiskCard = ({ employees, summary }: AttendanceRiskCardProps) => {
-    const highRisk = employees.filter(e => e.riskScore === 'High');
+    const highRisk = employees.filter(e => e.riskLevel === 'High');
 
     return (
         <Card className="border-red-200 bg-red-50/10">
@@ -33,10 +33,9 @@ export const AttendanceRiskCard = ({ employees, summary }: AttendanceRiskCardPro
                 <p className="text-sm text-gray-600 mb-4 italic">
                     "{summary}"
                 </p>
-
                 <div className="space-y-4">
                     {highRisk.map(emp => (
-                        <div key={emp.userId} className="p-3 bg-white rounded-lg border border-red-100 shadow-sm">
+                        <div key={emp.employeeId} className="p-3 bg-white rounded-lg border border-red-100 shadow-sm">
                             <div className="flex justify-between items-start">
                                 <div>
                                     <h4 className="font-semibold text-gray-800">{emp.name}</h4>

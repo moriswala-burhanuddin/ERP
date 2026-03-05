@@ -663,20 +663,20 @@ ipcMain.handle('ai:analyzeAttendance', async (event, attendanceData, leaveData) 
 })
 
 // HR & Attendance IPCs
-ipcMain.handle('db:checkIn', async (event, userId, storeId) => {
-    const result = dbHelpers.checkIn(userId, storeId)
+ipcMain.handle('db:checkIn', async (event, employeeId, storeId) => {
+    const result = dbHelpers.checkIn(employeeId, storeId)
     if (mainWindow) mainWindow.webContents.send('sync:trigger')
     return result
 })
 
-ipcMain.handle('db:checkOut', async (event, userId) => {
-    const result = dbHelpers.checkOut(userId)
+ipcMain.handle('db:checkOut', async (event, employeeId) => {
+    const result = dbHelpers.checkOut(employeeId)
     if (mainWindow) mainWindow.webContents.send('sync:trigger')
     return result
 })
 
-ipcMain.handle('db:getAttendance', async (event, userId, startDate, endDate) => {
-    return dbHelpers.getAttendance(userId, startDate, endDate)
+ipcMain.handle('db:getAttendance', async (event, employeeId, startDate, endDate) => {
+    return dbHelpers.getAttendance(employeeId, startDate, endDate)
 })
 
 ipcMain.handle('db:applyLeave', async (event, leave) => {
@@ -759,10 +759,28 @@ ipcMain.handle('db:getEmployees', async (event, storeId) => {
 })
 
 ipcMain.handle('db:addEmployee', async (event, employee) => {
-    const result = dbHelpers.addEmployee(employee)
+    try {
+        const result = dbHelpers.addEmployee(employee)
+        if (mainWindow) mainWindow.webContents.send('sync:trigger')
+        return result
+    } catch (err) {
+        console.error('IPC: addEmployee error:', err.message)
+        throw err
+    }
+})
+
+ipcMain.handle('db:updateEmployee', async (event, id, updates) => {
+    const result = dbHelpers.updateEmployee(id, updates)
     if (mainWindow) mainWindow.webContents.send('sync:trigger')
     return result
 })
+
+ipcMain.handle('db:deleteEmployee', async (event, id) => {
+    const result = dbHelpers.deleteEmployee(id)
+    if (mainWindow) mainWindow.webContents.send('sync:trigger')
+    return result
+})
+
 
 // Suppliers
 ipcMain.handle('db:getSuppliers', async (event, storeId) => {

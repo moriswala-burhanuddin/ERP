@@ -302,13 +302,13 @@ export const dbAdapter = {
     updateDelivery: (id: string, updates: Updates<Delivery>) => isElectron() ? window.electronAPI.updateDelivery(id, updates) : Promise.resolve(null),
 
     // HR Methods
-    checkIn: (userId: string, storeId: string): Promise<{ success: boolean; checkInTime: string; status: string } | null> =>
-        isElectron() ? window.electronAPI.checkIn(userId, storeId) : Promise.resolve(null),
-    checkOut: (userId: string): Promise<{ success: boolean; checkOutTime: string } | null> =>
-        isElectron() ? window.electronAPI.checkOut(userId) : Promise.resolve(null),
-    getAttendance: (userId?: string, startDate?: string, endDate?: string): Promise<HRAttendance[] | null> =>
-        isElectron() ? window.electronAPI.getAttendance(userId, startDate, endDate) : Promise.resolve(null),
-    applyLeave: (leave: Omit<HRLeave, 'id' | 'status'> & { userId: string; storeId: string }): Promise<{ success: boolean; id: string } | null> =>
+    checkIn: (employeeId: string, storeId: string): Promise<{ success: boolean; checkInTime: string; status: string } | null> =>
+        isElectron() ? window.electronAPI.checkIn(employeeId, storeId) : Promise.resolve(null),
+    checkOut: (employeeId: string): Promise<{ success: boolean; checkOutTime: string } | null> =>
+        isElectron() ? window.electronAPI.checkOut(employeeId) : Promise.resolve(null),
+    getAttendance: (employeeId?: string, startDate?: string, endDate?: string): Promise<HRAttendance[] | null> =>
+        isElectron() ? window.electronAPI.getAttendance(employeeId, startDate, endDate) : Promise.resolve(null),
+    applyLeave: (leave: Omit<HRLeave, 'id' | 'status'> & { employeeId: string; storeId: string }): Promise<{ success: boolean; id: string } | null> =>
         isElectron() ? window.electronAPI.applyLeave(leave) : Promise.resolve(null),
     getLeaves: (storeId: string): Promise<HRLeave[] | null> =>
         isElectron() ? window.electronAPI.getLeaves(storeId) : Promise.resolve(null),
@@ -316,10 +316,14 @@ export const dbAdapter = {
         isElectron() ? window.electronAPI.updateLeaveStatus(id, status) : Promise.resolve(null),
     getEmployees: (storeId: string): Promise<Employee[] | null> =>
         isElectron() ? window.electronAPI.getEmployees(storeId) : Promise.resolve(null),
-    addEmployee: (employee: Employee): Promise<Employee | null> =>
+    addEmployee: (employee: Omit<User, 'id'> & Omit<Employee, 'id' | 'userId'>): Promise<Employee | null> =>
         isElectron() ? window.electronAPI.addEmployee(employee) : Promise.resolve(null),
-    getPayroll: (storeId: string, userId?: string): Promise<HRPayroll[] | null> =>
-        isElectron() ? window.electronAPI.getPayroll(storeId, userId) : Promise.resolve(null),
+    updateEmployee: (id: string, updates: Partial<Employee> & { user?: Partial<User> }): Promise<Employee | null> =>
+        isElectron() ? window.electronAPI.updateEmployee(id, updates) : Promise.resolve(null),
+    deleteEmployee: (id: string): Promise<{ success: boolean } | null> =>
+        isElectron() ? window.electronAPI.deleteEmployee(id) : Promise.resolve(null),
+    getPayroll: (storeId: string, employeeId?: string): Promise<HRPayroll[] | null> =>
+        isElectron() ? window.electronAPI.getPayroll(storeId, employeeId) : Promise.resolve(null),
 
     // Store Configuration
     getStoreConfig: (storeId: string): Promise<Record<string, unknown> | null> =>

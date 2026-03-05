@@ -1,24 +1,30 @@
 const Database = require('better-sqlite3');
 const path = require('path');
-
 const dbPath = path.join(__dirname, 'electron', 'storeflow.db');
-console.log('Opening database at:', dbPath);
-
+console.log('Connecting to:', dbPath);
+const db = new Database(dbPath);
 try {
-    const db = new Database(dbPath);
+    console.log('--- STORES ---');
+    console.log(JSON.stringify(db.prepare('SELECT id, name FROM stores').all(), null, 2));
 
-    const stores = db.prepare('SELECT * FROM stores').all();
-    console.log('Stores count:', stores.length);
-    console.log('Stores:', JSON.stringify(stores, null, 2));
+    console.log('--- EMPLOYEES ---');
+    console.log(JSON.stringify(db.prepare('SELECT id, user_id, store_id FROM employees').all(), null, 2));
 
-    const products = db.prepare('SELECT * FROM products').all();
-    console.log('Products count:', products.length);
-    console.log('Products:', JSON.stringify(products, null, 2));
+    console.log('--- USERS ---');
+    const users = db.prepare('SELECT id, name, email, role, store_id FROM users').all();
+    console.log(JSON.stringify(users, null, 2));
 
-    const users = db.prepare('SELECT * FROM users').all();
-    console.log('Users count:', users.length);
+    console.log('--- ATTENDANCE MIGRATION CHECK ---');
+    // Check if attendance table has records and what IDs they use
+    try {
+        const att = db.prepare('SELECT * FROM attendance LIMIT 5').all();
+        console.log('Attendance Sample:', JSON.stringify(att, null, 2));
+    } catch (e) {
+        console.log('Attendance table error:', e.message);
+    }
 
+} catch (e) {
+    console.error(e);
+} finally {
     db.close();
-} catch (err) {
-    console.error('Error reading database:', err.message);
 }

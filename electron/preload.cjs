@@ -108,6 +108,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Employees
     getEmployees: (storeId) => ipcRenderer.invoke('db:getEmployees', storeId),
     addEmployee: (employee) => ipcRenderer.invoke('db:addEmployee', employee),
+    updateEmployee: (id, updates) => ipcRenderer.invoke('db:updateEmployee', id, updates),
+    deleteEmployee: (id) => ipcRenderer.invoke('db:deleteEmployee', id),
 
     // Item Kits
     getItemKits: (storeId) => ipcRenderer.invoke('db:getItemKits', storeId),

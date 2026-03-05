@@ -21,7 +21,6 @@ export default function NewUser() {
   const [storeId, setStoreId] = useState(stores[0]?.id || '');
   const [showPassword, setShowPassword] = useState(false);
 
-  const [createEmployee, setCreateEmployee] = useState(false);
 
   const isEdit = Boolean(id);
 
@@ -65,26 +64,7 @@ export default function NewUser() {
           isActive: true
         });
 
-        if (createEmployee && window.electronAPI) {
-          let dept = 'General';
-          if (role === 'hr_manager') dept = 'HR Manager';
-          else if (role === 'sales_manager') dept = 'Sales Manager';
-          else if (role === 'inventory_manager') dept = 'Inventory Manager';
-          else if (role === 'accountant') dept = 'Account';
-          else if (role === 'super_admin' || role === 'admin') dept = 'Super Admin';
-
-          await window.electronAPI.addEmployee({
-            id: `emp-${Date.now()}`,
-            userId: generatedId,
-            department: dept,
-            designation: role.replace('_', ' ').toUpperCase(),
-            salary: 0,
-            joiningDate: new Date().toISOString().split('T')[0],
-            documents: [],
-            storeId: storeId
-          });
-        }
-        toast.success("Onboarding Finalized: Member node injected into collective.");
+        toast.success("User account created successfully.");
       }
       navigate('/users');
     } catch (error) {
@@ -245,17 +225,20 @@ export default function NewUser() {
                   </select>
                 </div>
 
+                {/* Info: Employee Creation Via HR */}
                 {!isEdit && (
-                  <div className="p-6 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">
-                    <div className="flex items-start gap-4 cursor-pointer group" onClick={() => setCreateEmployee(!createEmployee)}>
-                      <div className={cn("w-5 h-5 mt-1 rounded-md border flex items-center justify-center transition-all", createEmployee ? "bg-white border-white text-black" : "border-white/20 text-transparent")}>
-                        <CheckCircle2 className="w-4 h-4" />
-                      </div>
-                      <div>
-                        <span className="text-[10px] font-black uppercase tracking-widest block mb-1">HR Synthesis</span>
-                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wide leading-relaxed">Automate personnel profile construction in parallel.</span>
-                      </div>
-                    </div>
+                  <div className="p-6 bg-indigo-500/10 rounded-2xl border border-indigo-500/20">
+                    <p className="text-[9px] font-black text-indigo-300 uppercase tracking-widest mb-2">Employee Onboarding</p>
+                    <p className="text-[10px] font-bold text-white/60 leading-relaxed mb-3">
+                      To create an employee with attendance, leave &amp; payroll tracking, use the HR module instead.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => navigate('/hr/employees')}
+                      className="text-[9px] font-black text-indigo-400 uppercase tracking-widest hover:text-white transition-colors underline underline-offset-2"
+                    >
+                      Go to HR → Employees →
+                    </button>
                   </div>
                 )}
               </div>

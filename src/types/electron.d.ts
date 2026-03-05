@@ -175,15 +175,19 @@ export interface ElectronAPI {
     onCustomerDisplayData: (callback: (data: unknown) => void) => void;
 
     // HR Methods
-    checkIn: (userId: string, storeId: string) => Promise<{ success: boolean; checkInTime: string; status: string }>;
-    checkOut: (userId: string) => Promise<{ success: boolean; checkOutTime: string }>;
-    getAttendance: (userId?: string, startDate?: string, endDate?: string) => Promise<HRAttendance[]>;
-    applyLeave: (leave: Omit<HRLeave, 'id' | 'status'> & { userId: string; storeId: string }) => Promise<{ success: boolean; id: string }>;
+    checkIn: (employeeId: string, storeId: string) => Promise<{ success: boolean; checkInTime: string; status: string }>;
+    checkOut: (employeeId: string) => Promise<{ success: boolean; checkOutTime: string }>;
+    getAttendance: (employeeId?: string, startDate?: string, endDate?: string) => Promise<HRAttendance[]>;
+    applyLeave: (leave: Omit<HRLeave, 'id' | 'status'> & { employeeId: string; storeId: string }) => Promise<{ success: boolean; id: string }>;
     getLeaves: (storeId: string) => Promise<HRLeave[]>;
     updateLeaveStatus: (id: string, status: string) => Promise<boolean>;
+    analyzeAttendance: (attendanceData: HRAttendance[], leaveData: HRLeave[]) => Promise<{ employees: RiskEmployee[]; summary: string }>;
+    analyzePerformance: (storeId: string) => Promise<{ topPerformers: Array<{ name: string; reason: string; score: string | number }>; riskAlerts: Array<{ name: string; riskLevel: string; reason: string }> }>;
     getEmployees: (storeId: string) => Promise<Employee[]>;
-    addEmployee: (employee: Employee) => Promise<Employee>;
-    getPayroll: (storeId: string, userId?: string) => Promise<HRPayroll[]>;
+    addEmployee: (employee: Omit<User, 'id'> & Omit<Employee, 'id' | 'userId'>) => Promise<Employee>;
+    updateEmployee: (id: string, updates: Partial<Employee> & { user?: Partial<User> }) => Promise<Employee>;
+    deleteEmployee: (id: string) => Promise<{ success: boolean }>;
+    getPayroll: (storeId: string, employeeId?: string) => Promise<HRPayroll[]>;
 
     // Store Configuration
     getStoreConfig: (storeId: string) => Promise<Record<string, unknown> | null>;

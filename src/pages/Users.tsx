@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useERPStore, User } from '@/lib/store-data';
-import { Search, Plus, Mail, Shield, ShieldCheck, Trash2, Edit, User as UserIcon, Users as UsersIcon, Building2, Phone, ArrowRight, MoreHorizontal, ShieldAlert, Key, Zap, CheckCircle2, MoreVertical, Settings, UserPlus, ArrowLeft } from 'lucide-react';
+import { Search, Plus, Mail, Shield, ShieldCheck, Trash2, Edit, User as UserIcon, Users as UsersIcon, Building2, Phone, ArrowRight, MoreHorizontal, ShieldAlert, Key, Zap, CheckCircle2, MoreVertical, Settings, UserPlus, ArrowLeft, Info, ExternalLink } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -45,8 +45,8 @@ export default function Users() {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Personnel Registry</h1>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Personnel Matrix • {filteredUsers.length} Active Nodes</p>
+              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Login Access Management</h1>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Login credentials &amp; roles only • {filteredUsers.length} accounts</p>
             </div>
           </div>
 
@@ -56,13 +56,26 @@ export default function Users() {
               className="bg-black text-white rounded-[1.2rem] h-14 px-8 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
               <UserPlus className="w-4 h-4 mr-2 text-indigo-400" />
-              Provision New Node
+              Add Login User
             </Button>
           </div>
         </div>
       </div>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-10">
+        {/* HR Separation Banner */}
+        <div className="bg-indigo-50 border border-indigo-100 rounded-[2rem] px-8 py-5 flex items-start gap-4">
+          <div className="p-2.5 bg-indigo-100 rounded-xl text-indigo-600 shrink-0 mt-0.5">
+            <Info className="w-4 h-4" />
+          </div>
+          <div className="flex-1">
+            <p className="text-[11px] font-black text-indigo-800 uppercase tracking-widest mb-1">Login Access Only</p>
+            <p className="text-xs text-indigo-600 font-medium leading-relaxed">
+              This module manages <strong>login credentials and roles</strong> only. To add employees with attendance, leave &amp; payroll tracking,
+              use the <button onClick={() => navigate('/hr/employees')} className="font-black underline underline-offset-2 inline-flex items-center gap-1 hover:text-indigo-800 transition-colors">HR → Employees <ExternalLink className="w-3 h-3" /></button> module instead.
+            </p>
+          </div>
+        </div>
         {/* Registry Controls */}
         <div className="bg-white p-6 rounded-[3rem] border border-white shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-8">
           <div className="flex-1 relative group w-full">

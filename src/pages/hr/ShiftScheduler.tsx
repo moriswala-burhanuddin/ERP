@@ -49,7 +49,7 @@ const ShiftScheduler = () => {
                     toast.success(`AI Calibration complete: ${result.recommendedShifts.length} optimal shifts generated.`);
                     setAiInsights(result.insights);
                     for (const s of result.recommendedShifts) {
-                        await window.electronAPI.assignShift({ id: `shift-${Date.now()}-${Math.random()}`, userId: s.userId, storeId: 'store-1', startTime: `${s.date}T${s.startTime}:00`, endTime: `${s.date}T${s.endTime}:00`, type: s.type });
+                        await window.electronAPI.assignShift({ id: `shift-${Date.now()}-${Math.random()}`, employeeId: s.employeeId || s.userId, storeId: 'store-1', startTime: `${s.date}T${s.startTime}:00`, endTime: `${s.date}T${s.endTime}:00`, type: s.type });
                     }
                     loadData();
                 } else {
@@ -69,7 +69,7 @@ const ShiftScheduler = () => {
         if (shiftType === 'morning') { start = "08:00"; end = "16:00"; }
         if (shiftType === 'evening') { start = "12:00"; end = "20:00"; }
         try {
-            await window.electronAPI?.assignShift({ id: `shift-${Date.now()}`, userId: selectedUser, storeId: 'store-1', startTime: `${shiftDate}T${start}:00`, endTime: `${shiftDate}T${end}:00`, type: shiftType });
+            await window.electronAPI?.assignShift({ id: `shift-${Date.now()}`, employeeId: selectedUser, storeId: 'store-1', startTime: `${shiftDate}T${start}:00`, endTime: `${shiftDate}T${end}:00`, type: shiftType });
             toast.success("Coverage Node Materialized: Shift assignment synchronized.");
             setIsDialogOpen(false);
             loadData();
@@ -128,7 +128,7 @@ const ShiftScheduler = () => {
                                                 <SelectValue placeholder="SELECT UNIT" />
                                             </SelectTrigger>
                                             <SelectContent className="rounded-2xl border-none shadow-2xl">
-                                                {users.map(u => <SelectItem key={u.id} value={u.id} className="text-[11px] font-black uppercase">{u.name}</SelectItem>)}
+                                                {users.filter(u => u.employeeId).map(u => <SelectItem key={u.id} value={u.employeeId} className="text-[11px] font-black uppercase">{u.name}</SelectItem>)}
                                             </SelectContent>
                                         </Select>
                                     </div>

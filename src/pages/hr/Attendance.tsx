@@ -25,20 +25,20 @@ const Attendance = ({ isEmployeeView = false }: AttendanceProps) => {
 
     const todayRecord = hrAttendance.find(a => {
         const today = new Date().toISOString().split('T')[0];
-        return a.employeeId === currentUser?.id && a.date === today;
+        return a.employeeId === currentUser?.employeeId && a.date === today;
     });
 
     const isCheckedIn = !!todayRecord && !todayRecord.checkOut;
 
     const handleAttendanceAction = async () => {
-        toast.info(isCheckedIn ? "Initiating Logout Protocol..." : "Verifying Biometric Link...");
+        toast.info(isCheckedIn ? "Checking out..." : "Recording Attendance...");
         const action = isCheckedIn ? checkOut : checkIn;
         const result = await action();
 
         if (result.success) {
-            toast.success(`Protocol Transmitted: Node ${isCheckedIn ? 'Deregistered' : 'Authorized'}`);
+            toast.success(`Attendance marked successfully`);
         } else {
-            toast.error(`SIGNAL_FAILURE: ${result.message || "Protocol mismatch"}`);
+            toast.error(`Error: ${result.message || "Something went wrong"}`);
         }
     };
 
@@ -49,9 +49,9 @@ const Attendance = ({ isEmployeeView = false }: AttendanceProps) => {
 
     const getStatusConfig = (status: string) => {
         switch (status) {
-            case 'present': return { icon: <CheckCircle className="w-3.5 h-3.5" />, class: 'bg-emerald-50 text-emerald-600 border-emerald-100', label: 'Authorized' };
-            case 'late': return { icon: <Clock className="w-3.5 h-3.5" />, class: 'bg-amber-50 text-amber-600 border-amber-100', label: 'Delayed' };
-            case 'absent': return { icon: <XCircle className="w-3.5 h-3.5" />, class: 'bg-rose-50 text-rose-600 border-rose-100', label: 'Missing' };
+            case 'present': return { icon: <CheckCircle className="w-3.5 h-3.5" />, class: 'bg-emerald-50 text-emerald-600 border-emerald-100', label: 'Present' };
+            case 'late': return { icon: <Clock className="w-3.5 h-3.5" />, class: 'bg-amber-50 text-amber-600 border-amber-100', label: 'Late' };
+            case 'absent': return { icon: <XCircle className="w-3.5 h-3.5" />, class: 'bg-rose-50 text-rose-600 border-rose-100', label: 'Absent' };
             default: return { icon: <Activity className="w-3.5 h-3.5" />, class: 'bg-slate-50 text-slate-500 border-slate-100', label: status };
         }
     };
@@ -71,10 +71,10 @@ const Attendance = ({ isEmployeeView = false }: AttendanceProps) => {
                         </button>
                         <div>
                             <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">
-                                {isEmployeeView ? 'Individual Matrix' : 'Temporal Matrix'}
+                                {isEmployeeView ? 'My Attendance' : 'Attendance System'}
                             </h1>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">
-                                {isEmployeeView ? 'Personal timeline sync' : 'Global flux registry center'}
+                                {isEmployeeView ? 'Your daily records' : 'Staff attendance overview'}
                             </p>
                         </div>
                     </div>
@@ -89,7 +89,7 @@ const Attendance = ({ isEmployeeView = false }: AttendanceProps) => {
                                 )}
                             >
                                 <Fingerprint className="w-5 h-5" />
-                                {isCheckedIn ? 'TERMINATE_SESSION' : 'INITIATE_SESSION'}
+                                {isCheckedIn ? 'Check Out' : 'Check In'}
                             </Button>
                         ) : (
                             <div className="flex gap-2">
@@ -121,15 +121,15 @@ const Attendance = ({ isEmployeeView = false }: AttendanceProps) => {
                     <div className="bg-black rounded-[3rem] p-10 text-white shadow-2xl shadow-black/20 overflow-hidden relative group">
                         <Zap className="absolute -right-10 -top-10 w-40 h-40 text-white/5 rotate-12 group-hover:rotate-45 transition-transform duration-1000" />
                         <div className="relative z-10">
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-8">Flux Status</h4>
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-8">Monthly Stats</h4>
                             <div className="space-y-6">
                                 <div className="flex items-center gap-4">
                                     <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-emerald-400">
                                         <Activity className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Global Presence</p>
-                                        <p className="text-xl font-black text-white leading-none tracking-tighter">94% Capacity</p>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Attendance Rate</p>
+                                        <p className="text-xl font-black text-white leading-none tracking-tighter">-- %</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
@@ -137,8 +137,8 @@ const Attendance = ({ isEmployeeView = false }: AttendanceProps) => {
                                         <Target className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Drift Index</p>
-                                        <p className="text-xl font-black text-white leading-none tracking-tighter">-04m Delta</p>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">Lateness</p>
+                                        <p className="text-xl font-black text-white leading-none tracking-tighter">-- min</p>
                                     </div>
                                 </div>
                             </div>
@@ -154,7 +154,7 @@ const Attendance = ({ isEmployeeView = false }: AttendanceProps) => {
                                 <CalendarIcon className="w-5 h-5" />
                             </div>
                             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">
-                                {isEmployeeView ? 'Personal History' : `Temporal Stream: ${date?.toDateString().toUpperCase()}`}
+                                {isEmployeeView ? 'My Records' : `Attendance for: ${date?.toDateString().toUpperCase()}`}
                             </h3>
                         </div>
                         <div className="relative w-full md:w-64 group">
@@ -163,7 +163,7 @@ const Attendance = ({ isEmployeeView = false }: AttendanceProps) => {
                                 value={searchQuery}
                                 onChange={e => setSearchQuery(e.target.value)}
                                 className="h-12 bg-slate-50 border-none rounded-xl pl-12 pr-6 text-[10px] font-black uppercase focus:ring-2 focus:ring-black w-full"
-                                placeholder="IDENTIFY NODE..."
+                                placeholder="SEARCH EMPLOYEE..."
                             />
                         </div>
                     </div>
@@ -188,7 +188,7 @@ const Attendance = ({ isEmployeeView = false }: AttendanceProps) => {
                                                             {status.label}
                                                         </div>
                                                     </div>
-                                                    <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-3">{record.name || "UNREGISTERED_ENTITY"}</h4>
+                                                    <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-3">{record.name || "Unknown Employee"}</h4>
                                                     <div className="flex items-center gap-8">
                                                         <div className="flex items-center gap-3 group/time">
                                                             <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-emerald-400 shadow-sm border border-emerald-50">
@@ -222,9 +222,9 @@ const Attendance = ({ isEmployeeView = false }: AttendanceProps) => {
                         ) : (
                             <div className="py-40 text-center opacity-30 flex flex-col items-center">
                                 <Ghost className="w-24 h-24 text-slate-100 mb-8" />
-                                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Temporal Vacuum</h3>
+                                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">No Records Found</h3>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 px-20 text-center mx-auto max-w-lg leading-relaxed">
-                                    No node activity detected within the selected temporal slice. Synchronize Check-In protocols to generate stream data.
+                                    No attendance records found for this date. Check again later.
                                 </p>
                             </div>
                         )}

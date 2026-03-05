@@ -14,17 +14,28 @@ interface LeavesProps {
     isEmployeeView?: boolean;
 }
 
+interface LeaveWithUser {
+    id: string;
+    employeeId: string;
+    type: string;
+    startDate: string;
+    endDate: string;
+    reason: string;
+    status: string;
+    userName?: string;
+}
+
 const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
     const { currentUser, hrLeaves, applyLeave, fetchLeaves, updateLeaveStatus } = useERPStore();
     const [activeTab, setActiveTab] = useState<'pending' | 'history' | 'balances'>('pending');
     const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
     const [newLeave, setNewLeave] = useState<{
-        type: 'annual' | 'sick' | 'unpaid' | 'other';
+        type: 'sick' | 'casual' | 'earned' | 'unpaid';
         startDate: string;
         endDate: string;
         reason: string;
     }>({
-        type: 'annual',
+        type: 'casual',
         startDate: '',
         endDate: '',
         reason: ''
@@ -36,7 +47,7 @@ const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
 
     const handleApplyLeave = async () => {
         if (!newLeave.startDate || !newLeave.endDate || !newLeave.reason) {
-            toast.error("Protocol Incomplete: All parameters required.");
+            toast.error("Please fill in all fields.");
             return;
         }
         if (!currentUser) return;
@@ -45,17 +56,17 @@ const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
             startDate: newLeave.startDate,
             endDate: newLeave.endDate,
             reason: newLeave.reason,
-            employeeId: currentUser.id
+            employeeId: currentUser.employeeId || ''
         });
         setIsApplyModalOpen(false);
-        setNewLeave({ type: 'annual', startDate: '', endDate: '', reason: '' });
-        toast.success("Absence Protocol Filed: Leave request transmitted.");
+        setNewLeave({ type: 'casual', startDate: '', endDate: '', reason: '' });
+        toast.success("Leave request submitted successfully.");
     };
 
     const handleStatusUpdate = async (id: string, status: 'approved' | 'rejected') => {
         await updateLeaveStatus(id, status);
-        if (status === 'approved') toast.success("Leave Node Authorized: Absence protocol cleared.");
-        else toast.error("Leave Node Rejected: Protocol declined.");
+        if (status === 'approved') toast.success("Leave approved.");
+        else toast.success("Leave rejected.");
     };
 
     const pendingLeaves = hrLeaves.filter(l => l.status === 'pending');
@@ -68,17 +79,32 @@ const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
     };
 
     const typeConfig: Record<string, { color: string; bg: string }> = {
-        annual: { color: 'text-indigo-600', bg: 'bg-indigo-50' },
+        casual: { color: 'text-indigo-600', bg: 'bg-indigo-50' },
         sick: { color: 'text-emerald-600', bg: 'bg-emerald-50' },
+        earned: { color: 'text-amber-600', bg: 'bg-amber-50' },
         unpaid: { color: 'text-slate-600', bg: 'bg-slate-100' },
-        other: { color: 'text-amber-600', bg: 'bg-amber-50' },
+    };
+
+    const calculateBalance = (type: string) => {
+        const approved = hrLeaves.filter(l =>
+            l.status === 'approved' &&
+            l.type === type &&
+            (isEmployeeView ? l.employeeId === currentUser?.employeeId : true)
+        );
+        return approved.reduce((acc, curr) => {
+            const start = new Date(curr.startDate);
+            const end = new Date(curr.endDate);
+            const diffTime = Math.abs(end.getTime() - start.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            return acc + diffDays;
+        }, 0);
     };
 
     const balances = [
-        { label: 'Annual Protocol', total: 24, used: 5, color: 'indigo', icon: <Plane className="w-5 h-5" /> },
-        { label: 'Sick Protocol', total: 12, used: 2, color: 'emerald', icon: <AlertCircle className="w-5 h-5" /> },
-        { label: 'Unpaid Protocol', total: 0, used: 0, color: 'slate', icon: <CalendarRange className="w-5 h-5" /> },
-    ];
+        { label: 'Casual Leave', type: 'casual', total: 12, color: 'indigo', icon: <Plane className="w-5 h-5" /> },
+        { label: 'Sick Leave', type: 'sick', total: 12, color: 'emerald', icon: <AlertCircle className="w-5 h-5" /> },
+        { label: 'Earned Leave', type: 'earned', total: 12, color: 'amber', icon: <CalendarRange className="w-5 h-5" /> },
+    ].map(b => ({ ...b, used: calculateBalance(b.type) }));
 
     return (
         <div className="min-h-screen bg-[#F2F2F7] pb-32">
@@ -90,9 +116,9 @@ const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Absence Protocol Matrix</h1>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Leave Management</h1>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">
-                                {isEmployeeView ? 'Personal Absence Registry' : `${hrLeaves.length} Protocol Nodes • Workforce Leave Management`}
+                                {isEmployeeView ? 'Your Leave Records' : `${hrLeaves.length} Total Leave Requests`}
                             </p>
                         </div>
                     </div>
@@ -102,52 +128,52 @@ const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
                                 <DialogTrigger asChild>
                                     <Button className="bg-black text-white rounded-[1.2rem] h-14 px-10 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all gap-3">
                                         <Plus className="w-4 h-4 text-indigo-400" />
-                                        File Absence Request
+                                        Apply for Leave
                                     </Button>
                                 </DialogTrigger>
                                 <DialogContent className="rounded-[3rem] p-12 max-w-lg border-none shadow-2xl">
                                     <DialogHeader>
-                                        <DialogTitle className="text-2xl font-black uppercase tracking-tight">Absence Protocol</DialogTitle>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Submit a formal leave request for authorization.</p>
+                                        <DialogTitle className="text-2xl font-black uppercase tracking-tight">Apply for Leave</DialogTitle>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Fill in the form to submit your leave request.</p>
                                     </DialogHeader>
                                     <div className="space-y-8 py-8">
                                         <div className="space-y-3">
-                                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Absence Type</Label>
-                                            <Select value={newLeave.type} onValueChange={(v: any) => setNewLeave({ ...newLeave, type: v })}>
+                                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Leave Type</Label>
+                                            <Select value={newLeave.type} onValueChange={(v) => setNewLeave({ ...newLeave, type: v as 'sick' | 'casual' | 'earned' | 'unpaid' })}>
                                                 <SelectTrigger className="h-14 bg-slate-50 border-none rounded-2xl px-6 text-[11px] font-black uppercase">
                                                     <SelectValue />
                                                 </SelectTrigger>
                                                 <SelectContent className="rounded-2xl border-none shadow-2xl">
-                                                    <SelectItem value="annual" className="text-[11px] font-black uppercase">Annual Protocol</SelectItem>
-                                                    <SelectItem value="sick" className="text-[11px] font-black uppercase">Medical Clearance</SelectItem>
-                                                    <SelectItem value="unpaid" className="text-[11px] font-black uppercase">Unpaid Suspension</SelectItem>
-                                                    <SelectItem value="other" className="text-[11px] font-black uppercase">Miscellaneous</SelectItem>
+                                                    <SelectItem value="casual" className="text-[11px] font-black uppercase">Casual Leave</SelectItem>
+                                                    <SelectItem value="sick" className="text-[11px] font-black uppercase">Sick Leave</SelectItem>
+                                                    <SelectItem value="earned" className="text-[11px] font-black uppercase">Earned Leave</SelectItem>
+                                                    <SelectItem value="unpaid" className="text-[11px] font-black uppercase">Unpaid Leave</SelectItem>
                                                 </SelectContent>
                                             </Select>
                                         </div>
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="space-y-3">
-                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Initiation Date</Label>
+                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Start Date</Label>
                                                 <Input type="date" value={newLeave.startDate} onChange={e => setNewLeave({ ...newLeave, startDate: e.target.value })}
                                                     className="h-14 bg-slate-50 border-none rounded-2xl px-6 text-[11px] font-black focus:ring-2 focus:ring-black" />
                                             </div>
                                             <div className="space-y-3">
-                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Termination Date</Label>
+                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">End Date</Label>
                                                 <Input type="date" value={newLeave.endDate} onChange={e => setNewLeave({ ...newLeave, endDate: e.target.value })}
                                                     className="h-14 bg-slate-50 border-none rounded-2xl px-6 text-[11px] font-black focus:ring-2 focus:ring-black" />
                                             </div>
                                         </div>
                                         <div className="space-y-3">
-                                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Justification Narrative</Label>
+                                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Reason</Label>
                                             <Textarea value={newLeave.reason} onChange={e => setNewLeave({ ...newLeave, reason: e.target.value })}
-                                                className="bg-slate-50 border-none rounded-2xl p-6 text-[11px] font-black uppercase min-h-[120px] focus:ring-2 focus:ring-black resize-none"
-                                                placeholder="PROVIDE DETAILED JUSTIFICATION..." />
+                                                className="bg-slate-50 border-none rounded-2xl p-6 text-[11px] font-black min-h-[120px] focus:ring-2 focus:ring-black resize-none"
+                                                placeholder="Describe your reason..." />
                                         </div>
                                     </div>
                                     <DialogFooter className="gap-4">
-                                        <Button variant="ghost" onClick={() => setIsApplyModalOpen(false)} className="h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400">Abort</Button>
+                                        <Button variant="ghost" onClick={() => setIsApplyModalOpen(false)} className="h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400">Cancel</Button>
                                         <Button onClick={handleApplyLeave} className="h-14 rounded-2xl bg-black text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 px-12">
-                                            Transmit Request
+                                            Submit Request
                                         </Button>
                                     </DialogFooter>
                                 </DialogContent>
@@ -167,7 +193,7 @@ const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
                     ].map(tab => (
                         <button
                             key={tab.key}
-                            onClick={() => setActiveTab(tab.key as any)}
+                            onClick={() => setActiveTab(tab.key as 'pending' | 'history' | 'balances')}
                             className={cn(
                                 "flex items-center gap-3 px-8 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all",
                                 activeTab === tab.key ? "bg-black text-white shadow-xl shadow-black/20" : "text-slate-400 hover:bg-slate-50 hover:text-slate-600"
@@ -195,14 +221,14 @@ const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
                                                 <div className="min-w-0 flex-1">
                                                     <div className="flex items-center gap-3 mb-2">
                                                         <span className={cn("px-4 py-1 rounded-full border text-[8px] font-black uppercase tracking-widest", tc.bg, tc.color)}>
-                                                            {app.type}_PROTOCOL
+                                                            {app.type} Leave
                                                         </span>
                                                         <span className="px-4 py-1 rounded-full bg-amber-50 text-amber-600 border border-amber-100 text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5">
-                                                            <Clock className="w-3 h-3" /> Awaiting Review
+                                                            <Clock className="w-3 h-3" /> Pending
                                                         </span>
                                                     </div>
                                                     <h4 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-2">
-                                                        {!isEmployeeView ? app.employeeId.toUpperCase() : currentUser?.name || 'SELF'}
+                                                        {!isEmployeeView ? ((app as LeaveWithUser).userName || app.employeeId).toUpperCase() : currentUser?.name || 'Me'}
                                                     </h4>
                                                     <div className="flex items-center gap-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                                         <span className="flex items-center gap-2"><CalendarRange className="w-3.5 h-3.5" />{app.startDate} → {app.endDate}</span>
@@ -259,7 +285,7 @@ const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
                                                             {app.type}
                                                         </span>
                                                     </div>
-                                                    {!isEmployeeView && <h4 className="text-sm font-black text-slate-900 uppercase mb-1">{app.employeeId}</h4>}
+                                                    {!isEmployeeView && <h4 className="text-sm font-black text-slate-900 uppercase mb-1">{(app as any).userName || app.employeeId}</h4>}
                                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{app.startDate} → {app.endDate}</p>
                                                 </div>
                                             </div>
@@ -310,8 +336,8 @@ const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
                                     <ShieldCheck className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Absence Protocol Integrity</p>
-                                    <h4 className="text-sm font-black uppercase tracking-tight">All balances synchronized with HR Core</h4>
+                                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Leave Balance Status</p>
+                                    <h4 className="text-sm font-black uppercase tracking-tight">Leave balances are synced</h4>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
