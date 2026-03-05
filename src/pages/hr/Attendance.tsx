@@ -18,9 +18,9 @@ const Attendance = ({ isEmployeeView = false }: AttendanceProps) => {
     const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
-        const startDate = date ? new Date(date).setHours(0, 0, 0, 0) : undefined;
-        const endDate = date ? new Date(date).setHours(23, 59, 59, 999) : undefined;
-        fetchAttendance(startDate ? new Date(startDate).toISOString() : undefined, endDate ? new Date(endDate).toISOString() : undefined);
+        const startDate = date ? new Date(date).toISOString().split('T')[0] : undefined;
+        const endDate = date ? new Date(date).toISOString().split('T')[0] : undefined;
+        fetchAttendance(startDate, endDate);
     }, [date, fetchAttendance]);
 
     const todayRecord = hrAttendance.find(a => {

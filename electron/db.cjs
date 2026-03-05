@@ -2438,7 +2438,7 @@ VALUES(?, ?, ?, ?, ?, ?, datetime('now'), 0)
       return db.prepare('SELECT * FROM attendance WHERE user_id = ? AND date BETWEEN ? AND ? ORDER BY date DESC').all(userId, startDate, endDate).map(toCamelCase)
     } else {
       // Admin view: all users
-      return db.prepare('SELECT a.*, u.name as user_name, u.avatar FROM attendance a JOIN users u ON a.user_id = u.id WHERE a.date BETWEEN ? AND ? ORDER BY a.date DESC').all(startDate, endDate).map(toCamelCase)
+      return db.prepare('SELECT a.*, u.name as name, u.avatar FROM attendance a JOIN users u ON a.user_id = u.id WHERE a.date BETWEEN ? AND ? ORDER BY a.date DESC').all(startDate, endDate).map(toCamelCase)
     }
   },
 

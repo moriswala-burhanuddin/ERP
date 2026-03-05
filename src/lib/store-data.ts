@@ -2298,8 +2298,9 @@ export const useERPStore = create<ERPState>()(
 
       fetchAttendance: async (startDate, endDate) => {
         const { currentUser } = get();
-        // If not admin, only fetch for current user
-        const userId = get().currentUser?.role === 'admin' ? undefined : currentUser?.id;
+        // If not admin/super_admin/hr_manager, only fetch for current user
+        const isAdmin = ['admin', 'super_admin', 'hr_manager'].includes(currentUser?.role || '');
+        const userId = isAdmin ? undefined : currentUser?.id;
         const data = await dbAdapter.getAttendance(userId, startDate, endDate);
         if (data) set({ hrAttendance: data });
       },

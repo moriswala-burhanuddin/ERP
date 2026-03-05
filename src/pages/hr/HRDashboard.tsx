@@ -45,7 +45,9 @@ const HRDashboard = ({ isEmployeeView = false }: HRDashboardProps) => {
         try {
             if (window.electronAPI) {
                 const today = new Date().toISOString().split('T')[0];
-                const att = (await window.electronAPI.getAttendance(undefined, today, today)) || [];
+                const isAdmin = ['admin', 'super_admin', 'hr_manager'].includes(currentUser?.role || '');
+                const fetchUserId = isEmployeeView ? currentUser?.id : (isAdmin ? undefined : currentUser?.id);
+                const att = (await window.electronAPI.getAttendance(fetchUserId, today, today)) || [];
                 const users = (await window.electronAPI.getUsers()) || [];
                 const totalStaff = users.length;
 
@@ -63,6 +65,9 @@ const HRDashboard = ({ isEmployeeView = false }: HRDashboardProps) => {
 
     const runAIAnalysis = async () => {
         if (!window.electronAPI) return;
+        const isAdmin = ['admin', 'super_admin', 'hr_manager'].includes(currentUser?.role || '');
+        if (isEmployeeView || !isAdmin) return; // Analysis only for Admin view
+
         setAnalyzing(true);
         toast.info("Initializing Workforce Engine...");
         try {
