@@ -39,11 +39,20 @@ export interface Store {
   phone: string;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  storeId: string;
+  updatedAt: string;
+}
+
 export interface Product {
   id: string;
   name: string;
   sku: string;
-  category: string;
+  categoryId?: string; // Change from category: string
+  categoryName?: string; // For display convenience
   sellingPrice: number;
   purchasePrice: number;
   quantity: number;
@@ -92,6 +101,7 @@ export interface Customer {
   joinedAt: string;
   deviceId?: string;
   updatedAt?: string;
+  source?: string;
 }
 
 export interface SaleItem {
@@ -120,6 +130,7 @@ export interface Sale {
   invoiceNumber: string;
   status: 'completed' | 'suspended' | 'work_order' | 'delivery' | 'returned';
   type: string;
+  source?: string;
   items: SaleItem[];
   subtotal: number;
   discountAmount: number;
@@ -195,6 +206,8 @@ export interface Delivery {
 export interface DashboardMetrics {
   revenue: number;
   todayRevenue: number;
+  onlineRevenue: number;
+  posRevenue: number;
   profit: number;
   todayProfit: number;
   totalSales: number;
@@ -456,18 +469,18 @@ const initialUsers: User[] = [
 ];
 
 const initialProducts: Product[] = [
-  { id: 'prod-1', name: 'Power Drill 18V', sku: 'PWR-001', category: 'Power Tools', sellingPrice: 89.99, purchasePrice: 55.00, quantity: 24, storeId: 'store-1', lastUsed: '2024-01-15', unit: 'Pcs', brand: 'DeWalt', updatedAt: '2024-01-10', barcode: '12345678' },
-  { id: 'prod-2', name: 'Hammer Claw 16oz', sku: 'HND-002', category: 'Hand Tools', sellingPrice: 19.99, purchasePrice: 8.50, quantity: 56, storeId: 'store-1', lastUsed: '2024-01-14', unit: 'Pcs', brand: 'Stanley', updatedAt: '2023-12-05', barcode: '87654321' },
-  { id: 'prod-3', name: 'Screwdriver Set 12pc', sku: 'HND-003', category: 'Hand Tools', sellingPrice: 29.99, purchasePrice: 12.00, quantity: 38, storeId: 'store-1', lastUsed: '2024-01-13', unit: 'Set', brand: 'Craftsman', updatedAt: '2023-11-20' },
-  { id: 'prod-4', name: 'Paint Roller Kit', sku: 'PNT-001', category: 'Painting', sellingPrice: 24.99, purchasePrice: 10.00, quantity: 42, storeId: 'store-1', lastUsed: '2024-01-12', unit: 'Set', brand: 'Wagner', updatedAt: '2024-01-02' },
-  { id: 'prod-5', name: 'PVC Pipe 2" x 10ft', sku: 'PLB-001', category: 'Plumbing', sellingPrice: 12.99, purchasePrice: 5.50, quantity: 120, storeId: 'store-1', lastUsed: '2024-01-11', unit: 'Length', brand: 'Generic', updatedAt: '2023-10-15' },
-  { id: 'prod-6', name: 'LED Bulb 60W 4pk', sku: 'ELC-001', category: 'Electrical', sellingPrice: 15.99, purchasePrice: 7.00, quantity: 85, storeId: 'store-1', lastUsed: '2024-01-10', unit: 'Pack', brand: 'Philips', updatedAt: '2024-01-08' },
-  { id: 'prod-7', name: 'Circular Saw 7.25"', sku: 'PWR-002', category: 'Power Tools', sellingPrice: 129.99, purchasePrice: 85.00, quantity: 12, storeId: 'store-1', lastUsed: '2024-01-09', unit: 'Pcs', brand: 'Makita', updatedAt: '2023-12-28' },
-  { id: 'prod-8', name: 'Wood Screws Box 100ct', sku: 'FST-001', category: 'Fasteners', sellingPrice: 8.99, purchasePrice: 3.00, quantity: 200, storeId: 'store-1', lastUsed: '2024-01-08', unit: 'Box', brand: 'Hillman', updatedAt: '2023-11-12' },
-  { id: 'prod-9', name: 'Safety Goggles', sku: 'SAF-001', category: 'Safety', sellingPrice: 12.99, purchasePrice: 4.50, quantity: 65, storeId: 'store-1', lastUsed: '2024-01-07', unit: 'Pair', brand: '3M', updatedAt: '2023-09-30' },
-  { id: 'prod-10', name: 'Measuring Tape 25ft', sku: 'HND-004', category: 'Hand Tools', sellingPrice: 14.99, purchasePrice: 5.00, quantity: 48, storeId: 'store-1', lastUsed: '2024-01-06', unit: 'Pcs', brand: 'Stanley', updatedAt: '2023-12-10' },
-  { id: 'prod-11', name: 'Angle Grinder 4.5"', sku: 'PWR-003', category: 'Power Tools', sellingPrice: 79.99, purchasePrice: 48.00, quantity: 18, storeId: 'store-2', lastUsed: '2024-01-15', unit: 'Pcs', brand: 'Bosch', updatedAt: '2024-01-12' },
-  { id: 'prod-12', name: 'Wrench Set 10pc', sku: 'HND-005', category: 'Hand Tools', sellingPrice: 45.99, purchasePrice: 22.00, quantity: 32, storeId: 'store-2', lastUsed: '2024-01-14', unit: 'Set', brand: 'Husky', updatedAt: '2023-11-05' },
+  { id: 'prod-1', name: 'Power Drill 18V', sku: 'PWR-001', categoryName: 'Power Tools', sellingPrice: 89.99, purchasePrice: 55.00, quantity: 24, storeId: 'store-1', lastUsed: '2024-01-15', unit: 'Pcs', brand: 'DeWalt', updatedAt: '2024-01-10', barcode: '12345678' },
+  { id: 'prod-2', name: 'Hammer Claw 16oz', sku: 'HND-002', categoryName: 'Hand Tools', sellingPrice: 19.99, purchasePrice: 8.50, quantity: 56, storeId: 'store-1', lastUsed: '2024-01-14', unit: 'Pcs', brand: 'Stanley', updatedAt: '2023-12-05', barcode: '87654321' },
+  { id: 'prod-3', name: 'Screwdriver Set 12pc', sku: 'HND-003', categoryName: 'Hand Tools', sellingPrice: 29.99, purchasePrice: 12.00, quantity: 38, storeId: 'store-1', lastUsed: '2024-01-13', unit: 'Set', brand: 'Craftsman', updatedAt: '2023-11-20' },
+  { id: 'prod-4', name: 'Paint Roller Kit', sku: 'PNT-001', categoryName: 'Painting', sellingPrice: 24.99, purchasePrice: 10.00, quantity: 42, storeId: 'store-1', lastUsed: '2024-01-12', unit: 'Set', brand: 'Wagner', updatedAt: '2024-01-02' },
+  { id: 'prod-5', name: 'PVC Pipe 2" x 10ft', sku: 'PLB-001', categoryName: 'Plumbing', sellingPrice: 12.99, purchasePrice: 5.50, quantity: 120, storeId: 'store-1', lastUsed: '2024-01-11', unit: 'Length', brand: 'Generic', updatedAt: '2023-10-15' },
+  { id: 'prod-6', name: 'LED Bulb 60W 4pk', sku: 'ELC-001', categoryName: 'Electrical', sellingPrice: 15.99, purchasePrice: 7.00, quantity: 85, storeId: 'store-1', lastUsed: '2024-01-10', unit: 'Pack', brand: 'Philips', updatedAt: '2024-01-08' },
+  { id: 'prod-7', name: 'Circular Saw 7.25"', sku: 'PWR-002', categoryName: 'Power Tools', sellingPrice: 129.99, purchasePrice: 85.00, quantity: 12, storeId: 'store-1', lastUsed: '2024-01-09', unit: 'Pcs', brand: 'Makita', updatedAt: '2023-12-28' },
+  { id: 'prod-8', name: 'Wood Screws Box 100ct', sku: 'FST-001', categoryName: 'Fasteners', sellingPrice: 8.99, purchasePrice: 3.00, quantity: 200, storeId: 'store-1', lastUsed: '2024-01-08', unit: 'Box', brand: 'Hillman', updatedAt: '2023-11-12' },
+  { id: 'prod-9', name: 'Safety Goggles', sku: 'SAF-001', categoryName: 'Safety', sellingPrice: 12.99, purchasePrice: 4.50, quantity: 65, storeId: 'store-1', lastUsed: '2024-01-07', unit: 'Pair', brand: '3M', updatedAt: '2023-09-30' },
+  { id: 'prod-10', name: 'Measuring Tape 25ft', sku: 'HND-004', categoryName: 'Hand Tools', sellingPrice: 14.99, purchasePrice: 5.00, quantity: 48, storeId: 'store-1', lastUsed: '2024-01-06', unit: 'Pcs', brand: 'Stanley', updatedAt: '2023-12-10' },
+  { id: 'prod-11', name: 'Angle Grinder 4.5"', sku: 'PWR-003', categoryName: 'Power Tools', sellingPrice: 79.99, purchasePrice: 48.00, quantity: 18, storeId: 'store-2', lastUsed: '2024-01-15', unit: 'Pcs', brand: 'Bosch', updatedAt: '2024-01-12' },
+  { id: 'prod-12', name: 'Wrench Set 10pc', sku: 'HND-005', categoryName: 'Hand Tools', sellingPrice: 45.99, purchasePrice: 22.00, quantity: 32, storeId: 'store-2', lastUsed: '2024-01-14', unit: 'Set', brand: 'Husky', updatedAt: '2023-11-05' },
 ];
 
 const initialCustomers: Customer[] = [
@@ -679,6 +692,7 @@ interface ERPState {
   users: User[];
   stores: Store[];
   products: Product[];
+  categories: Category[];
   customers: Customer[];
   sales: Sale[];
   transactions: Transaction[];
@@ -777,9 +791,14 @@ interface ERPState {
   addPurchase: (purchase: Omit<Purchase, 'id' | 'invoiceNumber'>) => void;
   deletePurchase: (id: string) => void;
 
-  addProduct: (product: Omit<Product, 'id'>) => void;
-  updateProduct: (id: string, product: Partial<Product>) => void;
+  addProduct: (product: Omit<Product, 'id' | 'updatedAt'>) => Promise<Product>;
+  updateProduct: (id: string, product: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => void;
+
+  // Category Actions
+  addCategory: (category: Omit<Category, 'id' | 'updatedAt'>) => Promise<Category>;
+  updateCategory: (id: string, updates: Partial<Category>) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
 
   addCustomer: (customer: Omit<Customer, 'id'>) => void;
   updateCustomer: (id: string, customer: Partial<Customer>) => void;
@@ -878,6 +897,7 @@ interface ERPState {
   fetchLeaves: () => Promise<void>;
   updateLeaveStatus: (id: string, status: HRLeave['status']) => Promise<void>;
   fetchPayroll: () => Promise<void>;
+  addPayroll: (payroll: Omit<HRPayroll, 'id'>) => Promise<void>;
   addEmployee: (employee: Omit<User, 'id'> & Omit<Employee, 'id' | 'userId'>) => Promise<void>;
   updateEmployee: (id: string, updates: Partial<Employee> & { user?: Partial<User> }) => Promise<void>;
   deleteEmployee: (id: string) => Promise<void>;
@@ -902,6 +922,7 @@ export const useERPStore = create<ERPState>()(
       users: initialUsers,
       stores: initialStores,
       products: initialProducts,
+      categories: [],
       customers: initialCustomers,
       sales: initialSales,
       transactions: initialTransactions,
@@ -1221,15 +1242,16 @@ export const useERPStore = create<ERPState>()(
       },
 
       // Product Actions
-      addProduct: (product) => {
-        const newProduct = { ...product, id: generateId(), updatedAt: new Date().toISOString() };
+      addProduct: async (product) => {
+        const newProduct = { ...product, id: generateId(), updatedAt: new Date().toISOString() } as Product;
         set((state) => ({
           products: [...state.products, newProduct]
         }));
-        dbAdapter.addProduct(newProduct);
+        await dbAdapter.addProduct(newProduct);
+        return newProduct;
       },
 
-      updateProduct: (id, product) => {
+      updateProduct: async (id, product) => {
         set((state) => ({
           products: state.products.map(p => p.id === id ? { ...p, ...product, updatedAt: new Date().toISOString() } : p)
         }));
@@ -1248,6 +1270,33 @@ export const useERPStore = create<ERPState>()(
           products: state.products.filter(p => p.id !== id)
         }));
         dbAdapter.deleteProduct(id);
+      },
+
+      // Category Actions
+      addCategory: async (categoryData) => {
+        const id = generateId('cat');
+        const newCategory: Category = {
+          ...categoryData,
+          id,
+          updatedAt: new Date().toISOString()
+        };
+        set(state => ({ categories: [newCategory, ...state.categories] }));
+        if (isElectron()) await dbAdapter.addCategory(newCategory);
+        return newCategory;
+      },
+
+      updateCategory: async (id, updates) => {
+        set(state => ({
+          categories: state.categories.map(c => c.id === id ? { ...c, ...updates, updatedAt: new Date().toISOString() } : c)
+        }));
+        if (isElectron()) await dbAdapter.updateCategory(id, updates);
+      },
+
+      deleteCategory: async (id) => {
+        set(state => ({
+          categories: state.categories.filter(c => c.id !== id)
+        }));
+        if (isElectron()) await dbAdapter.deleteCategory(id);
       },
 
       // Customer Actions
@@ -1781,8 +1830,10 @@ export const useERPStore = create<ERPState>()(
           };
         }
 
-        // 2. Search Product
-        const product = state.products.find(p => p.barcode === barcode && p.storeId === state.activeStoreId);
+        // 2. Search Product by SKU or barcode field
+        const product = state.products.find(p =>
+          (p.sku === barcode || p.barcode === barcode) && p.storeId === state.activeStoreId
+        );
 
         if (!product) {
           return {
@@ -1879,10 +1930,9 @@ export const useERPStore = create<ERPState>()(
                 purchasePrice: row.price * 0.7, // Estimate purchase price
                 quantity: row.stock,
                 sku: row.barcode, // Use barcode as SKU if not provided
-                category: row.category || 'Uncategorized',
+                categoryName: row.category || 'Uncategorized',
                 storeId: state.activeStoreId,
                 lastUsed: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
                 unit: 'Pcs'
               });
               createdCount++;
@@ -1978,7 +2028,7 @@ export const useERPStore = create<ERPState>()(
             // If we logged out during fetch, stop
             if (!get().isAuthenticated) return;
 
-            let pushResult: Record<string, any> | null = null;
+            let pushResult: Record<string, unknown> | null = null;
             let pushText = '';
             try {
               pushText = await response.text();
@@ -1998,8 +2048,8 @@ export const useERPStore = create<ERPState>()(
             if (response.ok) {
               // Build synced_ids from VPS response OR fall back to all records in local payload
               // This prevents invalid local records (e.g. seed data) from looping as "pending" forever
-              const confirmedIds = (pushResult?.synced_ids && Object.keys(pushResult.synced_ids).length > 0)
-                ? pushResult.synced_ids
+              const confirmedIds = ((pushResult as Record<string, unknown>)?.synced_ids && Object.keys((pushResult as Record<string, unknown>).synced_ids as object).length > 0)
+                ? ((pushResult as Record<string, unknown>).synced_ids as Record<string, string[]>)
                 : Object.fromEntries(
                   Object.entries((dirtyData as { payload: Record<string, { id: string }[]> }).payload || {}).map(([tbl, rows]) => [
                     tbl, rows.map((r: { id: string }) => r.id)
@@ -2026,7 +2076,7 @@ export const useERPStore = create<ERPState>()(
             }),
           });
 
-          let pullResult: Record<string, any> | null = null;
+          let pullResult: Record<string, unknown> | null = null;
           let pullText = '';
           try {
             pullText = await pullResponse.text();
@@ -2048,11 +2098,11 @@ export const useERPStore = create<ERPState>()(
           if (!get().isAuthenticated) return;
 
           if (pullResponse.ok && pullResult) {
-            if (pullResult.status === 'success' && pullResult.updates) {
-              console.log('[SYNC] Pull received updates for tables:', Object.keys(pullResult.updates));
+            if ((pullResult as any).status === 'success' && (pullResult as any).updates) {
+              console.log('[SYNC] Pull received updates for tables:', Object.keys((pullResult as any).updates));
               const applyResult = await window.electronAPI.applyCloudUpdates({
-                updates: pullResult.updates,
-                serverTime: pullResult.server_time
+                updates: (pullResult as any).updates,
+                serverTime: (pullResult as any).server_time
               });
               if (applyResult.success) {
                 await loadFromDatabase(); // Refresh local state
@@ -2081,7 +2131,8 @@ export const useERPStore = create<ERPState>()(
             transactions, accounts, stores, users, stockTransfers,
             expenseCategories, taxSlabs, purchaseOrders, commissions,
             loyaltyPoints, itemKits, customFields, productCustomValues, customerCustomValues,
-            suppliers, supplierCustomFields, paymentTerms, receivings, invoices
+            suppliers, supplierCustomFields, paymentTerms, receivings, invoices,
+            categories
           ] = await Promise.all([
             dbAdapter.getProducts(state.activeStoreId) as Promise<Product[]>,
             dbAdapter.getCustomers(state.activeStoreId) as Promise<Customer[]>,
@@ -2106,7 +2157,8 @@ export const useERPStore = create<ERPState>()(
             dbAdapter.getSupplierCustomFields ? dbAdapter.getSupplierCustomFields(state.activeStoreId) as Promise<SupplierCustomField[]> : Promise.resolve([]),
             dbAdapter.getPaymentTerms ? dbAdapter.getPaymentTerms(state.activeStoreId) as Promise<PaymentTerm[]> : Promise.resolve([]),
             dbAdapter.getReceivings ? dbAdapter.getReceivings(state.activeStoreId) as Promise<Receiving[]> : Promise.resolve([]),
-            dbAdapter.getInvoices ? dbAdapter.getInvoices(state.activeStoreId) as Promise<Invoice[]> : Promise.resolve([])
+            dbAdapter.getInvoices ? dbAdapter.getInvoices(state.activeStoreId) as Promise<Invoice[]> : Promise.resolve([]),
+            dbAdapter.getCategories ? dbAdapter.getCategories(state.activeStoreId) as Promise<Category[]> : Promise.resolve([])
           ]);
 
           console.log(`[Store] Data loaded: ${products?.length || 0} products, ${sales?.length || 0} sales found locally.`);
@@ -2157,6 +2209,7 @@ export const useERPStore = create<ERPState>()(
             paymentTerms: paymentTerms || state.paymentTerms,
             receivings: receivings || state.receivings,
             invoices: invoices || state.invoices,
+            categories: categories || state.categories,
           });
         } catch (error) {
           console.error('Failed to load from database:', error);
@@ -2349,7 +2402,7 @@ export const useERPStore = create<ERPState>()(
       fetchAttendance: async (startDate, endDate) => {
         const { currentUser } = get();
         // If not admin/super_admin/hr_manager, only fetch for current user
-        const isAdmin = ['admin', 'super_admin', 'hr_manager'].includes(currentUser?.role || '');
+        const isAdmin = ['admin', 'super_admin', 'hr_manager', 'super_admin'].includes(currentUser?.role || '');
         const employeeId = isAdmin ? undefined : currentUser?.employeeId;
         const data = await dbAdapter.getAttendance(employeeId, startDate, endDate);
         if (data) set({ hrAttendance: data });
@@ -2383,9 +2436,22 @@ export const useERPStore = create<ERPState>()(
       fetchPayroll: async () => {
         const { currentUser, activeStoreId } = get();
         if (!currentUser) return;
-        const employeeId = currentUser.role === 'admin' ? undefined : currentUser.employeeId;
+        const isAdmin = ['admin', 'super_admin', 'hr_manager'].includes(currentUser?.role || '');
+        const employeeId = isAdmin ? undefined : currentUser.employeeId;
         const data = await dbAdapter.getPayroll(activeStoreId, employeeId);
         if (data) set({ hrPayroll: data });
+      },
+
+      addPayroll: async (payrollData) => {
+        const { activeStoreId } = get();
+        const id = generateId('pay');
+        const newPayroll: HRPayroll = {
+          ...payrollData,
+          id,
+          storeId: activeStoreId,
+        } as HRPayroll;
+        await dbAdapter.addPayroll(newPayroll);
+        await get().fetchPayroll();
       },
 
       addEmployee: async (employeeData) => {

@@ -235,6 +235,7 @@ db.exec(`
     account_id TEXT NOT NULL,
     customer_id TEXT,
     store_id TEXT NOT NULL,
+    source TEXT DEFAULT 'POS',
     date TEXT NOT NULL,
     quotation_id TEXT,
     device_id TEXT,
@@ -465,6 +466,33 @@ db.exec(`
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     sync_status INTEGER DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (store_id) REFERENCES stores(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS categories (
+    id TEXT PRIMARY KEY,
+    name TEXT NOT NULL,
+    description TEXT,
+    store_id TEXT NOT NULL,
+    device_id TEXT,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    sync_status INTEGER DEFAULT 0,
+    FOREIGN KEY (store_id) REFERENCES stores(id)
+  );
+
+  CREATE TABLE IF NOT EXISTS payroll (
+    id TEXT PRIMARY KEY,
+    employee_id TEXT NOT NULL,
+    month TEXT NOT NULL,
+    basic_salary REAL NOT NULL,
+    deductions REAL DEFAULT 0,
+    allowances REAL DEFAULT 0,
+    net_salary REAL NOT NULL,
+    status TEXT CHECK(status IN ('draft', 'paid')) DEFAULT 'draft',
+    store_id TEXT NOT NULL,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    sync_status INTEGER DEFAULT 0,
+    FOREIGN KEY (employee_id) REFERENCES employees(id),
     FOREIGN KEY (store_id) REFERENCES stores(id)
   );
 
@@ -809,6 +837,9 @@ try {
   if (!salesTableInfo.some(col => col.name === 'status')) {
     db.prepare("ALTER TABLE sales ADD COLUMN status TEXT DEFAULT 'completed'").run();
   }
+  if (!salesTableInfo.some(col => col.name === 'source')) {
+    db.prepare("ALTER TABLE sales ADD COLUMN source TEXT DEFAULT 'POS'").run();
+  }
   if (!salesTableInfo.some(col => col.name === 'subtotal')) {
     db.prepare("ALTER TABLE sales ADD COLUMN subtotal REAL DEFAULT 0").run();
   }
@@ -898,6 +929,7 @@ try {
           account_id TEXT NOT NULL,
           customer_id TEXT,
           store_id TEXT NOT NULL,
+          source TEXT DEFAULT 'POS',
           date TEXT NOT NULL,
           quotation_id TEXT,
           device_id TEXT,
@@ -921,6 +953,41 @@ try {
     })();
   } else {
     fs.appendFileSync('db_migration_log.txt', `[${new Date().toISOString()}] Sales table migration NOT NEEDED or condition not met.\n`);
+  }
+
+  // FIX FOR TABLES POINTING TO OLD VERSIONS (_old)
+  const tablesToFixFK = ['sale_payments', 'work_orders', 'deliveries', 'loyalty_points', 'commissions', 'attendance', 'leaves', 'shifts', 'payroll', 'cheques', 'employees'];
+  for (const tbl of tablesToFixFK) {
+    try {
+      const fks = db.prepare(`PRAGMA foreign_key_list(${tbl})`).all();
+      const brokenFKs = fks.filter(fk => fk.table.endsWith('_old'));
+
+      if (brokenFKs.length > 0) {
+        console.log(`[DB] FK Fix Required: ${tbl} has ${brokenFKs.length} broken references. Re-creating table...`);
+
+        let createSql = db.prepare(`SELECT sql FROM sqlite_master WHERE type='table' AND name=?`).get(tbl).sql;
+
+        for (const brokenFK of brokenFKs) {
+          const targetTable = brokenFK.table.replace('_old', '');
+          console.log(`[DB]   - Replacing ${brokenFK.table} with ${targetTable}`);
+          createSql = createSql.replace(new RegExp(`REFERENCES\\s+"?${brokenFK.table}"?`, 'g'), `REFERENCES ${targetTable}`);
+        }
+
+        db.transaction(() => {
+          db.exec('PRAGMA foreign_keys = OFF;');
+          db.exec(`ALTER TABLE ${tbl} RENAME TO ${tbl}_old_temp`);
+          db.exec(createSql);
+          db.exec(`INSERT INTO ${tbl} SELECT * FROM ${tbl}_old_temp`);
+          db.exec(`DROP TABLE ${tbl}_old_temp`);
+          db.exec('PRAGMA foreign_keys = ON;');
+        })();
+        console.log(`[DB] FK Fix Completed for ${tbl}.`);
+      }
+    } catch (fkErr) {
+      if (!fkErr.message.includes('no such table')) {
+        console.error(`[DB] FK Fix FAILED for ${tbl}:`, fkErr.message);
+      }
+    }
   }
 
   // Invoices migration for existing installs
@@ -1227,6 +1294,24 @@ if (!deviceId) {
   console.log(`Existing device_id: ${deviceId} `)
 }
 
+// Phase 15: Category Migration (Recover categories from products table)
+try {
+  const existingProducts = db.prepare("SELECT DISTINCT category, store_id FROM products WHERE category IS NOT NULL AND category != ''").all();
+  db.transaction(() => {
+    for (const p of existingProducts) {
+      // Check if category already exists in the new categories table
+      const exists = db.prepare("SELECT id FROM categories WHERE name = ? AND store_id = ?").get(p.category, p.store_id);
+      if (!exists) {
+        const catId = `cat-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+        db.prepare("INSERT INTO categories(id, name, store_id, updated_at, sync_status) VALUES(?, ?, ?, datetime('now'), 0)").run(catId, p.category, p.store_id);
+        console.log(`[DB] Migrated category '${p.category}' to categories table with id ${catId}`);
+      }
+    }
+  })();
+} catch (e) {
+  console.error('[DB] Category migration failed:', e.message);
+}
+
 // Attendance & Leaves Migration
 try {
   const tableInfoAtt = db.prepare("PRAGMA table_info(attendance)").all();
@@ -1328,6 +1413,17 @@ try {
         db.prepare(`INSERT INTO accounts(id, name, type, balance, store_id, device_id) VALUES(?, ?, ?, ?, ?, ?)`).run(
           `acc-${s.id}`, 'Main Cash', 'cash', 5000, s.id, deviceId
         )
+      }
+
+      // Also ensure 'acc-cash' exists for at least the primary store to handle legacy fallbacks
+      if (s.id === 'store-1') {
+        const accCashExists = db.prepare('SELECT id FROM accounts WHERE id = ?').get('acc-cash')
+        if (!accCashExists) {
+          db.prepare(`INSERT INTO accounts(id, name, type, balance, store_id, device_id) VALUES(?, ?, ?, ?, ?, ?)`).run(
+            'acc-cash', 'Cash (Legacy)', 'cash', 0, 'store-1', deviceId
+          )
+          console.log('[DB] Created acc-cash fallback account for store-1');
+        }
       }
     }
 
@@ -1647,17 +1743,39 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
         }
       }
 
+      // Validate Account exists
+      if (sale.payments && Array.isArray(sale.payments) && sale.payments.length > 0) {
+        for (const p of sale.payments) {
+          if (!p.accountId) throw new Error(`Missing Account ID for payment mode ${p.paymentMode}.`);
+          const acc = db.prepare('SELECT id FROM accounts WHERE id = ?').get(p.accountId)
+          if (!acc) throw new Error(`Escrow Account ${p.accountId} not found in database.`)
+        }
+      } else if (sale.type !== 'credit') {
+        const accountToUse = sale.accountId || 'acc-cash'
+        const acc = db.prepare('SELECT id FROM accounts WHERE id = ?').get(accountToUse)
+        if (!acc) throw new Error(`Escrow Account ${accountToUse} not found. Please select a valid account.`)
+      }
+
+      console.log(`[DB] Processing Sale: ${sale.id} (${sale.invoiceNumber}) Type: ${sale.type} Store: ${sale.storeId} Acc: ${sale.accountId}`);
+
       // 2. Insert Sale
       const saleStmt = db.prepare(`
         INSERT INTO sales(id, invoice_number, type, status, items, subtotal, discount_amount, tax_amount, total_amount, profit, payment_mode, account_id, customer_id, store_id, date, quotation_id, device_id, updated_at, sync_status)
 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
   `)
-      saleStmt.run(
-        sale.id, sale.invoiceNumber, sale.type, sale.status || 'completed', JSON.stringify(sale.items),
-        sale.subtotal || 0, sale.discountAmount || 0, sale.taxAmount || 0,
-        sale.totalAmount, sale.profit, sale.paymentMode || 'cash', sale.accountId || 'acc-cash',
-        sale.customerId, sale.storeId, sale.date, sale.quotationId, deviceId
-      )
+      try {
+        saleStmt.run(
+          sale.id, sale.invoiceNumber, sale.type, sale.status || 'completed', JSON.stringify(sale.items),
+          sale.subtotal || 0, sale.discountAmount || 0, sale.taxAmount || 0,
+          sale.totalAmount, sale.profit, sale.paymentMode || 'cash', sale.accountId || 'acc-cash',
+          sale.customerId, sale.storeId, sale.date, sale.quotationId, deviceId
+        )
+      } catch (saleErr) {
+        console.error(`[DB] Sale Insertion Failed: ${saleErr.message}. Values: `, {
+          id: sale.id, invoice: sale.invoiceNumber, acc: sale.accountId || 'acc-cash', cust: sale.customerId, store: sale.storeId
+        });
+        throw saleErr;
+      }
 
       // 2a. Insert Payments (Always generate records for audit)
       if (sale.payments && Array.isArray(sale.payments) && sale.payments.length > 0) {
@@ -1666,18 +1784,35 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
 VALUES(?, ?, ?, ?, ?, 0, datetime('now'))
   `)
         for (const p of sale.payments) {
-          payStmt.run(p.id || crypto.randomUUID(), sale.id, p.paymentMode, p.amount, p.accountId)
-          dbHelpers.updateAccountBalance(p.accountId, p.amount)
+          console.log(`[DB] Inserting Payment: ${p.paymentMode} Amt: ${p.amount} Acc: ${p.accountId}`);
+          try {
+            payStmt.run(p.id || crypto.randomUUID(), sale.id, p.paymentMode, p.amount, p.accountId)
+            dbHelpers.updateAccountBalance(p.accountId, p.amount)
+          } catch (payErr) {
+            console.error(`[DB] Payment Insertion Failed: ${payErr.message}. Values: `, {
+              saleId: sale.id, mode: p.paymentMode, amt: p.amount, accId: p.accountId
+            });
+            throw payErr;
+          }
         }
       } else if (sale.type !== 'credit') {
         // Fallback: Create single payment record if not credit
         const payId = crypto.randomUUID()
-        db.prepare(`
-          INSERT INTO sale_payments(id, sale_id, payment_mode, amount, account_id, sync_status, updated_at)
+        const accountToUse = sale.accountId || 'acc-cash'
+        console.log(`[DB] Fallback Payment Insertion: ${sale.paymentMode || 'cash'} Amt: ${sale.totalAmount} Acc: ${accountToUse}`);
+        try {
+          db.prepare(`
+            INSERT INTO sale_payments(id, sale_id, payment_mode, amount, account_id, sync_status, updated_at)
 VALUES(?, ?, ?, ?, ?, 0, datetime('now'))
-  `).run(payId, sale.id, sale.paymentMode || 'cash', sale.totalAmount, sale.accountId || 'acc-cash')
+    `).run(payId, sale.id, sale.paymentMode || 'cash', sale.totalAmount, accountToUse)
 
-        dbHelpers.updateAccountBalance(sale.accountId || 'acc-cash', sale.totalAmount)
+          dbHelpers.updateAccountBalance(accountToUse, sale.totalAmount)
+        } catch (fallErr) {
+          console.error(`[DB] Fallback Payment Insertion Failed: ${fallErr.message}. Values: `, {
+            saleId: sale.id, mode: sale.paymentMode || 'cash', amt: sale.totalAmount, accId: accountToUse
+          });
+          throw fallErr;
+        }
       }
 
       // 2b. Handle Work Order
@@ -1801,14 +1936,16 @@ VALUES(?, ?, ?, ?, ?, 0)
     try {
       const today = new Date().toISOString().split('T')[0]
 
-      // 1. Sales Metrics
+      // 1. Sales Metrics (Aggregated with Breakdown)
       const salesMetrics = db.prepare(`
         SELECT
           SUM(total_amount) as total_revenue,
           SUM(profit) as total_profit,
           COUNT(*) as total_sales,
           SUM(CASE WHEN date >= ? THEN total_amount ELSE 0 END) as today_revenue,
-          SUM(CASE WHEN date >= ? THEN profit ELSE 0 END) as today_profit
+          SUM(CASE WHEN date >= ? THEN profit ELSE 0 END) as today_profit,
+          SUM(CASE WHEN source = 'Online' THEN total_amount ELSE 0 END) as online_revenue,
+          SUM(CASE WHEN source = 'POS' OR source IS NULL THEN total_amount ELSE 0 END) as pos_revenue
         FROM sales 
         WHERE store_id = ?
       `).get(today, today, storeId)
@@ -1826,9 +1963,9 @@ VALUES(?, ?, ?, ?, ?, 0)
       // 3. Customers
       const customerCount = db.prepare('SELECT COUNT(*) as count FROM customers WHERE store_id = ?').get(storeId)?.count || 0
 
-      // 4. Recent Activity (Last 5 Sales)
+      // 4. Recent Activity (Last 5 Sales - Now including Source)
       const recentSales = db.prepare(`
-        SELECT s.id, s.invoice_number, s.total_amount, s.date, c.name as customer_name
+        SELECT s.id, s.invoice_number, s.total_amount, s.date, s.source, c.name as customer_name
         FROM sales s
         LEFT JOIN customers c ON s.customer_id = c.id
         WHERE s.store_id = ?
@@ -1851,6 +1988,8 @@ VALUES(?, ?, ?, ?, ?, 0)
         profit: salesMetrics?.total_profit || 0,
         todayProfit: salesMetrics?.today_profit || 0,
         totalSales: salesMetrics?.total_sales || 0,
+        onlineRevenue: salesMetrics?.online_revenue || 0,
+        posRevenue: salesMetrics?.pos_revenue || 0,
         inventoryValue: inventoryMetrics?.inventory_value || 0,
         totalItems: inventoryMetrics?.total_items || 0,
         lowStockCount: inventoryMetrics?.low_stock_count || 0,
@@ -3762,6 +3901,153 @@ SELECT
       console.error(`[Report] Error generating ${type}: `, err)
       return []
     }
+  },
+
+  // HR & Attendance
+  checkIn: (employeeId, storeId) => {
+    const id = `att-${Date.now()}`
+    const date = new Date().toISOString().split('T')[0]
+    const checkIn = new Date().toISOString()
+    db.prepare(`
+      INSERT INTO attendance(id, employee_id, date, check_in, status, store_id, updated_at, sync_status)
+      VALUES(?, ?, ?, ?, 'present', ?, datetime('now'), 0)
+    `).run(id, employeeId, date, checkIn, storeId)
+    return { success: true, id }
+  },
+
+  checkOut: (employeeId) => {
+    const today = new Date().toISOString().split('T')[0]
+    const checkOut = new Date().toISOString()
+    db.prepare(`
+      UPDATE attendance 
+      SET check_out = ?, updated_at = datetime('now'), sync_status = 0 
+      WHERE employee_id = ? AND date = ? AND check_out IS NULL
+    `).run(checkOut, employeeId, today)
+    return { success: true }
+  },
+
+  getAttendance: (employeeId, startDate, endDate) => {
+    let query = `
+      SELECT a.*, u.name as name 
+      FROM attendance a
+      JOIN employees e ON a.employee_id = e.id
+      JOIN users u ON e.user_id = u.id
+      WHERE 1=1
+    `
+    const params = []
+    if (employeeId) {
+      query += ' AND a.employee_id = ?'
+      params.push(employeeId)
+    }
+    if (startDate) {
+      query += ' AND a.date >= ?'
+      params.push(startDate)
+    }
+    if (endDate) {
+      query += ' AND a.date <= ?'
+      params.push(endDate)
+    }
+    query += ' ORDER BY a.date DESC'
+    return db.prepare(query).all(...params).map(toCamelCase)
+  },
+
+  applyLeave: (leave) => {
+    db.prepare(`
+      INSERT INTO leaves(id, employee_id, start_date, end_date, type, reason, status, store_id, updated_at, sync_status)
+      VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
+    `).run(leave.id, leave.employeeId, leave.startDate, leave.endDate, leave.type, leave.reason, 'pending', leave.storeId)
+    return { success: true }
+  },
+
+  getLeaves: (storeId) => {
+    return db.prepare('SELECT * FROM leaves WHERE store_id = ? ORDER BY start_date DESC').all(storeId).map(toCamelCase)
+  },
+
+  updateLeaveStatus: (id, status) => {
+    db.prepare("UPDATE leaves SET status = ?, updated_at = datetime('now'), sync_status = 0 WHERE id = ?").run(status, id)
+    return { success: true }
+  },
+
+  getPayroll: (storeId, employeeId) => {
+    let query = 'SELECT * FROM payroll WHERE store_id = ?'
+    const params = [storeId]
+    if (employeeId) {
+      query += ' AND employee_id = ?'
+      params.push(employeeId)
+    }
+    query += ' ORDER BY month DESC'
+    return db.prepare(query).all(...params).map(toCamelCase)
+  },
+
+  addPayroll: (p) => {
+    db.prepare(`
+      INSERT INTO payroll(id, employee_id, month, basic_salary, deductions, allowances, net_salary, status, store_id, updated_at, sync_status)
+      VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
+    `).run(p.id, p.employeeId, p.month, p.basicSalary, p.deductions || 0, p.allowances || 0, p.netSalary, p.status || 'draft', p.storeId)
+    return { success: true }
+  },
+
+  // Categories
+  getCategories: (storeId) => {
+    return db.prepare('SELECT * FROM categories WHERE store_id = ? ORDER BY name ASC').all(storeId).map(toCamelCase)
+  },
+
+  addCategory: (cat) => {
+    db.prepare(`
+      INSERT INTO categories(id, name, description, store_id, device_id, updated_at, sync_status)
+      VALUES(?, ?, ?, ?, ?, datetime('now'), 0)
+    `).run(cat.id, cat.name, cat.description || '', cat.storeId, deviceId)
+    return toCamelCase(db.prepare('SELECT * FROM categories WHERE id = ?').get(cat.id))
+  },
+
+  // Barcode / SKU Stock Out
+  handleBarcodeScan: (barcode, mode, storeId) => {
+    // Match by SKU (primary) or barcode field (secondary)
+    const product = db.prepare(`
+      SELECT * FROM products
+      WHERE store_id = ? AND is_deleted = 0 AND (sku = ? OR barcode = ?)
+      LIMIT 1
+    `).get(storeId, barcode, barcode);
+
+    if (!product) {
+      return {
+        barcode,
+        status: 'NOT_FOUND',
+        warning: 'Product not found in current store inventory.'
+      };
+    }
+
+    const p = toCamelCase(product);
+    const delta = mode === 'IN' ? 1 : -1;
+    const newQty = p.quantity + delta;
+
+    if (newQty < 0) {
+      return {
+        product_id: p.id,
+        product_name: p.name,
+        barcode: p.sku,
+        previous_stock: p.quantity,
+        updated_stock: p.quantity,
+        status: 'ERROR',
+        warning: 'Cannot reduce stock below zero.',
+        action_type: mode
+      };
+    }
+
+    db.prepare(`
+      UPDATE products SET quantity = ?, updated_at = datetime('now'), sync_status = 0
+      WHERE id = ?
+    `).run(newQty, p.id);
+
+    return {
+      product_id: p.id,
+      product_name: p.name,
+      barcode: p.sku,
+      previous_stock: p.quantity,
+      updated_stock: newQty,
+      status: 'SUCCESS',
+      action_type: mode
+    };
   },
 }
 

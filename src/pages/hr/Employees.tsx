@@ -5,9 +5,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, FileText, User as UserIcon, Briefcase, Building2, Calendar, CreditCard, ShieldCheck, ArrowLeft, MoreVertical, Ghost, Mail, Eye, EyeOff, Trash2, Lock } from "lucide-react";
+import { Plus, Search, FileText, User as UserIcon, Briefcase, Building2, Calendar, CreditCard, ShieldCheck, ArrowLeft, MoreVertical, Ghost, Mail, Eye, EyeOff, Trash2, Lock, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const ROLE_OPTIONS = [
     { value: 'employee', label: 'Employee' },
@@ -57,6 +58,7 @@ const Employees = () => {
     const [submitting, setSubmitting] = useState(false);
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [formData, setFormData] = useState({ ...DEFAULT_FORM });
+    const navigate = useNavigate();
 
     const { activeStoreId, addEmployee, deleteEmployee } = useERPStore();
 
@@ -373,7 +375,11 @@ const Employees = () => {
                                                 </div>
                                             ) : (
                                                 <>
-                                                    <Button variant="ghost" className="h-12 w-12 rounded-2xl bg-white text-slate-200 hover:text-black border border-slate-100 shadow-sm transition-all group-hover:border-slate-200">
+                                                    <Button
+                                                        variant="ghost"
+                                                        onClick={() => navigate(`/hr/employees/${emp.id}`)}
+                                                        className="h-12 w-12 rounded-2xl bg-white text-slate-200 hover:text-black border border-slate-100 shadow-sm transition-all group-hover:border-slate-200"
+                                                    >
                                                         <FileText className="w-4 h-4" />
                                                     </Button>
                                                     <Button variant="ghost" onClick={() => setDeleteConfirm(emp.id)} className="h-12 w-12 rounded-2xl bg-white text-slate-200 hover:text-rose-500 border border-slate-100 shadow-sm transition-all group-hover:border-slate-200">

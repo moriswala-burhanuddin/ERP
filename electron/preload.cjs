@@ -182,6 +182,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // System Features
     printReceipt: (html) => ipcRenderer.invoke('system:printReceipt', html),
+    generatePDF: (html, filename) => ipcRenderer.invoke('system:generatePDF', html, filename),
     openSecondaryDisplay: () => ipcRenderer.invoke('system:openSecondaryDisplay',),
     updateSecondaryDisplay: (data) => ipcRenderer.send('customer-display:update', data),
     onCustomerDisplayData: (callback) => ipcRenderer.on('customer-display:data', (event, data) => callback(data)),
@@ -210,4 +211,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     checkForUpdates: () => ipcRenderer.invoke('updater:check'),
     installUpdate: () => ipcRenderer.send('updater:install-now'),
     getVersion: () => ipcRenderer.invoke('system:getVersion'),
+
+    // Payroll
+    getPayroll: (storeId, employeeId) => ipcRenderer.invoke('db:getPayroll', storeId, employeeId),
+    addPayroll: (payroll) => ipcRenderer.invoke('db:addPayroll', payroll),
+
+    // Categories
+    getCategories: (storeId) => ipcRenderer.invoke('db:getCategories', storeId),
+    addCategory: (category) => ipcRenderer.invoke('db:addCategory', category),
+    updateCategory: (id, updates) => ipcRenderer.invoke('db:updateCategory', id, updates),
+    deleteCategory: (id) => ipcRenderer.invoke('db:deleteCategory', id),
 })

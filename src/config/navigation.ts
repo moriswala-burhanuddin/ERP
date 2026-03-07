@@ -50,6 +50,7 @@ export const ROLE_SIDEBARS: Record<Role, NavItem[]> = {
         { title: "P & L", href: "/profit-loss", icon: PieChart },
         { title: "Reports", href: "/reports", icon: FileText },
         { title: "Stores", href: "/stores", icon: BookOpen },
+        { title: "Online Store", href: "/ecommerce", icon: ShoppingBag },
         { title: "Users", href: "/users", icon: Users },
         { title: "Store Config", href: "/store-config", icon: Settings },
         { title: "Settings", href: "/more", icon: Settings },

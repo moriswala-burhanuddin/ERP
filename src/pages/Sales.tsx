@@ -197,6 +197,8 @@ export default function Sales() {
                   <option value="cash">CASH</option>
                   <option value="card">CARD</option>
                   <option value="upi">UPI</option>
+                  <option value="gift_card">GIFT CARD</option>
+                  <option value="store_credit">STORE CREDIT</option>
                 </select>
               </div>
             </div>
@@ -204,7 +206,7 @@ export default function Sales() {
             <div className="relative">
               <select
                 value={dateRange}
-                onChange={(e) => setDateRange(e.target.value as any)}
+                onChange={(e) => setDateRange(e.target.value as 'all' | 'today' | 'seven' | 'month' | 'custom')}
                 className="w-full h-16 bg-[#fdfdfd] border-none rounded-2xl px-6 text-[10px] font-black uppercase tracking-widest appearance-none cursor-pointer focus:ring-2 focus:ring-black"
               >
                 <option value="all">ANY TIME</option>

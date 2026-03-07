@@ -26,6 +26,7 @@ import {
   Percent
 } from 'lucide-react';
 import { useERPStore } from '@/lib/store-data';
+import { useStoreConfig } from '@/lib/store-config';
 import { SyncStatus } from '../sync/SyncStatus';
 
 import { ROLE_SIDEBARS, NavItem } from '@/config/navigation';
@@ -34,6 +35,7 @@ export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, logout, getActiveStore } = useERPStore();
+  const { ecommerceEnabled } = useStoreConfig();
   const activeStore = getActiveStore();
 
   const handleLogout = () => {
@@ -60,7 +62,12 @@ export function Sidebar() {
     fetchVersion();
   }, []);
 
-  const navItems = ROLE_SIDEBARS[userRole] || ROLE_SIDEBARS['user'];
+  let navItems = ROLE_SIDEBARS[userRole] || ROLE_SIDEBARS['user'];
+
+  // Filter out Online Store if not enabled
+  if (!ecommerceEnabled) {
+    navItems = navItems.filter(item => item.href !== '/ecommerce');
+  }
 
   return (
     <aside className="hidden lg:flex flex-col w-64 h-screen bg-white text-slate-600 border-r border-slate-200 sticky top-0">

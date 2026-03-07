@@ -8,7 +8,7 @@ import {
     StockTransfer, PurchaseOrder, ExpenseCategory, TaxSlab, Commission,
     LoyaltyPoint, ProductCustomValue, CustomerCustomValue, CustomField, DashboardMetrics,
     HRAttendance, HRLeave, Employee, HRPayroll, Invoice, InvoiceItem,
-    Cheque
+    Cheque, Category
 } from './store-data'
 import { InventoryRow } from './inventory-utils'
 
@@ -324,6 +324,7 @@ export const dbAdapter = {
         isElectron() ? window.electronAPI.deleteEmployee(id) : Promise.resolve(null),
     getPayroll: (storeId: string, employeeId?: string): Promise<HRPayroll[] | null> =>
         isElectron() ? window.electronAPI.getPayroll(storeId, employeeId) : Promise.resolve(null),
+    addPayroll: (payroll: HRPayroll) => isElectron() ? window.electronAPI.addPayroll(payroll) : Promise.resolve(null),
 
     // Store Configuration
     getStoreConfig: (storeId: string): Promise<Record<string, unknown> | null> =>
@@ -347,4 +348,10 @@ export const dbAdapter = {
     // Reports
     getReport: (type: string, storeId: string, dateFrom?: string, dateTo?: string) =>
         isElectron() ? window.electronAPI.getReport(type, storeId, dateFrom, dateTo) : Promise.resolve([]),
+
+    // Categories
+    getCategories: (storeId: string): Promise<Category[] | null> => isElectron() ? window.electronAPI.getCategories(storeId) : Promise.resolve(null),
+    addCategory: (category: Category) => isElectron() ? window.electronAPI.addCategory(category) : Promise.resolve(null),
+    updateCategory: (id: string, updates: Updates<Category>) => isElectron() ? window.electronAPI.updateCategory(id, updates) : Promise.resolve(null),
+    deleteCategory: (id: string) => isElectron() ? window.electronAPI.deleteCategory(id) : Promise.resolve(null),
 }

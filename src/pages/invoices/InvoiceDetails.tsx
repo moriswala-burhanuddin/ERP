@@ -5,7 +5,7 @@ import { useERPStore, Invoice } from '@/lib/store-data';
 import {
     Printer, Edit, Trash2, ChevronLeft,
     CircleCheck, Clock, AlertTriangle, XCircle,
-    Send, User, Truck, CreditCard, Calendar, FileText
+    Send, User, Truck, CreditCard, Calendar, FileText, Download
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
@@ -45,7 +45,6 @@ export default function InvoiceDetails() {
     const handlePrint = async () => {
         if (isElectron() && window.electronAPI?.printReceipt) {
             const html = printRef.current?.innerHTML || '';
-            // Wrapping in a basic styled container for printing
             const styledHtml = `
         <html>
           <head>
@@ -75,6 +74,58 @@ export default function InvoiceDetails() {
             await window.electronAPI.printReceipt(styledHtml);
         } else {
             window.print();
+        }
+    };
+
+    const handleDownloadPDF = async () => {
+        if (isElectron() && window.electronAPI?.generatePDF) {
+            const html = printRef.current?.innerHTML || '';
+            const styledHtml = `
+        <html>
+          <head>
+            <style>
+              body { font-family: sans-serif; padding: 20px; }
+              .font-mono { font-family: monospace; }
+              .font-black { font-weight: 900; }
+              .text-xs { font-size: 10px; }
+              .text-sm { font-size: 12px; }
+              .text-xl { font-size: 20px; }
+              .uppercase { text-transform: uppercase; }
+              .tracking-tighter { letter-spacing: -0.05em; }
+              .border-b-2 { border-bottom: 2px solid #e2e8f0; }
+              .border-t-2 { border-top: 2px solid #e2e8f0; }
+              .py-2 { padding-top: 8px; padding-bottom: 8px; }
+              .flex { display: flex; }
+              .justify-between { justify-content: space-between; }
+              .text-right { text-align: right; }
+              table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+              th { text-align: left; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid #000; padding: 8px; }
+              td { padding: 8px; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
+            </style>
+          </head>
+          <body>${html}</body>
+        </html>
+      `;
+            const result = await window.electronAPI.generatePDF(styledHtml, `Invoice_${invoice.invoiceNumber}.pdf`);
+            if (result.success) {
+                toast({
+                    title: "Invoice Securely Saved",
+                    description: `File: ${result.filePath}`,
+                    variant: "default"
+                });
+            } else if (result.error !== 'Cancelled') {
+                toast({
+                    title: "PDF Protocol Breach",
+                    description: result.error,
+                    variant: "destructive"
+                });
+            }
+        } else {
+            toast({
+                title: "Download Protocol Required",
+                description: "Requires Desktop Environment",
+                variant: "destructive"
+            });
         }
     };
 
@@ -114,10 +165,16 @@ export default function InvoiceDetails() {
                             <Edit className="w-4 h-4 mr-2" /> Edit
                         </Button>
                         <Button
+                            className="erp-button erp-button-secondary"
+                            onClick={handleDownloadPDF}
+                        >
+                            <Download className="w-4 h-4 mr-2" /> Download PDF
+                        </Button>
+                        <Button
                             className="erp-button erp-button-primary"
                             onClick={handlePrint}
                         >
-                            <Printer className="w-4 h-4 mr-2" /> Print / PDF
+                            <Printer className="w-4 h-4 mr-2" /> Print / Receipt
                         </Button>
                     </div>
                 }
@@ -129,7 +186,7 @@ export default function InvoiceDetails() {
                     <div className="flex flex-col md:flex-row justify-between gap-8 mb-12 border-b border-gray-100 pb-8">
                         <div>
                             <h1 className="text-3xl font-bold tracking-tight text-black mb-2 uppercase">
-                                {invoice.type === 'customer' ? 'Invoice' : 'Purchase Bill'}
+                                {['customer', 'retail', 'wholesale', 'cash', 'credit'].includes(invoice.type?.toLowerCase()) ? 'Invoice' : 'Purchase Bill'}
                             </h1>
                             <div className="flex items-center gap-2 mb-4">
                                 <span className="font-bold text-gray-400">#{invoice.invoiceNumber}</span>

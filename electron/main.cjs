@@ -1,6 +1,7 @@
 const { app, BrowserWindow, ipcMain, dialog } = require('electron')
 const { autoUpdater } = require('electron-updater')
 const log = require('electron-log')
+const bwipjs = require('bwip-js')
 
 // Configure logging
 autoUpdater.logger = log
@@ -391,10 +392,6 @@ ipcMain.handle('db:addTaxSlab', async (event, slab) => {
     return result
 })
 
-ipcMain.handle('db:generateBarcode', async (event, sku) => {
-    return dbHelpers.generateBarcode(sku)
-})
-
 ipcMain.handle('db:getCommissions', async (event, storeId) => {
     return dbHelpers.getCommissions(storeId)
 })
@@ -463,67 +460,6 @@ ipcMain.handle('system:manualBackup', async () => {
         console.error('[Manual Backup] Failed:', err)
         dialog.showErrorBox('Backup Failed', `Failed to create backup: ${err.message}`)
         return { success: false, error: err.message }
-    }
-})
-
-// Barcode Scan Handler
-ipcMain.handle('db:handleBarcodeScan', async (event, barcode, mode, storeId) => {
-    // Validate barcode
-    if (!/^\d{8,14}$/.test(barcode)) {
-        return {
-            barcode,
-            status: 'ERROR',
-            warning: 'Invalid barcode format. Must be 8-14 numeric digits.',
-        }
-    }
-
-    // Find product
-    const product = dbHelpers.getProductByBarcode(barcode, storeId)
-
-    if (!product) {
-        return {
-            barcode,
-            status: 'NOT_FOUND',
-            warning: 'Product not found in current store inventory.'
-        }
-    }
-
-    // Calculate new quantity
-    const newQuantity = mode === 'IN' ? product.quantity + 1 : product.quantity - 1
-
-    if (newQuantity < 0) {
-        return {
-            product_id: product.id,
-            product_name: product.name,
-            barcode: product.barcode,
-            previous_stock: product.quantity,
-            updated_stock: product.quantity,
-            status: 'ERROR',
-            warning: 'Cannot reduce stock below zero.',
-            action_type: mode,
-        }
-    }
-
-    // Update stock
-    dbHelpers.updateProduct(product.id, {
-        quantity: newQuantity,
-        updatedAt: new Date().toISOString()
-    })
-
-    let warning
-    if (newQuantity < 10) {
-        warning = `Low stock warning! Current: ${newQuantity}`
-    }
-
-    return {
-        product_id: product.id,
-        product_name: product.name,
-        barcode: product.barcode,
-        previous_stock: product.quantity,
-        updated_stock: newQuantity,
-        status: 'SUCCESS',
-        warning,
-        action_type: mode
     }
 })
 
@@ -753,6 +689,23 @@ ipcMain.handle('db:updateCandidateStatus', async (event, id, status) => {
     return result
 })
 
+ipcMain.handle('db:generateBarcode', async (event, sku) => {
+    try {
+        const png = await bwipjs.toBuffer({
+            bcid: 'code128',       // Barcode type
+            text: sku,             // Text to encode
+            scale: 3,              // 3x scaling factor
+            height: 10,            // Bar height, in millimeters
+            includetext: true,      // Show human-readable text
+            textxalign: 'center',  // Always good to set this
+        })
+        return `data:image/png;base64,${png.toString('base64')}`
+    } catch (err) {
+        console.error('Barcode Generation Error:', err)
+        throw err
+    }
+})
+
 // Employees
 ipcMain.handle('db:getEmployees', async (event, storeId) => {
     return dbHelpers.getEmployees(storeId)
@@ -777,6 +730,28 @@ ipcMain.handle('db:updateEmployee', async (event, id, updates) => {
 
 ipcMain.handle('db:deleteEmployee', async (event, id) => {
     const result = dbHelpers.deleteEmployee(id)
+    if (mainWindow) mainWindow.webContents.send('sync:trigger')
+    return result
+})
+
+// Payroll
+ipcMain.handle('db:getPayroll', async (event, storeId, employeeId) => {
+    return dbHelpers.getPayroll(storeId, employeeId)
+})
+
+ipcMain.handle('db:addPayroll', async (event, payroll) => {
+    const result = dbHelpers.addPayroll(payroll)
+    if (mainWindow) mainWindow.webContents.send('sync:trigger')
+    return result
+})
+
+// Categories
+ipcMain.handle('db:getCategories', async (event, storeId) => {
+    return dbHelpers.getCategories(storeId)
+})
+
+ipcMain.handle('db:addCategory', async (event, category) => {
+    const result = dbHelpers.addCategory(category)
     if (mainWindow) mainWindow.webContents.send('sync:trigger')
     return result
 })
@@ -1037,6 +1012,44 @@ ipcMain.handle('system:printReceipt', async (event, html) => {
     })
 })
 
+ipcMain.handle('system:generatePDF', async (event, html, filename) => {
+    let printWindow = new BrowserWindow({ show: false, webPreferences: { nodeIntegration: true } })
+    printWindow.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
+
+    const { dialog } = require('electron');
+    const fs = require('fs');
+
+    return new Promise((resolve) => {
+        printWindow.webContents.on('did-finish-load', async () => {
+            try {
+                const { filePath } = await dialog.showSaveDialog({
+                    title: 'Save Invoice PDF',
+                    defaultPath: filename || 'invoice.pdf',
+                    filters: [{ name: 'PDF Files', extensions: ['pdf'] }]
+                });
+
+                if (!filePath) {
+                    printWindow.close();
+                    resolve({ success: false, error: 'Cancelled' });
+                    return;
+                }
+
+                const data = await printWindow.webContents.printToPDF({
+                    printBackground: true,
+                    margins: { marginType: 'default' }
+                });
+
+                fs.writeFileSync(filePath, data);
+                printWindow.close();
+                resolve({ success: true, filePath });
+            } catch (err) {
+                if (!printWindow.isDestroyed()) printWindow.close();
+                resolve({ success: false, error: err.message });
+            }
+        })
+    })
+})
+
 ipcMain.handle('system:openSecondaryDisplay', async () => {
     if (secondaryWindow) {
         secondaryWindow.focus()
@@ -1147,6 +1160,15 @@ ipcMain.handle('updater:check', async () => {
         return { success: false, error: err.message };
     }
 });
+
+// Barcode / SKU Scanner - Stock IN or OUT
+ipcMain.handle('db:handleBarcodeScan', async (event, barcode, mode, storeId) => {
+    const result = dbHelpers.handleBarcodeScan(barcode, mode, storeId)
+    if (result?.status === 'SUCCESS' && mainWindow) {
+        mainWindow.webContents.send('sync:trigger')
+    }
+    return result
+})
 
 // IPC: Renderer clicked "Restart & Install"
 ipcMain.on('updater:install-now', () => {

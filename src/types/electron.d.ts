@@ -162,6 +162,12 @@ export interface ElectronAPI {
     updateDeliveryZone: (id: string, updates: Updates<DeliveryZone>) => Promise<{ success: boolean }>;
     deleteDeliveryZone: (id: string) => Promise<{ success: boolean }>;
 
+    // Categories
+    getCategories: (storeId: string) => Promise<Category[]>;
+    addCategory: (category: Category) => Promise<{ success: boolean; id?: string }>;
+    updateCategory: (id: string, updates: Updates<Category>) => Promise<{ success: boolean }>;
+    deleteCategory: (id: string) => Promise<{ success: boolean }>;
+
     // More Sales Features
     getGiftCards: (storeId: string) => Promise<GiftCard[]>;
     addGiftCard: (gc: GiftCard) => Promise<{ success: boolean }>;
@@ -171,6 +177,7 @@ export interface ElectronAPI {
 
     // Printing & POS UI
     printReceipt: (html: string) => Promise<{ success: boolean; error?: string }>;
+    generatePDF: (html: string, filename: string) => Promise<{ success: boolean; filePath?: string; error?: string }>;
     openSecondaryDisplay: () => Promise<{ success: boolean; error?: string }>;
     onCustomerDisplayData: (callback: (data: unknown) => void) => void;
 
@@ -188,6 +195,7 @@ export interface ElectronAPI {
     updateEmployee: (id: string, updates: Partial<Employee> & { user?: Partial<User> }) => Promise<Employee>;
     deleteEmployee: (id: string) => Promise<{ success: boolean }>;
     getPayroll: (storeId: string, employeeId?: string) => Promise<HRPayroll[]>;
+    addPayroll: (payroll: HRPayroll) => Promise<void>;
 
     // Store Configuration
     getStoreConfig: (storeId: string) => Promise<Record<string, unknown> | null>;

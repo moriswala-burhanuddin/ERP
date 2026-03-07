@@ -95,6 +95,14 @@ export default function NewSale() {
   const [deliveryCharge, setDeliveryCharge] = useState(0);
   const [isCod, setIsCod] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [barcodeQuery, setBarcodeQuery] = useState('');
+  const barcodeInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (accounts.length > 0 && !accountId) {
+      setAccountId(accounts[0].id);
+    }
+  }, [accounts, accountId]);
 
   // Stats for the POS
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -151,28 +159,44 @@ export default function NewSale() {
     setSearchQuery('');
   }, [calculateKitCost]);
 
+  const handleScan = useCallback((code: string) => {
+    const skuOrBarcode = code.trim();
+    if (!skuOrBarcode) return;
+
+    const found = products.find(p =>
+      (p.sku && p.sku.toLowerCase() === skuOrBarcode.toLowerCase()) ||
+      (p.barcode && p.barcode.toLowerCase() === skuOrBarcode.toLowerCase())
+    );
+
+    if (found) {
+      addToCart({ ...found, type: 'PRODUCT' });
+    } else {
+      const foundKit = itemKits.find(k => k.id === skuOrBarcode);
+      if (foundKit) {
+        addToCart({ ...foundKit, type: 'KIT' });
+      } else {
+        toast.error(`Unknown barcode: ${skuOrBarcode}`, {
+          position: 'top-center',
+          duration: 2000
+        });
+      }
+    }
+    setBarcodeQuery('');
+  }, [products, itemKits, addToCart]);
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // If we are typing in an input, don't interfere
       if (document.activeElement?.tagName === 'INPUT' || document.activeElement?.tagName === 'TEXTAREA') return;
-      if (e.key === 'Enter') {
-        if (barcodeBuffer.current.length >= 8) {
-          const skuOrBarcode = barcodeBuffer.current;
-          const found = products.find(p => p.barcode === skuOrBarcode || p.sku === skuOrBarcode);
-          if (found) {
-            addToCart({ ...found, type: 'PRODUCT' });
-          } else {
-            toast.error(`Unknown product: ${skuOrBarcode}`);
-          }
-        }
-        barcodeBuffer.current = '';
-      } else if (/^[a-zA-Z0-9]$/.test(e.key)) {
-        barcodeBuffer.current += e.key;
-        setTimeout(() => { barcodeBuffer.current = ''; }, 1000);
+
+      // Auto-focus the barcode scanner if user starts typing alphanumeric characters
+      if (/^[a-zA-Z0-9]$/.test(e.key)) {
+        barcodeInputRef.current?.focus();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [products, addToCart]);
+  }, []);
 
   const updateQuantity = useCallback((productId: string, delta: number) => {
     setCart(prevCart => prevCart.map(item => {
@@ -204,6 +228,10 @@ export default function NewSale() {
     // For non-credit sales: if no payments added, auto-apply full amount as cash
     let finalPayments = payments;
     if (saleType !== 'credit') {
+      if (!accountId) {
+        toast.error("Escrow Account Mandatory for Transaction Settlement");
+        return;
+      }
       if (finalPayments.length === 0) {
         finalPayments = [{ mode: 'cash', amount: totalAmount, accountId: accountId }];
       } else if (remainingBalance > 0.01) {
@@ -229,7 +257,7 @@ export default function NewSale() {
         taxAmount,
         totalAmount,
         profit: totalProfit,
-        paymentMode: finalPayments.length > 0 ? finalPayments[0].mode : (saleType === 'credit' ? 'store_credit' : 'cash'),
+        paymentMode: saleType === 'credit' ? 'store_credit' : (finalPayments.length > 1 ? 'split' : (finalPayments.length > 0 ? finalPayments[0].mode : 'cash')),
         payments: finalPayments.map(p => ({
           id: generateId(),
           saleId: '',
@@ -285,7 +313,8 @@ export default function NewSale() {
     ...itemKits.map(k => ({ ...k, type: 'KIT' as const, purchasePrice: calculateKitCost(k.items) }))
   ] as SearchItem[]).filter(item =>
     item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (item.sku && item.sku.toLowerCase().includes(searchQuery.toLowerCase()))
+    (item.sku && item.sku.toLowerCase().includes(searchQuery.toLowerCase())) ||
+    (item.type === 'PRODUCT' && (item as Product).barcode && (item as Product).barcode.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -383,7 +412,7 @@ export default function NewSale() {
                     {['cash', 'credit', 'retail'].map(t => (
                       <button
                         key={t}
-                        onClick={() => setSaleType(t as any)}
+                        onClick={() => setSaleType(t as 'cash' | 'credit' | 'retail')}
                         className={cn(
                           "py-3 rounded-[1rem] text-[9px] font-black uppercase tracking-widest transition-all",
                           saleType === t ? "bg-black text-white shadow-xl" : "text-slate-400 hover:text-slate-600"
@@ -487,6 +516,36 @@ export default function NewSale() {
                 <Button onClick={() => setSearchQuery(' ')} className="lg:hidden bg-indigo-600 text-white rounded-xl h-12 px-6 font-black uppercase text-[10px] tracking-widest">
                   <Plus className="w-4 h-4 mr-2" /> Add Items
                 </Button>
+              </div>
+
+              {/* Robust POS Scanner Input */}
+              <div className="bg-slate-900 rounded-[2.5rem] p-5 mb-12 shadow-2xl shadow-indigo-900/20 border border-white/5 relative overflow-hidden group">
+                <div className="absolute top-0 right-0 p-8 opacity-5">
+                  <Barcode className="w-32 h-32 text-indigo-400" />
+                </div>
+                <div className="relative z-10 flex items-center gap-6">
+                  <div className="bg-indigo-600 p-4 rounded-2xl shadow-lg shadow-indigo-900/40">
+                    <Barcode className="text-white w-6 h-6 animate-pulse" />
+                  </div>
+                  <input
+                    ref={barcodeInputRef}
+                    type="text"
+                    value={barcodeQuery}
+                    onChange={(e) => setBarcodeQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleScan(barcodeQuery);
+                      }
+                    }}
+                    placeholder="SCAN BARCODE OR MANUAL SKU ENTRY..."
+                    className="bg-transparent border-none text-white text-xl placeholder:text-slate-700 focus:outline-none flex-1 font-mono tracking-wider font-black"
+                    autoFocus
+                  />
+                  <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-sm shadow-emerald-500/50" />
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">POS Scanner Active</span>
+                  </div>
+                </div>
               </div>
 
               {/* Mobile Search Bar */}
@@ -616,7 +675,7 @@ export default function NewSale() {
                       <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Instrument</Label>
                       <select
                         value={p.mode}
-                        onChange={(e) => { const n = [...payments]; n[idx].mode = e.target.value as any; setPayments(n); }}
+                        onChange={(e) => { const n = [...payments]; n[idx].mode = e.target.value as 'cash' | 'card' | 'upi' | 'gift_card' | 'store_credit'; setPayments(n); }}
                         className="w-full bg-white border-none rounded-xl h-12 px-4 text-[10px] font-black focus:ring-2 focus:ring-black appearance-none uppercase"
                       >
                         <option value="cash">CASH</option>

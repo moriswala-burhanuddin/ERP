@@ -139,6 +139,9 @@ export interface StoreConfigState {
     ssoInfo: string;
     quickbooksIntegration: string;
     ecommerceIntegration: string;
+    ecommerceEnabled: boolean;
+    ecommerceApiUrl: string;
+    ecommerceAuthToken: string;
     apiSettings: string;
     webhooks: string;
     lookupApi: string;
@@ -314,6 +317,9 @@ export const useStoreConfig = create<StoreConfigState>()(
             ssoInfo: '',
             quickbooksIntegration: '',
             ecommerceIntegration: '',
+            ecommerceEnabled: false,
+            ecommerceApiUrl: '',
+            ecommerceAuthToken: '',
             apiSettings: '',
             webhooks: '',
             lookupApi: '',

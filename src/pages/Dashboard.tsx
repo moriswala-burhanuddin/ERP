@@ -47,11 +47,19 @@ export default function Dashboard() {
 
   const stats = [
     {
-      label: 'Total Revenue',
-      value: metrics?.revenue || 0,
+      label: 'POS Revenue',
+      value: metrics?.posRevenue || 0,
       icon: DollarSign,
       color: 'bg-indigo-600',
-      trend: metrics ? `${((metrics.todayRevenue / (metrics.revenue || 1)) * 100).toFixed(1)}%` : '0%',
+      trend: 'Physical',
+      isCurrency: true
+    },
+    {
+      label: 'Online Revenue',
+      value: metrics?.onlineRevenue || 0,
+      icon: ShoppingCart,
+      color: 'bg-amber-500',
+      trend: 'Website',
       isCurrency: true
     },
     {
@@ -67,15 +75,7 @@ export default function Dashboard() {
       value: metrics?.customerCount || 0,
       icon: Users,
       color: 'bg-slate-900',
-      trend: '+2% this mo',
-      isCurrency: false
-    },
-    {
-      label: 'Total Orders',
-      value: metrics?.totalSales || 0,
-      icon: ShoppingCart,
-      color: 'bg-amber-500',
-      trend: '+12 tonight',
+      trend: 'Aggregate',
       isCurrency: false
     },
   ];

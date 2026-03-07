@@ -35,6 +35,7 @@ import ShiftScheduler from "./pages/hr/ShiftScheduler";
 import HiringKanban from "./pages/hr/HiringKanban";
 import HRChatAssistant from "./pages/hr/HRChatAssistant";
 import Employees from "./pages/hr/Employees";
+import EmployeeDetails from "./pages/hr/EmployeeDetails";
 import Attendance from "./pages/hr/Attendance";
 import Leaves from "./pages/hr/Leaves";
 import Payroll from "./pages/hr/Payroll";
@@ -77,6 +78,11 @@ import ItemKits from "./pages/ItemKits";
 import CustomFields from "./pages/CustomFields";
 import PriceCheck from "./pages/PriceCheck";
 import StoreConfig from "./pages/StoreConfig";
+import EcommerceDashboard from "./pages/ecommerce/EcommerceDashboard";
+import EcommerceProducts from "./pages/ecommerce/EcommerceProducts";
+import EcommerceOrders from "./pages/ecommerce/EcommerceOrders";
+import EcommerceReviews from "./pages/ecommerce/EcommerceReviews";
+import EcommerceFeedback from "./pages/ecommerce/EcommerceFeedback";
 import NotFound from "./pages/NotFound";
 
 import { useEffect } from "react";
@@ -255,10 +261,20 @@ const App = () => {
                 <Route path="/more" element={<More />} />
                 <Route path="/store-config" element={<StoreConfig />} />
 
+                {/* Ecommerce Module Routes */}
+                <Route path="/ecommerce">
+                  <Route index element={<EcommerceDashboard />} />
+                  <Route path="products" element={<EcommerceProducts />} />
+                  <Route path="orders" element={<EcommerceOrders />} />
+                  <Route path="reviews" element={<EcommerceReviews />} />
+                  <Route path="feedback" element={<EcommerceFeedback />} />
+                </Route>
+
                 {/* HR Module Routes - Now integrated into Main Layout */}
                 <Route path="/hr">
                   <Route index element={<HRDashboard />} />
                   <Route path="employees" element={<Employees />} />
+                  <Route path="employees/:id" element={<EmployeeDetails />} />
                   <Route path="attendance" element={<Attendance />} />
                   <Route path="leaves" element={<Leaves />} />
                   <Route path="payroll" element={<Payroll />} />

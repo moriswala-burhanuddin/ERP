@@ -11,12 +11,23 @@ export default function NewProduct() {
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
-  const { addProduct, updateProduct, getStoreProducts, activeStoreId, customFields, productCustomValues, updateProductCustomValues } = useERPStore();
+  const {
+    addProduct,
+    updateProduct,
+    getStoreProducts,
+    activeStoreId,
+    customFields,
+    productCustomValues,
+    updateProductCustomValues,
+    categories,
+    addCategory
+  } = useERPStore();
 
   const [formData, setFormData] = useState({
     name: '',
     sku: '',
-    category: '',
+    categoryId: '',
+    categoryName: '',
     brand: '',
     unit: '',
     purchasePrice: '',
@@ -27,6 +38,8 @@ export default function NewProduct() {
     barcodeEnabled: true,
     limitedQty: '',
   });
+  const [isAddingNew, setIsAddingNew] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
   const [customValues, setCustomValues] = useState<Record<string, string>>({});
   const [isAiLoading, setIsAiLoading] = useState(false);
 
@@ -40,7 +53,8 @@ export default function NewProduct() {
         setFormData({
           name: product.name,
           sku: product.sku,
-          category: product.category,
+          categoryId: product.categoryId || '',
+          categoryName: product.categoryName || '',
           brand: product.brand || '',
           unit: product.unit || '',
           purchasePrice: product.purchasePrice.toString(),
@@ -64,7 +78,8 @@ export default function NewProduct() {
       setFormData({
         name: `${product.name} (CLONE)`,
         sku: `${product.sku}-COPY`,
-        category: product.category,
+        categoryId: product.categoryId || '',
+        categoryName: product.categoryName || '',
         brand: product.brand || '',
         unit: product.unit || '',
         purchasePrice: product.purchasePrice.toString(),
@@ -89,7 +104,7 @@ export default function NewProduct() {
       if (result) {
         setFormData(prev => ({
           ...prev,
-          category: result.category || prev.category,
+          categoryName: result.category || prev.categoryName,
           brand: result.brand || prev.brand,
           unit: result.unit || prev.unit
         }));
@@ -107,23 +122,60 @@ export default function NewProduct() {
     if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
+    } else if (name === 'categoryId' && value === 'ADD_NEW') {
+      setIsAddingNew(true);
+      setFormData(prev => ({ ...prev, categoryId: '', categoryName: '' }));
+    } else if (name === 'categoryId') {
+      const selectedCat = categories.find(c => c.id === value);
+      setFormData(prev => ({
+        ...prev,
+        categoryId: value,
+        categoryName: selectedCat?.name || ''
+      }));
     } else {
       setFormData(prev => ({ ...prev, [name]: value }));
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.sku || !formData.category || !formData.purchasePrice || !formData.sellingPrice) {
+    if (!formData.name || !formData.sku || (!formData.categoryId && !newCategoryName && !formData.categoryName)) {
       toast.error("Please fill in all required fields.");
       return;
     }
 
     try {
+      let finalCategoryId = formData.categoryId;
+      let finalCategoryName = formData.categoryName;
+
+      // Handle Adding New Category
+      if (isAddingNew && newCategoryName.trim()) {
+        const newCat = await addCategory({
+          name: newCategoryName,
+          storeId: activeStoreId
+        });
+        finalCategoryId = newCat.id;
+        finalCategoryName = newCat.name;
+      } else if (!finalCategoryId && formData.categoryName) {
+        // Find by name or create
+        const existing = categories.find(c => c.name.toLowerCase() === formData.categoryName.toLowerCase());
+        if (existing) {
+          finalCategoryId = existing.id;
+        } else {
+          const newCat = await addCategory({
+            name: formData.categoryName,
+            storeId: activeStoreId
+          });
+          finalCategoryId = newCat.id;
+          finalCategoryName = newCat.name;
+        }
+      }
+
       const productData = {
         name: formData.name,
         sku: formData.sku.toUpperCase(),
-        category: formData.category,
+        categoryId: finalCategoryId,
+        categoryName: finalCategoryName,
         brand: formData.brand,
         unit: formData.unit || 'Pcs',
         purchasePrice: parseFloat(formData.purchasePrice),
@@ -135,22 +187,17 @@ export default function NewProduct() {
         limitedQty: formData.limitedQty ? parseFloat(formData.limitedQty) : undefined,
         storeId: activeStoreId,
         lastUsed: new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString().split('T')[0],
       };
 
       if (isEditMode && id) {
-        updateProduct(id, productData);
+        await updateProduct(id, productData);
         const customValuesArray = Object.entries(customValues).map(([fieldId, value]) => ({ fieldId, value }));
-        updateProductCustomValues(id, customValuesArray);
+        await updateProductCustomValues(id, customValuesArray);
         toast.success("Product Updated Successfully");
       } else {
-        addProduct(productData);
-        const products = useERPStore.getState().products;
-        const newProduct = products.find(p => p.sku === productData.sku && p.name === productData.name);
-        if (newProduct) {
-          const customValuesArray = Object.entries(customValues).map(([fieldId, value]) => ({ fieldId, value }));
-          updateProductCustomValues(newProduct.id, customValuesArray);
-        }
+        const newProduct = await addProduct(productData);
+        const customValuesArray = Object.entries(customValues).map(([fieldId, value]) => ({ fieldId, value }));
+        await updateProductCustomValues(newProduct.id, customValuesArray);
         toast.success("Product Added Successfully");
       }
       navigate('/products');
@@ -241,19 +288,40 @@ export default function NewProduct() {
             <div className="grid md:grid-cols-3 gap-6 mt-8">
               <div className="space-y-3">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Category *</label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleChange}
-                  className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold appearance-none cursor-pointer focus:ring-2 focus:ring-black"
-                >
-                  <option value="">Select...</option>
-                  <option value="Power Tools">Power Tools</option>
-                  <option value="Hand Tools">Hand Tools</option>
-                  <option value="Plumbing">Plumbing</option>
-                  <option value="Electrical">Electrical</option>
-                  <option value="Fasteners">Fasteners</option>
-                </select>
+                {isAddingNew ? (
+                  <div className="relative">
+                    <input
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black"
+                      placeholder="New category name..."
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsAddingNew(false);
+                        setNewCategoryName('');
+                      }}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-black text-indigo-600 uppercase"
+                    >
+                      Select Existing
+                    </button>
+                  </div>
+                ) : (
+                  <select
+                    name="categoryId"
+                    value={formData.categoryId}
+                    onChange={handleChange}
+                    className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold appearance-none cursor-pointer focus:ring-2 focus:ring-black"
+                  >
+                    <option value="">Select...</option>
+                    {categories.map(cat => (
+                      <option key={cat.id} value={cat.id}>{cat.name}</option>
+                    ))}
+                    <option value="ADD_NEW" className="text-indigo-600 font-bold">+ Add New...</option>
+                  </select>
+                )}
               </div>
               <div className="space-y-3">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Brand</label>
