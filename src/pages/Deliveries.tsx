@@ -12,7 +12,7 @@ const fmt = (amount: number) =>
 export default function Deliveries() {
     const { sales, deliveries, users, updateDelivery, getStoreCustomers, activeStoreId } = useERPStore();
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'dispatched' | 'delivered' | 'cancelled'>('all');
+    const [statusFilter, setStatusFilter] = useState<Delivery['status'] | 'all'>('all');
     const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
 
     const customers = getStoreCustomers();
@@ -32,22 +32,27 @@ export default function Deliveries() {
         });
 
     const pendingCount = deliveries.filter(d => d.status === 'pending').length;
-    const dispatchedCount = deliveries.filter(d => d.status === 'dispatched').length;
+    const transitCount = deliveries.filter(d => ['shipped', 'out_for_delivery'].includes(d.status)).length;
     const deliveredCount = deliveries.filter(d => d.status === 'delivered').length;
 
     const getStatusConfig = (status: Delivery['status']) => {
         switch (status) {
-            case 'pending': return { icon: <Clock className="w-3.5 h-3.5" />, class: 'bg-amber-50 text-amber-600 border-amber-100', label: 'QUEUED_PAYLOAD' };
-            case 'dispatched': return { icon: <Navigation className="w-3.5 h-3.5" />, class: 'bg-indigo-50 text-indigo-600 border-indigo-100', label: 'ACTIVE_TRANSIT' };
+            case 'pending': return { icon: <Clock className="w-3.5 h-3.5" />, class: 'bg-amber-50 text-amber-600 border-amber-100', label: 'PENDING' };
+            case 'processing': return { icon: <Zap className="w-3.5 h-3.5" />, class: 'bg-blue-50 text-blue-600 border-blue-100', label: 'PROCESSING' };
+            case 'shipped': return { icon: <Truck className="w-3.5 h-3.5" />, class: 'bg-indigo-50 text-indigo-600 border-indigo-100', label: 'SHIPPED' };
+            case 'out_for_delivery': return { icon: <Navigation className="w-3.5 h-3.5" />, class: 'bg-purple-50 text-purple-600 border-purple-100', label: 'OUT_FOR_DELIVERY' };
             case 'delivered': return { icon: <CheckCircle2 className="w-3.5 h-3.5" />, class: 'bg-emerald-50 text-emerald-600 border-emerald-100', label: 'FULFILLED' };
             case 'cancelled': return { icon: <XCircle className="w-3.5 h-3.5" />, class: 'bg-rose-50 text-rose-600 border-rose-100', label: 'ABORTED' };
-            default: return { icon: <AlertCircle className="w-3.5 h-3.5" />, class: 'bg-slate-50 text-slate-500 border-slate-100', label: status.toUpperCase() };
+            case 'failed': return { icon: <AlertCircle className="w-3.5 h-3.5" />, class: 'bg-red-50 text-red-600 border-red-100', label: 'FAILED' };
+            default: return { icon: <AlertCircle className="w-3.5 h-3.5" />, class: 'bg-slate-50 text-slate-500 border-slate-100', label: (status as string).toUpperCase() };
         }
     };
 
     const getNextStatus = (status: Delivery['status']): Delivery['status'] | null => {
-        if (status === 'pending') return 'dispatched';
-        if (status === 'dispatched') return 'delivered';
+        if (status === 'pending') return 'processing';
+        if (status === 'processing') return 'shipped';
+        if (status === 'shipped') return 'out_for_delivery';
+        if (status === 'out_for_delivery') return 'delivered';
         return null;
     };
 
@@ -78,8 +83,8 @@ export default function Deliveries() {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Dispatch Command</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Logistics Engine • {filteredDeliveries.length} Payload Nodes</p>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Delivery Management</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Logistics & Shipping • {filteredDeliveries.length} Shipments</p>
                         </div>
                     </div>
 
@@ -110,16 +115,16 @@ export default function Deliveries() {
                         <div className="p-4 bg-indigo-50 rounded-2xl w-fit mb-8 text-indigo-500">
                             <Navigation className="w-6 h-6" />
                         </div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Transit</p>
-                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{dispatchedCount} Indices</h3>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">In Transit</p>
+                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{transitCount} Deliveries</h3>
                         <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-indigo-50/50 rounded-full blur-2xl group-hover:scale-150 transition-transform" />
                     </div>
                     <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white relative overflow-hidden group">
                         <div className="p-4 bg-emerald-50 rounded-2xl w-fit mb-8 text-emerald-500">
                             <PackageCheck className="w-6 h-6" />
                         </div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Fulfilled Payloads</p>
-                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{deliveredCount} Nodes</h3>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Delivered</p>
+                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{deliveredCount} Orders</h3>
                         <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-emerald-50/50 rounded-full blur-2xl group-hover:scale-150 transition-transform" />
                     </div>
                     <div className="bg-black rounded-[2.5rem] p-10 text-white shadow-2xl shadow-black/20 flex flex-col justify-center relative overflow-hidden group">
@@ -137,7 +142,7 @@ export default function Deliveries() {
                 {/* Dispatch Controls */}
                 <div className="bg-white p-6 rounded-[3rem] flex flex-col lg:flex-row lg:items-center justify-between gap-8 mb-10 border border-white shadow-sm">
                     <div className="flex gap-3 overflow-x-auto p-2 scrollbar-none">
-                        {['all', 'pending', 'dispatched', 'delivered', 'cancelled'].map((status) => (
+                        {['all', 'pending', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'failed'].map((status) => (
                             <button
                                 key={status}
                                 onClick={() => setStatusFilter(status as typeof statusFilter)}
@@ -188,7 +193,7 @@ export default function Deliveries() {
                                             <div className={cn(
                                                 "w-24 h-24 rounded-[2.5rem] flex flex-col items-center justify-center transition-all group-hover:scale-105 shadow-sm shrink-0",
                                                 d.status === 'delivered' ? "bg-emerald-50 text-emerald-600" :
-                                                    d.status === 'dispatched' ? "bg-indigo-50 text-indigo-600" : "bg-slate-50 text-slate-400"
+                                                    ['shipped', 'out_for_delivery'].includes(d.status) ? "bg-indigo-50 text-indigo-600" : "bg-slate-50 text-slate-400"
                                             )}>
                                                 <Box className="w-8 h-8 group-hover:rotate-12 transition-transform" />
                                                 <span className="text-[10px] font-black uppercase tracking-tighter mt-2 opacity-50">NODE_{sale?.invoiceNumber.slice(-3) || 'N/A'}</span>
@@ -221,24 +226,62 @@ export default function Deliveries() {
                                         </div>
 
                                         <div className="flex flex-col sm:flex-row items-center gap-6 self-end lg:self-center shrink-0">
+                                            {/* Delivery Type & Assignment */}
                                             {d.status !== 'delivered' && d.status !== 'cancelled' && (
-                                                <div className="relative group/select">
-                                                    <select
-                                                        className="h-14 bg-slate-50 text-[10px] font-black uppercase tracking-widest border-none rounded-2xl px-10 focus:ring-2 focus:ring-black appearance-none min-w-[200px] cursor-pointer"
-                                                        value={d.assignedTo || ''}
-                                                        onChange={(e) => {
-                                                            updateDelivery(d.id, { assignedTo: e.target.value });
-                                                            toast.success(`Courier Assigned: Node linked to ${e.target.value}.`);
-                                                        }}
-                                                    >
-                                                        <option value="">SELECT_COURIER...</option>
-                                                        {users.filter(u => u.storeId === activeStoreId).map(u => (
-                                                            <option key={u.id} value={u.name}>{u.name.toUpperCase()}</option>
-                                                        ))}
-                                                    </select>
-                                                    <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none group-hover/select:text-black transition-colors rotate-90" />
+                                                <div className="flex flex-col gap-3">
+                                                    <div className="flex gap-2">
+                                                        <Button
+                                                            variant={d.deliveryType === 'internal' ? 'default' : 'outline'}
+                                                            className="h-10 rounded-xl text-[9px] font-black uppercase tracking-widest px-4"
+                                                            onClick={() => updateDelivery(d.id, { deliveryType: 'internal' })}
+                                                        >
+                                                            Internal
+                                                        </Button>
+                                                        <Button
+                                                            variant={d.deliveryType === 'external' ? 'default' : 'outline'}
+                                                            className="h-10 rounded-xl text-[9px] font-black uppercase tracking-widest px-4"
+                                                            onClick={() => updateDelivery(d.id, { deliveryType: 'external' })}
+                                                        >
+                                                            External
+                                                        </Button>
+                                                    </div>
+
+                                                    {d.deliveryType === 'internal' ? (
+                                                        <div className="relative group/select">
+                                                            <select
+                                                                className="h-12 bg-slate-50 text-[10px] font-black uppercase tracking-widest border-none rounded-2xl px-10 focus:ring-2 focus:ring-black appearance-none min-w-[200px] cursor-pointer"
+                                                                value={d.assignedTo || ''}
+                                                                onChange={(e) => {
+                                                                    updateDelivery(d.id, { assignedTo: e.target.value });
+                                                                    toast.success(`Courier Assigned: Node linked to ${e.target.value}.`);
+                                                                }}
+                                                            >
+                                                                <option value="">SELECT_EMPLOYEE...</option>
+                                                                {users.filter(u => u.storeId === activeStoreId).map(u => (
+                                                                    <option key={u.id} value={u.name}>{u.name.toUpperCase()}</option>
+                                                                ))}
+                                                            </select>
+                                                            <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none group-hover/select:text-black transition-colors rotate-90" />
+                                                        </div>
+                                                    ) : (
+                                                        <div className="flex flex-col gap-2">
+                                                            <input
+                                                                className="h-10 bg-slate-50 text-[10px] font-black uppercase tracking-widest border-none rounded-xl px-4 focus:ring-2 focus:ring-black"
+                                                                placeholder="COURIER NAME (e.g. DHL)"
+                                                                value={d.deliveryProvider || ''}
+                                                                onChange={(e) => updateDelivery(d.id, { deliveryProvider: e.target.value })}
+                                                            />
+                                                            <input
+                                                                className="h-10 bg-slate-50 text-[10px] font-black uppercase tracking-widest border-none rounded-xl px-4 focus:ring-2 focus:ring-black"
+                                                                placeholder="TRACKING NUMBER"
+                                                                value={d.trackingNumber || ''}
+                                                                onChange={(e) => updateDelivery(d.id, { trackingNumber: e.target.value })}
+                                                            />
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
+
                                             {nextStatus && (
                                                 <Button
                                                     onClick={() => {

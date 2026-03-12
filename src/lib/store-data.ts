@@ -196,10 +196,14 @@ export interface Delivery {
   address: string;
   deliveryCharge: number;
   isCod: boolean;
-  status: 'pending' | 'dispatched' | 'delivered' | 'cancelled';
+  status: 'pending' | 'processing' | 'shipped' | 'out_for_delivery' | 'delivered' | 'cancelled' | 'failed';
+  deliveryType?: 'internal' | 'external';
+  deliveryProvider?: string;
+  trackingNumber?: string;
   assignedTo?: string; // Employee Name or ID
   deliveryDate?: string;
   storeId: string;
+  notes?: string;
   updatedAt: string;
 }
 

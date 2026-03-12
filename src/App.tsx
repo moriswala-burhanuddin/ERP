@@ -83,6 +83,8 @@ import EcommerceProducts from "./pages/ecommerce/EcommerceProducts";
 import EcommerceOrders from "./pages/ecommerce/EcommerceOrders";
 import EcommerceReviews from "./pages/ecommerce/EcommerceReviews";
 import EcommerceFeedback from "./pages/ecommerce/EcommerceFeedback";
+import EcommerceReturns from "./pages/ecommerce/EcommerceReturns";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
 import { useEffect } from "react";
@@ -260,12 +262,14 @@ const App = () => {
                 <Route path="/activity-logs" element={<ActivityLogs />} />
                 <Route path="/more" element={<More />} />
                 <Route path="/store-config" element={<StoreConfig />} />
+                <Route path="/notifications" element={<Notifications />} />
 
                 {/* Ecommerce Module Routes */}
                 <Route path="/ecommerce">
                   <Route index element={<EcommerceDashboard />} />
                   <Route path="products" element={<EcommerceProducts />} />
                   <Route path="orders" element={<EcommerceOrders />} />
+                  <Route path="returns" element={<EcommerceReturns />} />
                   <Route path="reviews" element={<EcommerceReviews />} />
                   <Route path="feedback" element={<EcommerceFeedback />} />
                 </Route>

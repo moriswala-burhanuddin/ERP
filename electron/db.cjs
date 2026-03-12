@@ -140,11 +140,21 @@ db.exec(`
     is_driver INTEGER DEFAULT 0,
     store_id TEXT,
     avatar TEXT,
+    -- User Profile Fields
+    address_line1 TEXT,
+    address_line2 TEXT,
+    city TEXT,
+    state TEXT,
+    country TEXT,
+    pincode TEXT,
+    phone TEXT,
+    bio TEXT,
     device_id TEXT,
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     sync_status INTEGER DEFAULT 0,
     FOREIGN KEY (store_id) REFERENCES stores(id)
   );
+
 
   CREATE TABLE IF NOT EXISTS products (
     id TEXT PRIMARY KEY,
@@ -167,10 +177,15 @@ db.exec(`
     barcode_enabled INTEGER DEFAULT 1,
     tax_slab_id TEXT,
     device_id TEXT,
+    -- Elegance Frontend Compatibility
+    discount_percentage INTEGER DEFAULT 0,
+    price_inr REAL,
+    price_usd REAL,
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     sync_status INTEGER DEFAULT 0,
     FOREIGN KEY (store_id) REFERENCES stores(id)
   );
+
 
   CREATE TABLE IF NOT EXISTS customers (
     id TEXT PRIMARY KEY,
@@ -183,11 +198,13 @@ db.exec(`
     total_purchases REAL DEFAULT 0,
     store_id TEXT NOT NULL,
     joined_at TEXT NOT NULL,
+    source TEXT DEFAULT 'POS',
     device_id TEXT,
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     sync_status INTEGER DEFAULT 0,
     FOREIGN KEY (store_id) REFERENCES stores(id)
   );
+
 
   CREATE TABLE IF NOT EXISTS accounts (
     id TEXT PRIMARY KEY,
@@ -737,13 +754,17 @@ db.exec(`
 
   CREATE TABLE IF NOT EXISTS deliveries (
     id TEXT PRIMARY KEY,
-    sale_id TEXT UNIQUE NOT NULL,
+    sale_id TEXT NOT NULL,
     employee_id TEXT,
-    address TEXT NOT NULL,
+    delivery_provider TEXT,
+    tracking_number TEXT,
+    delivery_type TEXT CHECK(delivery_type IN ('internal', 'external')) DEFAULT 'internal',
+    address TEXT,
     delivery_charge REAL DEFAULT 0,
     is_cod INTEGER DEFAULT 0,
-    status TEXT CHECK(status IN ('pending', 'dispatched', 'delivered')) DEFAULT 'pending',
+    status TEXT CHECK(status IN ('pending', 'processing', 'shipped', 'out_for_delivery', 'delivered', 'cancelled', 'failed')) DEFAULT 'pending',
     delivery_date TEXT,
+    notes TEXT,
     store_id TEXT NOT NULL,
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     sync_status INTEGER DEFAULT 0,
@@ -822,6 +843,35 @@ db.exec(`
     CREATE INDEX IF NOT EXISTS idx_invoices_supplier ON invoices(supplier_id);
     CREATE INDEX IF NOT EXISTS idx_invoice_items_invoice ON invoice_items(invoice_id);
   `);
+
+// --- Migrations for Elegance Frontend Compatibility ---
+const addCol = (table, columnDef) => {
+  try {
+    db.exec(`ALTER TABLE ${table} ADD COLUMN ${columnDef}`);
+    console.log(`[DB] Migration: Added column ${columnDef} to ${table}`);
+  } catch (e) {
+    if (!e.message.includes('duplicate column name')) {
+      console.warn(`[DB] Migration Warning for ${table} (${columnDef}):`, e.message);
+    }
+  }
+};
+
+addCol('users', 'address_line1 TEXT');
+addCol('users', 'address_line2 TEXT');
+addCol('users', 'city TEXT');
+addCol('users', 'state TEXT');
+addCol('users', 'country TEXT');
+addCol('users', 'pincode TEXT');
+addCol('users', 'phone TEXT');
+addCol('users', 'bio TEXT');
+
+addCol('products', 'discount_percentage INTEGER DEFAULT 0');
+addCol('products', 'price_inr REAL');
+addCol('products', 'price_usd REAL');
+
+addCol('customers', 'source TEXT DEFAULT "POS"');
+addCol('customers', 'joined_at TEXT');
+// --------------------------------------------------------
 
 
 // EXPLICIT MIGRATION CHECK ON STARTUP

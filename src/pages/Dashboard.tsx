@@ -29,6 +29,7 @@ import {
   Area
 } from 'recharts';
 import { dbAdapter } from '@/lib/db-adapter';
+import { eleganceApi } from '@/lib/elegance-api';
 import { DashboardMetrics } from '@/lib/store-data';
 import { cn } from '@/lib/utils';
 
@@ -37,12 +38,15 @@ export default function Dashboard() {
   const { getStoreSales, getStoreProducts, getStoreCustomers, getActiveStore } = useERPStore();
   const [dateRange, setDateRange] = useState('today');
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
+  const [onlineStats, setOnlineStats] = useState<any>(null);
   const activeStore = getActiveStore();
 
   useEffect(() => {
     if (activeStore) {
       dbAdapter.getDashboardMetrics(activeStore.id).then(setMetrics);
     }
+    // Also fetch live store stats
+    eleganceApi.getStoreSummary().then(setOnlineStats).catch(console.error);
   }, [activeStore]);
 
   const stats = [
@@ -56,10 +60,10 @@ export default function Dashboard() {
     },
     {
       label: 'Online Revenue',
-      value: metrics?.onlineRevenue || 0,
+      value: onlineStats ? onlineStats.revenue : (metrics?.onlineRevenue || 0),
       icon: ShoppingCart,
       color: 'bg-amber-500',
-      trend: 'Website',
+      trend: onlineStats ? `${onlineStats.orders} Orders` : 'Website',
       isCurrency: true
     },
     {
@@ -71,12 +75,12 @@ export default function Dashboard() {
       isCurrency: true
     },
     {
-      label: 'Active Customers',
-      value: metrics?.customerCount || 0,
-      icon: Users,
+      label: 'Inventory Value',
+      value: metrics?.inventoryValue || 0,
+      icon: Package,
       color: 'bg-slate-900',
-      trend: 'Aggregate',
-      isCurrency: false
+      trend: 'In Stock',
+      isCurrency: true
     },
   ];
 

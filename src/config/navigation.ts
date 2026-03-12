@@ -18,7 +18,9 @@ import {
     PieChart,
     Percent,
     ClipboardList,
-    BookOpen
+    BookOpen,
+    Undo2,
+    Bell
 } from "lucide-react";
 
 export type Role = 'admin' | 'staff' | 'user' | 'hr_manager' | 'super_admin' | 'sales_manager' | 'inventory_manager' | 'accountant' | 'employee';
@@ -37,6 +39,7 @@ export const ROLE_SIDEBARS: Record<Role, NavItem[]> = {
         { title: "Products", href: "/products", icon: Package },
         { title: "Inventory Summary", href: "/stock-summary", icon: BarChart3 },
         { title: "Sales", href: "/sales", icon: ShoppingCart },
+        { title: "Logistics", href: "/deliveries", icon: Truck },
         { title: "Customers", href: "/customers", icon: Users },
         { title: "Suppliers", href: "/suppliers", icon: Truck },
         { title: "Purchases", href: "/purchases", icon: ShoppingBag },
@@ -45,15 +48,15 @@ export const ROLE_SIDEBARS: Record<Role, NavItem[]> = {
         { title: "Accounts", href: "/accounts", icon: BookOpen },
         { title: "Cheques", href: "/finance/cheques", icon: CreditCard },
         { title: "Invoices", href: "/invoices", icon: FileText },
-        { title: "Delivery Settings", href: "/delivery-settings", icon: Truck },
-        { title: "Transactions", href: "/transactions", icon: CreditCard },
+        { title: "Settings", href: "/more", icon: Settings },
         { title: "P & L", href: "/profit-loss", icon: PieChart },
         { title: "Reports", href: "/reports", icon: FileText },
         { title: "Stores", href: "/stores", icon: BookOpen },
         { title: "Online Store", href: "/ecommerce", icon: ShoppingBag },
+        { title: "Returns", href: "/ecommerce/returns", icon: Undo2 },
+        { title: "Notifications", href: "/notifications", icon: Bell },
         { title: "Users", href: "/users", icon: Users },
         { title: "Store Config", href: "/store-config", icon: Settings },
-        { title: "Settings", href: "/more", icon: Settings },
     ],
 
     // HR Manager
@@ -119,6 +122,7 @@ export const ROLE_SIDEBARS: Record<Role, NavItem[]> = {
         { title: "Dashboard", href: "/", icon: LayoutDashboard },
         { title: "Inventory", href: "/products", icon: Package },
         { title: "Sales", href: "/sales", icon: ShoppingCart },
+        { title: "Logistics", href: "/deliveries", icon: Truck },
         { title: "Invoices", href: "/invoices", icon: FileText },
         { title: "Cheques", href: "/finance/cheques", icon: CreditCard },
         { title: "Quotations", href: "/quotations", icon: FileText },
@@ -128,7 +132,6 @@ export const ROLE_SIDEBARS: Record<Role, NavItem[]> = {
         { title: "Goods Receiving", href: "/receivings", icon: Package },
         { title: "HR", href: "/hr", icon: Users },
         { title: "Finance", href: "/transactions", icon: Calculator },
-        { title: "Delivery Settings", href: "/delivery-settings", icon: Truck },
         { title: "Reports", href: "/reports", icon: BarChart3 },
         { title: "Users", href: "/users", icon: Users },
         { title: "Store Config", href: "/store-config", icon: Settings },

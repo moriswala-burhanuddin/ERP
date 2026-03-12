@@ -1,18 +1,33 @@
-import { useStoreConfig } from './store-config';
+import { API_URL } from './config';
 
 /**
- * Service to interact with the Elegance E-commerce Django API.
- * Uses simple English for internal clarity and modularity.
+ * Service to interact with the Central ERP Backend for Online Store data.
+ * All operations are now centralized in the ERP backend.
  */
 export const eleganceApi = {
     /**
-     * Helper to get the base URL and Token from the store config
+     * Helper to get the token from localStorage
      */
     getConfig() {
-        const state = useStoreConfig.getState();
+        // First check legacy/direct token key
+        let token = localStorage.getItem('token');
+
+        // Fallback: Extract from the persisted Zustand store if direct token is missing
+        if (!token) {
+            const persistedStore = localStorage.getItem('erp-store-v1');
+            if (persistedStore) {
+                try {
+                    const parsed = JSON.parse(persistedStore);
+                    token = parsed.state?.accessToken;
+                } catch (e) {
+                    // Silently fail if JSON is malformed
+                }
+            }
+        }
+
         return {
-            baseUrl: state.ecommerceApiUrl.replace(/\/$/, ''), // Remove trailing slash if any
-            token: state.ecommerceAuthToken
+            baseUrl: API_URL,
+            token
         };
     },
 
@@ -20,20 +35,9 @@ export const eleganceApi = {
      * Standard fetch wrapper with Auth headers
      */
     async request(endpoint: string, options: RequestInit = {}) {
-        const { baseUrl: rawBaseUrl, token } = this.getConfig();
-        let baseUrl = rawBaseUrl;
+        const { baseUrl, token } = this.getConfig();
 
-        if (!baseUrl) {
-            throw new Error("No store website link configured.");
-        }
-
-        // Clean up URL: remove trailing slashes, /admin/ suffix, and ensure it starts with http
-        baseUrl = baseUrl.replace(/\/$/, '').replace(/\/admin$/, '');
-        if (!baseUrl.startsWith('http')) {
-            baseUrl = `https://${baseUrl}`; // Default to https for pythonanywhere
-        }
-
-        const url = `${baseUrl}/api/${endpoint.replace(/^\//, '')}`;
+        const url = `${baseUrl}/${endpoint.replace(/^\//, '')}`;
         const headers = {
             'Content-Type': 'application/json',
             ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
@@ -45,16 +49,15 @@ export const eleganceApi = {
 
             if (!response.ok) {
                 if (response.status === 401 || response.status === 403) {
-                    throw new Error("Login key is invalid or expired.");
+                    throw new Error("Authentication required or session expired.");
                 }
-                throw new Error(`Store request failed: ${response.statusText} (${response.status})`);
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.detail || errorData.message || `Request failed: ${response.statusText} (${response.status})`);
             }
 
             return await response.json();
         } catch (err: any) {
-            if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
-                throw new Error("Cannot reach the store website. Please check your internet and make sure the link is correct.");
-            }
+            console.error(`API Error (${endpoint}):`, err);
             throw err;
         }
     },
@@ -63,42 +66,62 @@ export const eleganceApi = {
      * Get store overview stats
      */
     async getStoreSummary() {
-        return this.request('admin/dashboard/stats/');
+        return this.request('online-reports/stats/');
     },
 
     /**
-     * Get list of products (called projects in the backend)
+     * Get list of products
      */
     async getProducts() {
-        return this.request('admin/projects/');
+        return this.request('products/');
     },
 
     /**
-     * Get list of orders
+     * Get list of online orders
      */
     async getOrders() {
-        return this.request('admin/orders/');
+        return this.request('online-orders/');
+    },
+
+    /**
+     * Update order status
+     */
+    async updateOrderStatus(id: number | string, status: string) {
+        return this.request(`online-orders/${id}/update_status/`, {
+            method: 'POST',
+            body: JSON.stringify({ status })
+        });
+    },
+
+    /**
+     * Add tracking information
+     */
+    async addTrackingInfo(id: number | string, data: { courier_name: string; tracking_number: string; shipping_method?: string; estimated_delivery_date?: string }) {
+        return this.request(`online-orders/${id}/add_tracking//`, {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
     },
 
     /**
      * Get detailed info for a single order
      */
     async getOrderDetails(id: number | string) {
-        return this.request(`admin/orders/${id}/`);
+        return this.request(`online-orders/${id}/`);
     },
 
     /**
      * Get list of registered customers
      */
     async getCustomers() {
-        return this.request('admin/users/');
+        return this.request('customers/');
     },
 
     /**
      * Get reviews from the online store
      */
     async getReviews() {
-        return this.request('v1/reviews/');
+        return this.request('reviews/');
     },
 
     /**
