@@ -40,7 +40,7 @@ const StoreConfig = () => {
             if (result?.success) {
                 toast.success('Infrastructure Synchronized: Parameters persisted.');
             } else {
-                toast.error('Persistence Protocol Failure');
+                toast.error('Failed to save settings');
             }
         } catch (error) {
             console.error('Save config error:', error);
@@ -52,7 +52,7 @@ const StoreConfig = () => {
 
     const tabs = [
         { id: 'company', label: 'Identity', icon: <Building2 className="w-4 h-4" /> },
-        { id: 'tax', label: 'Fiscal Logic', icon: <Calculator className="w-4 h-4" /> },
+        { id: 'tax', label: 'Tax Settings', icon: <Calculator className="w-4 h-4" /> },
         { id: 'currency', label: 'Monetary Units', icon: <Coins className="w-4 h-4" /> },
         { id: 'payments', label: 'Settlement', icon: <CreditCard className="w-4 h-4" /> },
         { id: 'delivery', label: 'Logistics', icon: <Truck className="w-4 h-4" /> },

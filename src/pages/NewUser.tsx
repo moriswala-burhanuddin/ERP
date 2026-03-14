@@ -50,7 +50,7 @@ export default function NewUser() {
     try {
       if (isEdit) {
         updateUser(id!, userData);
-        toast.success("Node Synchronized: Member profile updated.");
+        toast.success("User updated.");
       } else {
         const generatedId = `user-${Date.now()}`;
         await addUser({
@@ -68,7 +68,7 @@ export default function NewUser() {
       }
       navigate('/users');
     } catch (error) {
-      toast.error("PROTOCOL FAILURE: Registry rejected member payload.");
+      toast.error("Failed to save user. Please try again.");
     }
   };
 
@@ -94,14 +94,14 @@ export default function NewUser() {
               <ArrowLeft className="w-5 h-5 text-slate-400" />
             </button>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{isEdit ? 'Member Synthesis' : 'Member Onboarding'}</h1>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">{isEdit ? 'Modifying existing node parameters' : 'Constructing new personnel node'}</p>
+              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{isEdit ? 'Edit User' : 'Add New User'}</h1>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">{isEdit ? 'Update user details' : 'Fill in the new user details'}</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <Button onClick={handleSubmit} className="bg-black text-white rounded-[1.2rem] h-14 px-10 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
-              {isEdit ? 'Sync Node' : 'Finalize Onboarding'}
+              {isEdit ? 'Save Changes' : 'Create User'}
             </Button>
           </div>
         </div>
@@ -116,14 +116,14 @@ export default function NewUser() {
                 <UserPlus className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Identity Matrix</h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Assigning core identification parameters</p>
+                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">User Info</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Basic user details</p>
               </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Full Name (Identifier)</Label>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Full Name</Label>
                 <Input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -133,7 +133,7 @@ export default function NewUser() {
                 />
               </div>
               <div className="space-y-4">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Communication Channel (Email)</Label>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email Address</Label>
                 <Input
                   type="email"
                   value={email}
@@ -144,7 +144,7 @@ export default function NewUser() {
                 />
               </div>
               <div className="space-y-4 md:col-span-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Access Credential (Password)</Label>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Password</Label>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
@@ -173,8 +173,8 @@ export default function NewUser() {
                 <ShieldCheck className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Privilege Allocation</h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Defining clearance and operational scope</p>
+                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Role</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">What can this user do?</p>
               </div>
             </div>
 
@@ -207,11 +207,11 @@ export default function NewUser() {
           <div className="bg-black rounded-[3rem] p-10 text-white shadow-2xl shadow-black/20 overflow-hidden relative group">
             <Zap className="absolute -right-10 -top-10 w-40 h-40 text-white/5 rotate-12 group-hover:rotate-45 transition-transform duration-1000" />
             <div className="relative z-10">
-              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-8">Node Placement</h4>
+              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-8">Store Assignment</h4>
 
               <div className="space-y-6">
                 <div className="space-y-4">
-                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Sector Assignment</Label>
+                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Assigned Store</Label>
                   <select
                     value={storeId}
                     onChange={(e) => setStoreId(e.target.value)}
@@ -246,12 +246,12 @@ export default function NewUser() {
           </div>
 
           <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white text-center">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-6">Security Protocol</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-6">Safe & Secure</p>
             <div className="flex items-center justify-center p-6 bg-slate-50 rounded-2xl mb-8">
               <ShieldAlert className="w-10 h-10 text-rose-500" />
             </div>
-            <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">Immutable Protocol</h4>
-            <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed tracking-wider">All personnel modifications are logged to the global activity stream for audit verification.</p>
+            <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">Your Data is Safe</h4>
+            <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed tracking-wider">All user changes are saved securely.</p>
           </div>
         </div>
       </main>

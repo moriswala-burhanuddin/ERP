@@ -3102,20 +3102,64 @@ u.id as user_id,
   // 1. Stock Transfers
   processStockTransfer: (transfer) => {
     const transaction = db.transaction(() => {
-      // Create transfer record
+      // 1. Get the source product to verify stock and get details
+      const sourceProduct = db.prepare('SELECT * FROM products WHERE id = ? AND store_id = ?').get(transfer.productId, transfer.fromStoreId);
+      if (!sourceProduct) {
+        throw new Error(`Source product ${transfer.productId} not found in store ${transfer.fromStoreId}`);
+      }
+      if (sourceProduct.quantity < transfer.quantity) {
+        throw new Error(`Insufficient stock for transfer. Available: ${sourceProduct.quantity}, Requested: ${transfer.quantity}`);
+      }
+
+      // 2. Create transfer record (marked completed)
       const stmt = db.prepare(`
         INSERT INTO stock_transfers(id, product_id, from_store_id, to_store_id, quantity, status, device_id, updated_at)
-VALUES(?, ?, ?, ?, ?, 'pending', ?, datetime('now'))
-  `)
-      stmt.run(transfer.id, transfer.productId, transfer.fromStoreId, transfer.toStoreId, transfer.quantity, deviceId)
+        VALUES(?, ?, ?, ?, ?, 'completed', ?, datetime('now'))
+      `);
+      stmt.run(transfer.id, transfer.productId, transfer.fromStoreId, transfer.toStoreId, transfer.quantity, deviceId);
 
-      // If status is completed, update stock in both stores
-      // (Simplified: In this system, products are scoped to store_id. 
-      // If we move across stores, we might need to find/create the product in the target store.)
-      // Let's assume the product must exist in both stores with the same SKU or Barcode.
-    })
-    transaction()
-    return { success: true }
+      // 3. Deduct from source store
+      db.prepare("UPDATE products SET quantity = quantity - ?, updated_at = datetime('now'), sync_status = 0 WHERE id = ?").run(transfer.quantity, transfer.productId);
+      
+      // Log outgoing transfer
+      db.prepare(`
+        INSERT INTO stock_logs(id, product_id, product_name, store_id, quantity_change, reason, reference_id, device_id, created_at)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      `).run(`${Date.now()}-out-${Math.random().toString(36).substr(2, 5)}`, transfer.productId, sourceProduct.name, transfer.fromStoreId, -transfer.quantity, 'TRANSFER_OUT', transfer.id, deviceId);
+
+      // 4. Handle destination store (Find by SKU or Barcode)
+      let destProduct = db.prepare('SELECT id FROM products WHERE store_id = ? AND (sku = ? OR (barcode = ? AND barcode IS NOT NULL AND barcode != \'\'))').get(transfer.toStoreId, sourceProduct.sku, sourceProduct.barcode);
+      
+      let destProductId = destProduct ? destProduct.id : null;
+
+      if (!destProduct) {
+        // Create product in destination store
+        destProductId = `prod-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+        db.prepare(`
+          INSERT INTO products(id, name, sku, category, selling_price, purchase_price, quantity, store_id, unit, brand, barcode, min_stock, reorder_quantity, is_deleted, is_kit, barcode_enabled, tax_slab_id, device_id, discount_percentage, price_inr, price_usd, updated_at, sync_status)
+          VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
+        `).run(
+          destProductId, sourceProduct.name, sourceProduct.sku, sourceProduct.category, 
+          sourceProduct.selling_price, sourceProduct.purchase_price, transfer.quantity, 
+          transfer.toStoreId, sourceProduct.unit, sourceProduct.brand, sourceProduct.barcode, 
+          sourceProduct.min_stock, sourceProduct.reorder_quantity, sourceProduct.is_deleted, 
+          sourceProduct.is_kit, sourceProduct.barcode_enabled, sourceProduct.tax_slab_id, 
+          deviceId, sourceProduct.discount_percentage, sourceProduct.price_inr, sourceProduct.price_usd
+        );
+      } else {
+        // Add to existing product
+        db.prepare("UPDATE products SET quantity = quantity + ?, updated_at = datetime('now'), sync_status = 0 WHERE id = ?").run(transfer.quantity, destProductId);
+      }
+
+      // Log incoming transfer
+      db.prepare(`
+        INSERT INTO stock_logs(id, product_id, product_name, store_id, quantity_change, reason, reference_id, device_id, created_at)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      `).run(`${Date.now()}-in-${Math.random().toString(36).substr(2, 5)}`, destProductId, sourceProduct.name, transfer.toStoreId, transfer.quantity, 'TRANSFER_IN', transfer.id, deviceId);
+
+    });
+    transaction();
+    return { success: true };
   },
   getStockTransfers: (storeId) => {
     return db.prepare('SELECT * FROM stock_transfers WHERE from_store_id = ? OR to_store_id = ? ORDER BY updated_at DESC').all(storeId, storeId).map(toCamelCase)
@@ -4098,6 +4142,20 @@ SELECT
       status: 'SUCCESS',
       action_type: mode
     };
+  },
+
+  getSetting: (key) => {
+    const result = db.prepare('SELECT value FROM settings WHERE key = ?').get(key)
+    return result ? result.value : null
+  },
+
+  setSetting: (key, value) => {
+    db.prepare(`
+      INSERT INTO settings(key, value)
+      VALUES(?, ?)
+      ON CONFLICT(key) DO UPDATE SET value = excluded.value
+    `).run(key, value)
+    return { success: true }
   },
 }
 

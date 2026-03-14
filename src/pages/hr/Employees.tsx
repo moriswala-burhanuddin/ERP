@@ -143,9 +143,9 @@ const Employees = () => {
                             <ArrowLeft className="w-5 h-5 text-slate-400" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Workforce Directory</h1>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">All Employees</h1>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">
-                                HR employee registry • {filteredEmployees.length} active
+                                Staff list • {filteredEmployees.length} active
                             </p>
                         </div>
                     </div>
@@ -165,14 +165,14 @@ const Employees = () => {
                             <DialogTrigger asChild>
                                 <Button className="bg-black text-white rounded-[1.2rem] h-14 px-10 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                                     <Plus className="w-4 h-4 mr-2" />
-                                    ONBOARD EMPLOYEE
+                                    ADD EMPLOYEE
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="max-w-2xl rounded-[3rem] p-10 border-none shadow-2xl">
                                 <DialogHeader className="mb-6">
-                                    <DialogTitle className="text-xl font-black uppercase tracking-tight">Employee Onboarding</DialogTitle>
+                                    <DialogTitle className="text-xl font-black uppercase tracking-tight">Add New Employee</DialogTitle>
                                     <p className="text-xs text-slate-400 font-medium mt-1">
-                                        A login account will be automatically created and linked to this employee.
+                                        A login account will be created for this employee automatically.
                                     </p>
                                 </DialogHeader>
 
@@ -181,7 +181,7 @@ const Employees = () => {
                                     <div className="bg-slate-50 rounded-2xl p-6 space-y-4">
                                         <div className="flex items-center gap-2 mb-2">
                                             <Lock className="w-4 h-4 text-slate-400" />
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Login Credentials</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Login Details</p>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2 col-span-2">
@@ -222,7 +222,7 @@ const Employees = () => {
                                                 </div>
                                             </div>
                                             <div className="space-y-2 col-span-2">
-                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">System Role *</Label>
+                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Job Role *</Label>
                                                 <Select value={formData.role} onValueChange={val => set('role', val)}>
                                                     <SelectTrigger className="h-12 bg-white border-slate-200 rounded-xl text-sm font-medium">
                                                         <SelectValue />
@@ -237,11 +237,11 @@ const Employees = () => {
                                         </div>
                                     </div>
 
-                                    {/* HR Profile Section */}
+                                    {/* Job Details Section */}
                                     <div className="bg-slate-50 rounded-2xl p-6 space-y-4">
                                         <div className="flex items-center gap-2 mb-2">
                                             <Briefcase className="w-4 h-4 text-slate-400" />
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">HR Profile</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Job Details</p>
                                         </div>
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
@@ -311,7 +311,7 @@ const Employees = () => {
                             <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600">
                                 <Building2 className="w-5 h-5" />
                             </div>
-                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Employee Registry</h3>
+                            <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Employee List</h3>
                         </div>
                         <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">
                             {filteredEmployees.length} of {employees.length} employees
@@ -395,9 +395,9 @@ const Employees = () => {
                     ) : (
                         <div className="py-40 text-center opacity-30 flex flex-col items-center">
                             <Ghost className="w-24 h-24 text-slate-100 mb-8" />
-                            <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">No Employees</h3>
+                            <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">No Employees Yet</h3>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 px-20 text-center mx-auto max-w-lg leading-relaxed">
-                                Click "Onboard Employee" to add members to this workforce registry.
+                                Click "Add Employee" to add staff members.
                             </p>
                         </div>
                     )}

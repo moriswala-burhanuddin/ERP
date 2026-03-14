@@ -108,7 +108,7 @@ export default function GiftCards() {
                                                     {gc.isActive ? 'Suspend' : 'Activate'}
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem className="rounded-xl h-10 font-black uppercase text-[9px] tracking-widest text-red-600 focus:bg-red-50">
-                                                    Purge Node
+                                                    Delete
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>

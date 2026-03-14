@@ -15,6 +15,23 @@ ipcMain.handle('system:getVersion', () => {
     return version;
 });
 
+// Crypto for device ID
+const crypto = require('crypto')
+
+// License & Device ID IPCs
+ipcMain.handle('system:getDeviceId', async () => {
+    return dbDeviceId
+})
+
+ipcMain.handle('system:getLicenseKey', async () => {
+    return dbHelpers.getSetting('license_key')
+})
+
+ipcMain.handle('system:saveLicenseKey', async (event, key) => {
+    return dbHelpers.setSetting('license_key', key)
+})
+
+
 // Force app name to ensure correct userData path (AppData/Roaming/invenza-erp)
 app.name = 'invenza-erp';
 log.info('[MAIN] Forced App Name to:', app.name);
@@ -23,7 +40,7 @@ log.info('[MAIN] App Version:', app.getVersion());
 
 const path = require('path')
 const fs = require('fs')
-const { db, dbHelpers } = require('./db.cjs')
+const { db, dbHelpers, deviceId: dbDeviceId } = require('./db.cjs')
 const { askAI, getInventoryForecast, suggestProductCategory, processInvoiceOCR, optimizeReorderPoints } = require('./ai-service.cjs')
 
 // Cheques

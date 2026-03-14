@@ -26,17 +26,17 @@ export function ReturnsTab() {
                         <div className="p-3 bg-rose-500 rounded-xl text-white">
                             <RefreshCcw className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Reversal Protocols</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Return Rules</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Policy-level constraints governing the return of assets, including verification requirements and mandatory data hooks.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Set rules for how returns are handled – what information is needed and what must be checked.</p>
                 </div>
 
                 <div className="lg:col-span-8 flex flex-col gap-8">
                     <div className="grid md:grid-cols-2 gap-4">
                         {[
-                            { id: 'requireCustomerForReturn', label: 'Identity Verification', sub: 'Require customer node for return', icon: <UserCheck className="w-4 h-4" />, state: requireCustomerForReturn, action: (v: boolean) => updateConfig({ requireCustomerForReturn: v }) },
-                            { id: 'requireReceiptForReturn', label: 'Voucher Verification', sub: 'Require fiscal receipt for return', icon: <Receipt className="w-4 h-4" />, state: requireReceiptForReturn, action: (v: boolean) => updateConfig({ requireReceiptForReturn: v }) },
-                            { id: 'promptForSaleIdOnReturn', label: 'Transaction Hook', sub: 'Prompt for Sale ID identifier', icon: <Hash className="w-4 h-4" />, state: promptForSaleIdOnReturn, action: (v: boolean) => updateConfig({ promptForSaleIdOnReturn: v }) },
+                            { id: 'requireCustomerForReturn', label: 'Require Customer', sub: 'Ask for customer details on return', icon: <UserCheck className="w-4 h-4" />, state: requireCustomerForReturn, action: (v: boolean) => updateConfig({ requireCustomerForReturn: v }) },
+                            { id: 'requireReceiptForReturn', label: 'Require Receipt', sub: 'Ask for original sale receipt', icon: <Receipt className="w-4 h-4" />, state: requireReceiptForReturn, action: (v: boolean) => updateConfig({ requireReceiptForReturn: v }) },
+                            { id: 'promptForSaleIdOnReturn', label: 'Ask for Sale ID', sub: 'Prompt for the original sale ID', icon: <Hash className="w-4 h-4" />, state: promptForSaleIdOnReturn, action: (v: boolean) => updateConfig({ promptForSaleIdOnReturn: v }) },
                         ].map((item) => (
                             <div key={item.id} className="bg-slate-50 p-6 rounded-[1.8rem] border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all">
                                 <div className="flex items-center gap-4">
@@ -62,7 +62,7 @@ export function ReturnsTab() {
                         <div className="p-3 bg-white rounded-xl text-indigo-500 shadow-sm">
                             <ShieldCheck className="w-5 h-5" />
                         </div>
-                        <p className="text-[9px] font-bold text-indigo-900 uppercase tracking-widest leading-relaxed">These protocols are enforced globally across all terminal nodes to ensure fiscal integrity during asset reversal events.</p>
+                        <p className="text-[9px] font-bold text-indigo-900 uppercase tracking-widest leading-relaxed">These rules apply across all sales points to ensure correct processing during returns.</p>
                     </div>
                 </div>
             </div>
@@ -74,9 +74,9 @@ export function ReturnsTab() {
                         <div className="p-3 bg-black rounded-xl text-white">
                             <AlertTriangle className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Anomaly Taxonomy</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Return Reasons</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Classification of return triggers used for analytics and inventory optimization protocols.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">List of reasons customers can give when returning a product.</p>
                 </div>
 
                 <div className="lg:col-span-8 space-y-8">
@@ -84,7 +84,7 @@ export function ReturnsTab() {
                         <div className="relative flex-1 group">
                             <Plus className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-black transition-colors" />
                             <Input
-                                placeholder="INITIALIZE ANOMALY REASON (E.G. TRANSIT_DAMAGE)"
+                                placeholder="e.g. Damaged, Wrong item, Changed mind"
                                 value={newReason}
                                 onChange={e => setNewReason(e.target.value)}
                                 className="h-14 bg-white border-none rounded-2xl pl-14 pr-8 text-[11px] font-black uppercase"
@@ -96,7 +96,7 @@ export function ReturnsTab() {
                                 if (newReason && !returnReasons.includes(newReason)) {
                                     updateConfig({ returnReasons: [...returnReasons, newReason] });
                                     setNewReason('');
-                                    toast.success("Anomaly Vector Authorized");
+                                    toast.success("Return reason added");
                                 }
                             }}
                         >
@@ -111,7 +111,7 @@ export function ReturnsTab() {
                                 <button
                                     onClick={() => {
                                         updateConfig({ returnReasons: returnReasons.filter(r => r !== reason) });
-                                        toast.info("Anomaly Vector Dissolved");
+                                        toast.info("Return reason removed");
                                     }}
                                     className="p-2 bg-slate-50 rounded-lg text-slate-200 hover:text-rose-600 hover:bg-rose-50 transition-all"
                                 >
@@ -122,8 +122,8 @@ export function ReturnsTab() {
                         {returnReasons.length === 0 && (
                             <div className="py-20 text-center opacity-30 flex flex-col items-center w-full">
                                 <Ghost className="w-16 h-16 text-slate-100 mb-6" />
-                                <h4 className="text-xl font-black text-slate-900 uppercase">Reason Vacuum</h4>
-                                <p className="text-[9px] font-black text-slate-400 uppercase mt-2 px-20 text-center">No return reasons classified. Taxonomy is currently dormant.</p>
+                                <h4 className="text-xl font-black text-slate-900 uppercase">No Reasons Yet</h4>
+                                <p className="text-[9px] font-black text-slate-400 uppercase mt-2 px-20 text-center">No return reasons added yet. Add one above.</p>
                             </div>
                         )}
                     </div>

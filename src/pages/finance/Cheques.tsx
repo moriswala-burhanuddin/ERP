@@ -29,8 +29,8 @@ const Cheques = () => {
             await addCheque(newCheque);
             setShowAddModal(false);
             setNewCheque({ partyType: 'customer', partyId: '', partyName: '', chequeNumber: '', bankName: '', amount: 0, issueDate: new Date().toISOString().split('T')[0] });
-            toast.success('Monetary Instrument Logged: Cheque node synchronized.');
-        } catch { toast.error('Protocol Error: Cheque registration failed.'); }
+            toast.success('Cheque added successfully.');
+        } catch { toast.error('Error: Could not add cheque.'); }
     };
 
     const filteredCheques = cheques.filter(chq => {
@@ -174,7 +174,7 @@ const Cheques = () => {
                                                         </button>
                                                     </>
                                                 )}
-                                                <button onClick={() => { if (confirm('Purge this instrument record?')) { deleteCheque(chq.id); toast.success('Instrument node purged.'); } }}
+                                                <button onClick={() => { if (confirm('Delete this cheque record?')) { deleteCheque(chq.id); toast.success('Cheque deleted.'); } }}
                                                     className="h-12 w-12 rounded-2xl bg-slate-100 text-slate-400 hover:bg-rose-50 hover:text-rose-600 flex items-center justify-center transition-all">
                                                     <MoreVertical className="w-5 h-5" />
                                                 </button>

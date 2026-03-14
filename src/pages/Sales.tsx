@@ -124,7 +124,7 @@ export default function Sales() {
     }
     if (saleToDelete) {
       deleteSale(saleToDelete);
-      toast.success("Transaction Purged");
+      toast.success("Sale deleted.");
     }
     setShowDeleteDialog(false);
     setSaleToDelete(null);
@@ -139,8 +139,8 @@ export default function Sales() {
       <div className="bg-white border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Sales Ledger</h1>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{filteredSales.length} Total Records</p>
+            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Sales</h1>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{filteredSales.length} Records</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -243,13 +243,13 @@ export default function Sales() {
               <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Net Profit</span>
             </div>
             <h3 className="text-3xl font-black mb-1 text-slate-900">${totalProfit.toLocaleString()}</h3>
-            <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Retained Earnings</p>
+            <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Profit (Filtered)</p>
           </div>
 
           <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
             <div className="flex justify-between mb-6">
               <Activity className="w-6 h-6 text-indigo-600" />
-              <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Velocity</span>
+              <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Avg Sale</span>
             </div>
             <h3 className="text-3xl font-black mb-1 text-slate-900">{(totalSales / (filteredSales.length || 1)).toLocaleString()}</h3>
             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Avg Ticket Size</p>
@@ -338,7 +338,7 @@ export default function Sales() {
           ) : (
             <div className="bg-white rounded-[3rem] p-20 text-center border border-white flex flex-col items-center justify-center opacity-40">
               <Search className="w-20 h-20 text-slate-200 mb-6" />
-              <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Zero Records Found</h3>
+              <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">No Sales Found</h3>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Try adjusting your filters or adding a new sale</p>
             </div>
           )}
@@ -349,7 +349,7 @@ export default function Sales() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="sm:max-w-[480px] rounded-[2.5rem] border-none p-10 shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-black tracking-tight text-slate-900 uppercase mb-2">Administrative Shield</DialogTitle>
+            <DialogTitle className="text-2xl font-black tracking-tight text-slate-900 uppercase mb-2">Confirm Delete Sale</DialogTitle>
           </DialogHeader>
           <div className="py-6 space-y-6">
             <div className="p-6 bg-red-50 rounded-[1.5rem] border border-red-100 flex items-center gap-4">
@@ -357,13 +357,13 @@ export default function Sales() {
                 <AlertTriangle className="w-6 h-6 text-red-600" />
               </div>
               <div>
-                <h4 className="text-[11px] font-black uppercase text-red-900 leading-none mb-1">Critical Warning</h4>
-                <p className="text-[9px] font-bold text-red-400 uppercase tracking-widest leading-relaxed">Purging transaction logs requires master elevation.</p>
+                <h4 className="text-[11px] font-black uppercase text-red-900 leading-none mb-1">Warning</h4>
+                <p className="text-[9px] font-bold text-red-400 uppercase tracking-widest leading-relaxed">This will permanently delete the sale record.</p>
               </div>
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Supervisor Passkey</Label>
+              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Admin Code</Label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
                   <ShieldCheck className="w-5 h-5 text-slate-300 group-focus-within:text-black transition-colors" />
@@ -384,7 +384,7 @@ export default function Sales() {
               className="w-full rounded-[1.2rem] h-14 font-black uppercase text-[10px] tracking-widest"
               onClick={() => setShowDeleteDialog(false)}
             >
-              Cancel Operation
+              Cancel
             </Button>
             <Button
               className="w-full bg-red-600 text-white rounded-[1.2rem] h-16 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-red-200"

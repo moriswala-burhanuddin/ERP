@@ -47,9 +47,9 @@ export default function PartyLedger() {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Party Ledger Matrix</h1>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Customer & Supplier Ledger</h1>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">
-                                Receivables & Transaction Stream Topology
+                                Track payments and balances for everyone you deal with.
                             </p>
                         </div>
                     </div>
@@ -62,7 +62,7 @@ export default function PartyLedger() {
                     <div className="relative group">
                         <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-black transition-colors" />
                         <input
-                            placeholder="IDENTIFY ENTITY..."
+                            placeholder="SEARCH CUSTOMER..."
                             className="h-14 bg-white border-none rounded-2xl pl-12 pr-6 text-[10px] font-black uppercase focus:ring-2 focus:ring-black w-full placeholder:text-slate-200 shadow-sm"
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}

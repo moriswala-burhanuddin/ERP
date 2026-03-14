@@ -52,8 +52,8 @@ export default function Transactions() {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Fiscal Stream Topology</h1>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Transaction Ledger • {filteredTransactions.length} Stream Nodes</p>
+              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Transactions</h1>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Transaction History • {filteredTransactions.length} Transactions</p>
             </div>
           </div>
 
@@ -63,7 +63,7 @@ export default function Transactions() {
               className="bg-black text-white rounded-[1.2rem] h-14 px-8 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
               <Plus className="w-4 h-4 mr-2 text-indigo-400" />
-              Initialize FISCAL_NODE
+              New Transaction
             </Button>
           </div>
         </div>
@@ -76,7 +76,7 @@ export default function Transactions() {
             <div className="p-4 bg-emerald-50 rounded-2xl w-fit mb-8 text-emerald-500">
               <ArrowDownLeft className="w-6 h-6" />
             </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Inbound Velocity</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Money In</p>
             <h3 className="text-3xl font-black text-emerald-600 tracking-tighter">{fmt(totalCashIn)}</h3>
           </div>
 
@@ -84,7 +84,7 @@ export default function Transactions() {
             <div className="p-4 bg-rose-50 rounded-2xl w-fit mb-8 text-rose-500">
               <ArrowUpRight className="w-6 h-6" />
             </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 text-rose-600">Outbound Velocity</p>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 text-rose-600">Money Out</p>
             <h3 className="text-3xl font-black text-rose-600 tracking-tighter">{fmt(totalCashOut)}</h3>
           </div>
 
@@ -93,11 +93,11 @@ export default function Transactions() {
               <div className="p-4 bg-white/10 rounded-2xl text-white">
                 <Wallet className="w-6 h-6" />
               </div>
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Global Status</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</span>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[11px] font-black uppercase tracking-widest text-emerald-400">Stream Synchronized</span>
+              <span className="text-[11px] font-black uppercase tracking-widest text-emerald-400">Up to Date</span>
             </div>
             <Zap className="absolute -right-4 -bottom-4 w-24 h-24 text-white/5 opacity-0 group-hover:opacity-100 transition-all rotate-12" />
           </div>
@@ -117,7 +117,7 @@ export default function Transactions() {
                     : 'bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-900'
                 )}
               >
-                {type === 'all' ? 'Entire Stream' : getTypeLabel(type)}
+                {type === 'all' ? 'All' : getTypeLabel(type)}
               </button>
             ))}
           </div>
@@ -128,7 +128,7 @@ export default function Transactions() {
             </div>
             <input
               type="text"
-              placeholder="IDENTIFY BY DESCRIPTION OR ENTITY..."
+              placeholder="SEARCH BY DESCRIPTION OR CUSTOMER..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-16 bg-slate-50 border-none rounded-[1.5rem] pl-16 pr-8 text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-black placeholder:text-slate-200 transition-all"
@@ -167,14 +167,14 @@ export default function Transactions() {
                       </div>
                       <div className="flex flex-wrap gap-x-8 gap-y-2">
                         <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                          <span className="text-slate-300">INITIATED:</span> {new Date(t.date).toLocaleDateString()}
+                          <span className="text-slate-300">DATE:</span> {new Date(t.date).toLocaleDateString()}
                         </div>
                         <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                          <span className="text-slate-300">ACCOUNT:</span> {account?.name || 'LINK_NULL'}
+                          <span className="text-slate-300">ACCOUNT:</span> {account?.name || 'N/A'}
                         </div>
                         {t.customerName && (
                           <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                            <span className="text-slate-300">ENTITY:</span> {t.customerName}
+                            <span className="text-slate-300">CUSTOMER:</span> {t.customerName}
                           </div>
                         )}
                       </div>
@@ -183,7 +183,7 @@ export default function Transactions() {
 
                   <div className="flex items-center gap-10 self-end lg:self-center shrink-0">
                     <div className="text-right">
-                      <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none mb-2 opacity-50">Node Magnitude</p>
+                      <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none mb-2 opacity-50">Amount</p>
                       <p className={cn(
                         "text-3xl font-black leading-none",
                         t.type === 'cash_in' ? "text-emerald-600" : "text-rose-600"
@@ -204,8 +204,8 @@ export default function Transactions() {
               <div className="w-32 h-32 bg-slate-50 rounded-full flex items-center justify-center mb-10">
                 <Receipt className="w-16 h-16 text-slate-100" />
               </div>
-              <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Stream Vacant</h3>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4 px-20 max-w-2xl leading-loose text-center">No fiscal nodes identified matching the target parameters. Initialize a new transaction to populate the stream matrix.</p>
+              <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">No Transactions Found</h3>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4 px-20 max-w-2xl leading-loose text-center">No transactions match your search. Add a new transaction to get started.</p>
             </div>
           )}
         </div>

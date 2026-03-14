@@ -4,8 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useERPStore } from '@/lib/store-data';
+import { useLicense } from '@/contexts/LicenseContext';
 
 export function AIChatSidebar() {
+    const { hasFeature } = useLicense();
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState('');
     const [messages, setMessages] = useState<{ role: 'user' | 'ai', content: string }[]>([
@@ -52,6 +54,10 @@ export function AIChatSidebar() {
             setIsLoading(false);
         }
     };
+
+    if (!hasFeature('ai_features')) {
+        return null;
+    }
 
     return (
         <>

@@ -43,7 +43,7 @@ export default function PurchaseOrders() {
     const handleAddPO = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newPO.supplier || !newPO.totalAmount) {
-            toast.error('Identification Error: Vendor and magnitude required.');
+            toast.error('Please fill in the supplier name and amount.');
             return;
         }
 
@@ -56,11 +56,11 @@ export default function PurchaseOrders() {
                 storeId: activeStoreId,
                 date: new Date().toISOString()
             });
-            toast.success('Procurement Protocol Initiated: Draft PO Saved');
+            toast.success('Purchase order saved as draft.');
             setIsAddOpen(false);
             setNewPO({ supplier: '', totalAmount: '' });
         } catch (error) {
-            toast.error('Protocol Failure: Registry rejected PO node.');
+            toast.error('Failed to save purchase order. Please try again.');
         }
     };
 
@@ -68,14 +68,14 @@ export default function PurchaseOrders() {
         e.stopPropagation();
         const nextStatus = currentStatus === 'draft' ? 'sent' : currentStatus === 'sent' ? 'received' : 'draft';
         await updatePurchaseOrder(id, { status: nextStatus, updatedAt: new Date().toISOString() });
-        toast.success(`Pipeline Updated: Node marked as ${nextStatus.toUpperCase()}`);
+        toast.success(`Status updated to ${nextStatus.toUpperCase()}`);
     };
 
     const getStatusConfig = (status: string) => {
         switch (status) {
-            case 'received': return { icon: <CheckCircle2 className="w-3 h-3" />, class: 'bg-emerald-50 text-emerald-600 border-emerald-100', label: 'Fulfilled' };
-            case 'sent': return { icon: <Truck className="w-3 h-3" />, class: 'bg-indigo-50 text-indigo-600 border-indigo-100', label: 'Transit' };
-            case 'draft': return { icon: <Clock className="w-3 h-3" />, class: 'bg-amber-50 text-amber-600 border-amber-100', label: 'Pipeline' };
+            case 'received': return { icon: <CheckCircle2 className="w-3 h-3" />, class: 'bg-emerald-50 text-emerald-600 border-emerald-100', label: 'Received' };
+            case 'sent': return { icon: <Truck className="w-3 h-3" />, class: 'bg-indigo-50 text-indigo-600 border-indigo-100', label: 'In Transit' };
+            case 'draft': return { icon: <Clock className="w-3 h-3" />, class: 'bg-amber-50 text-amber-600 border-amber-100', label: 'Draft' };
             default: return { icon: <AlertCircle className="w-3 h-3" />, class: 'bg-slate-50 text-slate-500 border-slate-100', label: status };
         }
     };
@@ -90,8 +90,8 @@ export default function PurchaseOrders() {
                             <FileText className="w-6 h-6" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Procurement Pipeline</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Order registry • {filteredPOs.length} Pipeline Nodes</p>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Purchase Orders</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Order registry • {filteredPOs.length} Orders</p>
                         </div>
                     </div>
 
@@ -115,21 +115,21 @@ export default function PurchaseOrders() {
                             </DialogTrigger>
                             <DialogContent className="rounded-[3rem] p-12 max-w-xl border-none shadow-2xl animate-in fade-in zoom-in duration-300">
                                 <DialogHeader className="mb-8">
-                                    <DialogTitle className="text-2xl font-black uppercase tracking-tight">Initialize Procurement</DialogTitle>
-                                    <DialogDescription className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Constructing new acquisition node for the pipeline.</DialogDescription>
+                                    <DialogTitle className="text-2xl font-black uppercase tracking-tight">New Purchase Order</DialogTitle>
+                                    <DialogDescription className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Create a new purchase order.</DialogDescription>
                                 </DialogHeader>
                                 <form onSubmit={handleAddPO} className="space-y-8 pt-4">
                                     <div className="space-y-4">
-                                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Provider Node (Supplier)</Label>
+                                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Supplier Name</Label>
                                         <Input
                                             value={newPO.supplier}
                                             onChange={e => setNewPO({ ...newPO, supplier: e.target.value.toUpperCase() })}
                                             className="h-16 bg-slate-50 border-none rounded-2xl px-6 text-[11px] font-black uppercase focus:ring-2 focus:ring-black"
-                                            placeholder="VENDOR_ID_0x0"
+                                            placeholder="SUPPLIER NAME"
                                         />
                                     </div>
                                     <div className="space-y-4">
-                                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Estimated Magnitude (Value)</Label>
+                                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Total Amount</Label>
                                         <Input
                                             type="number"
                                             value={newPO.totalAmount}
@@ -139,8 +139,8 @@ export default function PurchaseOrders() {
                                         />
                                     </div>
                                     <div className="flex gap-4 pt-4">
-                                        <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="flex-1 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400">Abort</Button>
-                                        <Button type="submit" className="flex-1 h-16 rounded-[1.2rem] bg-black text-white font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20">Inject to Pipeline</Button>
+                                        <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="flex-1 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400">Cancel</Button>
+                                        <Button type="submit" className="flex-1 h-16 rounded-[1.2rem] bg-black text-white font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20">Save Order</Button>
                                     </div>
                                 </form>
                             </DialogContent>
@@ -156,30 +156,30 @@ export default function PurchaseOrders() {
                         <div className="p-3 bg-indigo-50 rounded-xl w-fit mb-6 text-indigo-500">
                             <TrendingUp className="w-5 h-5" />
                         </div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Portfolio Magnitude</p>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Value</p>
                         <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{fmt(totalOrdersValue)}</h3>
                     </div>
                     <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
                         <div className="p-3 bg-amber-50 rounded-xl w-fit mb-6 text-amber-500">
                             <Clock className="w-5 h-5" />
                         </div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Nodes in Transit</p>
-                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{pendingOrders} Active</h3>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Pending Orders</p>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{pendingOrders}</h3>
                     </div>
                     <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
                         <div className="p-3 bg-emerald-50 rounded-xl w-fit mb-6 text-emerald-500">
                             <PackageCheck className="w-5 h-5" />
                         </div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Fulfilled Indices</p>
-                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{receivedOrders} Reconciled</h3>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Received Orders</p>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{receivedOrders}</h3>
                     </div>
                     <div className="bg-black rounded-[2rem] p-8 text-white shadow-xl shadow-black/10 flex flex-col justify-center relative overflow-hidden group">
                         <Zap className="absolute -right-4 -top-4 w-24 h-24 text-white/5 rotate-12 group-hover:rotate-45 transition-transform duration-700" />
                         <div className="relative z-10">
-                            <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2">Automated Audit</p>
+                            <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2">Export</p>
                             <Button className="w-full bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-xl h-12 font-black uppercase text-[9px] tracking-widest">
                                 <Download className="w-3.5 h-3.5 mr-2" />
-                                Export Stream
+                                Export All
                             </Button>
                         </div>
                     </div>
@@ -188,7 +188,7 @@ export default function PurchaseOrders() {
                 {/* Pipeline Stream */}
                 <div className="bg-white rounded-[3rem] p-12 shadow-sm border border-white min-h-[600px]">
                     <div className="flex items-center justify-between mb-12">
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Procurement Node Stream</h3>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">All Orders</h3>
                     </div>
 
                     {filteredPOs.length > 0 ? (
@@ -212,7 +212,7 @@ export default function PurchaseOrders() {
 
                                         <div className="space-y-1 mb-8">
                                             <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight">{po.supplier}</h4>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono">NODE_HASH: {po.id.substring(0, 8).toUpperCase()}</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono">ID: {po.id.substring(0, 8).toUpperCase()}</p>
                                         </div>
 
                                         <div className="flex items-end justify-between">
@@ -226,7 +226,7 @@ export default function PurchaseOrders() {
                                                 <div className="flex items-center gap-2 text-slate-400">
                                                     <Box className="w-3 h-3" />
                                                     <span className="text-[8px] font-black uppercase tracking-widest opacity-60">
-                                                        {po.items?.length || 0} Unit Definitions
+                                                        {po.items?.length || 0} Items
                                                     </span>
                                                 </div>
                                             </div>
@@ -238,7 +238,7 @@ export default function PurchaseOrders() {
                                                     className="h-9 px-4 rounded-xl text-[8px] font-black uppercase tracking-widest border-slate-200 hover:bg-slate-900 hover:text-white transition-all shadow-sm"
                                                     onClick={(e) => handleStatusUpdate(po.id, po.status, e)}
                                                 >
-                                                    SHIFT {po.status === 'draft' ? 'SENT' : po.status === 'sent' ? 'RECV' : 'DRAFT'}
+                                                    Mark {po.status === 'draft' ? 'Sent' : po.status === 'sent' ? 'Received' : 'Draft'}
                                                 </Button>
                                             </div>
                                         </div>
@@ -249,9 +249,9 @@ export default function PurchaseOrders() {
                     ) : (
                         <div className="py-40 text-center opacity-30">
                             <FileText className="w-24 h-24 text-slate-100 mx-auto mb-8" />
-                            <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Pipeline Vacant</h3>
+                            <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">No Orders Yet</h3>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 px-20 text-center mx-auto max-w-lg">
-                                No procurement definitions detected in the stream. Initialize a new PO node to begin acquisition flow.
+                                Start by creating a new purchase order.
                             </p>
                         </div>
                     )}

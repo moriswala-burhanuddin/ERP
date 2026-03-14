@@ -36,7 +36,7 @@ export default function CustomerDisplay() {
                 <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-emerald-500/20 rounded-full blur-[160px]" />
             </div>
 
-            {/* Header Synthesis */}
+            {/* Header */}
             <div className="flex justify-between items-center mb-12 relative z-10 border-b border-white/5 pb-12">
                 <div>
                     <div className="flex items-center gap-4 mb-4">
@@ -47,21 +47,21 @@ export default function CustomerDisplay() {
                     </div>
                     <div className="flex items-center gap-3 bg-white/5 border border-white/5 px-4 py-1.5 rounded-full">
                         <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Hardware Intel Series v2.4</span>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Customer Display</span>
                     </div>
                 </div>
 
                 <div className="text-right">
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mb-2">Authenticated Entity</p>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mb-2">Customer</p>
                     <div className="flex items-center justify-end gap-3">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <p className="text-3xl font-black uppercase tracking-tight">{data.customerName || 'UNIDENTIFIED_GUEST'}</p>
+                        <p className="text-3xl font-black uppercase tracking-tight">{data.customerName || 'WALK-IN GUEST'}</p>
                     </div>
                 </div>
             </div>
 
             <div className="flex-1 grid grid-cols-12 gap-16 overflow-hidden relative z-10">
-                {/* Items Manifest */}
+                {/* Items List */}
                 <div className="col-span-8 flex flex-col gap-6 overflow-y-auto pr-8 custom-scrollbar">
                     {data.items.length > 0 ? (
                         data.items.map((item, idx) => (
@@ -91,13 +91,13 @@ export default function CustomerDisplay() {
                             <div className="w-40 h-40 bg-white/5 rounded-full flex items-center justify-center mb-10">
                                 <Activity className="w-20 h-20 text-white animate-pulse" />
                             </div>
-                            <h2 className="text-4xl font-black tracking-[0.6em] text-center max-w-lg uppercase">Awaiting Transaction Protocol</h2>
-                            <p className="text-xs font-black text-slate-500 uppercase tracking-[0.4em] mt-6">Scan items to begin fulfillment</p>
+                            <h2 className="text-4xl font-black tracking-[0.6em] text-center max-w-lg uppercase">Waiting for Items</h2>
+                            <p className="text-xs font-black text-slate-500 uppercase tracking-[0.4em] mt-6">Scan items to begin</p>
                         </div>
                     )}
                 </div>
 
-                {/* Fiscal Summary Sidebar */}
+                {/* Payment Summary */}
                 <div className="col-span-4 flex flex-col gap-8">
                     <div className="bg-white/5 backdrop-blur-3xl rounded-[4rem] p-12 flex flex-col gap-10 border border-white/[0.03] shadow-2xl relative overflow-hidden group">
                         <div className="absolute -right-10 -bottom-10 opacity-[0.03] group-hover:rotate-12 transition-transform duration-1000">
@@ -106,15 +106,15 @@ export default function CustomerDisplay() {
 
                         <div className="space-y-6 relative z-10">
                             <div className="flex justify-between items-center">
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Gross Subtotal</span>
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Subtotal</span>
                                 <span className="text-2xl font-black font-mono tracking-tighter">${data.subtotal.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between items-center group/dis">
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Protocol Discount</span>
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Discount</span>
                                 <span className="text-2xl font-black font-mono tracking-tighter text-rose-500">-${data.discount.toFixed(2)}</span>
                             </div>
                             <div className="flex justify-between items-center">
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Fiscal Levies (Tax)</span>
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Tax</span>
                                 <span className="text-2xl font-black font-mono tracking-tighter">${data.tax.toFixed(2)}</span>
                             </div>
                         </div>
@@ -125,7 +125,7 @@ export default function CustomerDisplay() {
                                     <div className="w-4 h-4 rounded-md bg-indigo-500 flex items-center justify-center">
                                         <Wallet className="w-2 h-2 text-white" />
                                     </div>
-                                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">Aggregate Payable</span>
+                                    <span className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.3em]">Total to Pay</span>
                                 </div>
                                 <div className="text-8xl font-black font-mono tracking-tighter text-white drop-shadow-[0_10px_30px_rgba(255,255,255,0.1)]">
                                     <span className="text-4xl align-top mr-2 text-indigo-500">$</span>
@@ -140,7 +140,7 @@ export default function CustomerDisplay() {
                             <Receipt className="w-6 h-6" />
                         </div>
                         <h4 className="text-xl font-black uppercase tracking-widest leading-none">Thank you for Choosing StoreFlow<span className="text-indigo-500">.</span></h4>
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] leading-relaxed">Authorized Fiscal Dispatch Node ID:SFX-2026-N08</p>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] leading-relaxed">Have a great day!</p>
                     </div>
                 </div>
             </div>

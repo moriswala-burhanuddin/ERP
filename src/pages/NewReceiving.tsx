@@ -97,7 +97,7 @@ export default function NewReceiving() {
 
     const handleComplete = async () => {
         if (!supplierId || cart.length === 0) {
-            toast.error("PROTOCOL REJECTED: Supplier node and item indices required.");
+            toast.error("Please select a supplier and add items.");
             return;
         }
 
@@ -116,16 +116,16 @@ export default function NewReceiving() {
                 storeId: activeStoreId,
                 items: cart.map(item => ({ ...item, storeId: activeStoreId }))
             });
-            toast.success("Delivery Finalized: Inventory Synchronized");
+            toast.success("Receiving Saved: Inventory Updated");
             navigate('/receivings');
         } catch (error) {
-            toast.error("SYNCHRONIZATION FAILURE: Protocol rejected by registry.");
+            toast.error("Failed to save receiving record.");
         }
     };
 
     const handleSuspend = async () => {
         if (!supplierId) {
-            toast.error("IDENTIFICATION ERROR: Supplier node required for draft.");
+            toast.error("Supplier required to save as draft.");
             return;
         }
 
@@ -143,10 +143,10 @@ export default function NewReceiving() {
                 storeId: activeStoreId,
                 items: cart.map(item => ({ ...item, storeId: activeStoreId }))
             });
-            toast.success("Protocol Suspended: Session Saved as Draft");
+            toast.success("Saved as Draft");
             navigate('/receivings');
         } catch (error) {
-            toast.error("PROTOCOL FAILURE: Session persistence failed.");
+            toast.error("Failed to save draft.");
         }
     };
 
@@ -165,17 +165,17 @@ export default function NewReceiving() {
                             <ArrowLeft className="w-5 h-5 text-slate-400" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Inbound Protocol</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Acquisition Hash: {receivingNumber}</p>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">New Receiving</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Ref: {receivingNumber}</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3">
                         <Button variant="ghost" onClick={handleSuspend} className="rounded-2xl h-12 px-6 font-black uppercase text-[10px] text-slate-400 tracking-widest">
-                            Suspend to Draft
+                            Save Draft
                         </Button>
                         <Button onClick={handleComplete} className="bg-black text-white rounded-[1.2rem] h-14 px-10 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                            Finalize Protocol
+                            Complete Receiving
                         </Button>
                     </div>
                 </div>
@@ -190,25 +190,25 @@ export default function NewReceiving() {
                                 <Box className="w-6 h-6" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Logistics Matrix</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Identifying provider and purchase nodes</p>
+                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Supplier Details</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Select supplier and purchase order</p>
                             </div>
                         </div>
 
                         <div className="grid md:grid-cols-2 gap-8">
                             <div className="space-y-4">
-                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Provider Node (Supplier)</Label>
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Supplier</Label>
                                 <select
                                     value={supplierId}
                                     onChange={(e) => setSupplierId(e.target.value)}
                                     className="w-full h-16 bg-slate-50 border-none rounded-2xl px-6 text-[11px] font-black uppercase focus:ring-2 focus:ring-black appearance-none"
                                 >
-                                    <option value="">Choose Node...</option>
+                                    <option value="">Select Supplier...</option>
                                     {suppliers.map(s => <option key={s.id} value={s.id}>{s.companyName.toUpperCase()}</option>)}
                                 </select>
                             </div>
                             <div className="space-y-4">
-                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Procurement Reference (PO)</Label>
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Purchase Order (Optional)</Label>
                                 <select
                                     value={poId}
                                     onChange={(e) => setPoId(e.target.value)}
@@ -230,13 +230,13 @@ export default function NewReceiving() {
                                     <ListPlus className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Acquisition Stream</h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">{cart.length} Unit Indices Identified</p>
+                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Received Items</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">{cart.length} Items Added</p>
                                 </div>
                             </div>
                             <Button onClick={() => setShowProductPicker(true)} className="bg-slate-50 hover:bg-slate-100 text-slate-900 border-none rounded-2xl h-14 px-8 font-black uppercase text-[10px] tracking-widest transition-all">
                                 <Zap className="w-4 h-4 mr-2" />
-                                Initiate Scan
+                                Add Item
                             </Button>
                         </div>
 
@@ -263,11 +263,11 @@ export default function NewReceiving() {
                                         <div className="flex items-center gap-12 text-right">
                                             <div>
                                                 <p className="text-xl font-black text-slate-900 tracking-tighter mb-1 font-mono">{item.quantity}</p>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Units Identified</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Quantity</p>
                                             </div>
                                             <div>
                                                 <p className="text-xl font-black text-slate-900 tracking-tighter mb-1">{fmt(item.total)}</p>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Sub-Value</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total</p>
                                             </div>
                                             <button onClick={() => removeFromCart(item.productId)} className="p-3 bg-white text-slate-200 hover:text-rose-500 rounded-xl transition-all border border-slate-100">
                                                 <Trash2 className="w-4 h-4" />
@@ -279,8 +279,8 @@ export default function NewReceiving() {
                         ) : (
                             <div className="py-24 text-center border-2 border-dashed border-slate-100 rounded-[3rem]">
                                 <ShoppingCart className="w-16 h-16 text-slate-100 mx-auto mb-6" />
-                                <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Stream Vacant</h3>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Initiate scan or manually add product nodes to begin</p>
+                                <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">No Items Added</h3>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Add products to begin receiving</p>
                             </div>
                         )}
                     </div>
@@ -291,16 +291,16 @@ export default function NewReceiving() {
                     <div className="bg-black rounded-[3rem] p-10 text-white shadow-2xl shadow-black/20 overflow-hidden relative group">
                         <Zap className="absolute -right-10 -top-10 w-40 h-40 text-white/5 rotate-12 group-hover:rotate-45 transition-transform duration-1000" />
                         <div className="relative z-10">
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-8">Reconciliation</h4>
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-8">Payment Summary</h4>
 
                             <div className="space-y-6">
                                 <div className="p-8 bg-white/5 rounded-[2rem] border border-white/5">
-                                    <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">Aggregated Value</p>
+                                    <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">Total Amount</p>
                                     <h3 className="text-4xl font-black tracking-tighter">{fmt(totalAmount)}</h3>
                                 </div>
 
                                 <div className="space-y-4">
-                                    <Label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Settlement Magnitude</Label>
+                                    <Label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Amount Paid</Label>
                                     <div className="relative">
                                         <Wallet className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-white/20" />
                                         <Input
@@ -315,7 +315,7 @@ export default function NewReceiving() {
 
                                 {amountPaid > 0 && (
                                     <div className="space-y-4">
-                                        <Label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Liquidity Source (Account)</Label>
+                                        <Label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Payment Account</Label>
                                         <select
                                             value={accountId}
                                             onChange={(e) => setAccountId(e.target.value)}
@@ -332,26 +332,26 @@ export default function NewReceiving() {
                     <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white">
                         <div className="flex items-center gap-3 mb-8 text-indigo-600">
                             <ShieldCheck className="w-5 h-5" />
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Deployment Directives</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em]">Notes</h3>
                         </div>
                         <textarea
                             value={notes}
                             onChange={(e) => setNotes(e.target.value)}
                             className="w-full h-32 bg-slate-50 border-none rounded-2xl p-6 text-xs font-bold leading-relaxed placeholder:text-slate-200 resize-none focus:ring-2 focus:ring-black"
-                            placeholder="Add specific delivery directives, damage nodes, or logistics parameters..."
+                            placeholder="Add specific delivery notes, damage reports, or tracking numbers..."
                         />
                     </div>
                 </div>
             </main>
 
-            {/* Product Picker Protocol */}
+            {/* Select Product Dialog */}
             {showProductPicker && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
                     <div className="bg-white w-full max-w-2xl rounded-[4rem] border border-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500">
                         <div className="p-12 pb-8 flex items-center justify-between">
                             <div>
-                                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Node Identification</h3>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 text-indigo-600">Selecting product node for stream injection</p>
+                                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Select Product</h3>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 text-indigo-600">Choose a product to add to the receiving</p>
                             </div>
                             <button onClick={() => setShowProductPicker(false)} className="p-4 bg-slate-50 hover:bg-slate-100 rounded-3xl transition-all">
                                 <X className="w-6 h-6 text-slate-400" />
@@ -361,7 +361,7 @@ export default function NewReceiving() {
                             <div className="relative group">
                                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-black transition-colors" />
                                 <Input
-                                    placeholder="SCAN ID OR NAME..."
+                                    placeholder="SEARCH BY ID OR NAME..."
                                     className="h-16 bg-slate-50 border-none rounded-[1.5rem] pl-16 pr-6 text-sm font-black uppercase focus:ring-2 focus:ring-black placeholder:text-slate-200"
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -382,7 +382,7 @@ export default function NewReceiving() {
                                         </div>
                                         <div className="text-left">
                                             <p className="font-black text-sm uppercase tracking-tight">{p.name}</p>
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">{p.sku} • {p.quantity} {p.unit || 'UNITS'} IN SECTOR</p>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">{p.sku} • {p.quantity} {p.unit || 'UNITS'} IN STOCK</p>
                                         </div>
                                     </div>
                                     <p className="text-lg font-black text-slate-900 tracking-tighter">{fmt(p.purchasePrice || 0)}</p>
@@ -393,13 +393,13 @@ export default function NewReceiving() {
                 </div>
             )}
 
-            {/* Item Details Synthesis */}
+            {/* Item Details Dialog */}
             {showItemDetails && editingItem && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-6">
                     <div className="bg-white w-full max-w-2xl rounded-[4rem] border border-white shadow-2xl overflow-hidden animate-in slide-in-from-bottom-20 duration-500">
                         <div className="p-12 pb-8 bg-indigo-600 text-white flex items-center justify-between">
                             <div>
-                                <h3 className="text-2xl font-black uppercase tracking-tight">Stream Synthesis</h3>
+                                <h3 className="text-2xl font-black uppercase tracking-tight">Item Details</h3>
                                 <p className="text-[10px] font-black text-indigo-200 uppercase tracking-widest mt-2">{editingItem.productName}</p>
                             </div>
                             <button onClick={() => setShowItemDetails(false)} className="p-4 bg-white/10 hover:bg-white/20 rounded-3xl transition-all">
@@ -410,7 +410,7 @@ export default function NewReceiving() {
                         <div className="p-12 space-y-10">
                             <div className="grid md:grid-cols-2 gap-10">
                                 <div className="space-y-4">
-                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Magnitude (Qty)</Label>
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Quantity</Label>
                                     <div className="flex items-center gap-4">
                                         <button onClick={() => setEditingItem({ ...editingItem, quantity: Math.max(1, editingItem.quantity - 1), total: Math.max(1, editingItem.quantity - 1) * editingItem.cost })} className="w-16 h-16 bg-slate-50 hover:bg-slate-100 rounded-2xl flex items-center justify-center text-slate-400"><Minus /></button>
                                         <input type="number" value={editingItem.quantity} className="flex-1 h-16 bg-slate-50 border-none rounded-2xl text-center font-black text-xl" onChange={e => {
@@ -421,7 +421,7 @@ export default function NewReceiving() {
                                     </div>
                                 </div>
                                 <div className="space-y-4">
-                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Acquisition Cost</Label>
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Cost Price</Label>
                                     <div className="relative">
                                         <CreditCard className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-200" />
                                         <Input type="number" value={editingItem.cost} className="h-16 bg-slate-50 border-none rounded-2xl pl-16 pr-6 text-xl font-black" onChange={e => {
@@ -434,19 +434,19 @@ export default function NewReceiving() {
 
                             <div className="grid md:grid-cols-2 gap-10">
                                 <div className="space-y-4">
-                                    <Label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-1">Registry Hash (Batch #)</Label>
+                                    <Label className="text-[10px] font-black text-indigo-400 uppercase tracking-widest ml-1">Batch Number</Label>
                                     <Input placeholder="B-XXXX" className="h-16 bg-slate-50 border-none rounded-2xl px-6 text-sm font-black uppercase" value={editingItem.batchNumber || ''} onChange={e => setEditingItem({ ...editingItem, batchNumber: e.target.value })} />
                                 </div>
                                 <div className="space-y-4">
-                                    <Label className="text-[10px] font-black text-rose-400 uppercase tracking-widest ml-1">Extinction Threshold (Expiry)</Label>
+                                    <Label className="text-[10px] font-black text-rose-400 uppercase tracking-widest ml-1">Expiry Date</Label>
                                     <Input type="date" className="h-16 bg-slate-50 border-none rounded-2xl px-6 text-xs font-black" value={editingItem.expiryDate || ''} onChange={e => setEditingItem({ ...editingItem, expiryDate: e.target.value })} />
                                 </div>
                             </div>
                         </div>
 
                         <div className="p-10 bg-slate-50 flex gap-4 border-t border-slate-100">
-                            <Button onClick={() => setShowItemDetails(false)} variant="ghost" className="flex-1 h-16 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest text-slate-400">Abort</Button>
-                            <Button onClick={saveItemToCart} className="flex-1 h-16 rounded-[1.5rem] bg-indigo-600 text-white font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-indigo-200">Inject to Stream</Button>
+                            <Button onClick={() => setShowItemDetails(false)} variant="ghost" className="flex-1 h-16 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest text-slate-400">Cancel</Button>
+                            <Button onClick={saveItemToCart} className="flex-1 h-16 rounded-[1.5rem] bg-indigo-600 text-white font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-indigo-200">Save Item</Button>
                         </div>
                     </div>
                 </div>

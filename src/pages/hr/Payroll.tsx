@@ -43,7 +43,7 @@ const Payroll = ({ isEmployeeView = false }: PayrollProps) => {
                     {!isEmployeeView && (
                         <Button className="bg-black text-white rounded-[1.2rem] h-14 px-10 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all gap-3">
                             <Calculator className="w-4 h-4 text-indigo-400" />
-                            Generate Monthly Run
+                            Run Payroll
                         </Button>
                     )}
                 </div>
@@ -56,7 +56,7 @@ const Payroll = ({ isEmployeeView = false }: PayrollProps) => {
                         <div className="p-4 bg-emerald-50 rounded-2xl w-fit mb-8 text-emerald-500">
                             <DollarSign className="w-6 h-6" />
                         </div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Net Disbursement</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Pay (Net)</p>
                         <h3 className="text-3xl font-black text-slate-900 tracking-tighter">₹{totalNet.toLocaleString()}</h3>
                     </div>
                     <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white">

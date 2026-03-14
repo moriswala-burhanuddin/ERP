@@ -124,8 +124,8 @@ const DayBook = () => {
                             <Wallet className="w-6 h-6" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Fiscal Ledger</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Transaction Stream • {format(date, "MMMM do, yyyy").toUpperCase()}</p>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Daily Cash Book</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Daily record of sales and payments • {format(date, "MMMM do, yyyy").toUpperCase()}</p>
                         </div>
                     </div>
 

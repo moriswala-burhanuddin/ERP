@@ -222,14 +222,14 @@ export default function NewSale() {
   const handleSubmit = async () => {
     if (isSubmitting || cart.length === 0) return;
     if (saleType === 'credit' && !customerId) {
-      toast.error("Customer Selection Mandatory for Credit");
+      toast.error("Customer Selection Required for Credit");
       return;
     }
     // For non-credit sales: if no payments added, auto-apply full amount as cash
     let finalPayments = payments;
     if (saleType !== 'credit') {
       if (!accountId) {
-        toast.error("Escrow Account Mandatory for Transaction Settlement");
+        toast.error("Account Required for Payment Selection");
         return;
       }
       if (finalPayments.length === 0) {
@@ -273,10 +273,10 @@ export default function NewSale() {
         date: new Date().toISOString()
       });
 
-      toast.success("Transaction Record Committed");
+      toast.success("Sale Completed");
       navigate('/sales');
     } catch (error) {
-      toast.error((error as Error).message || "Transaction Security Protocol Violation");
+      toast.error((error as Error).message || "System Error");
     } finally {
       setIsSubmitting(false);
     }
@@ -327,7 +327,7 @@ export default function NewSale() {
               <ArrowLeft className="w-5 h-5 text-slate-400" />
             </button>
             <div>
-              <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">Checkout Intelligence</h1>
+              <h1 className="text-xl font-black text-slate-900 uppercase tracking-tight">New Sale</h1>
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none">Terminal ID: SF-POS-01 • v4.2</p>
             </div>
           </div>
@@ -405,7 +405,7 @@ export default function NewSale() {
               <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white">
                 <div className="flex items-center gap-3 mb-8">
                   <Zap className="w-5 h-5 text-indigo-600" />
-                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Parameters</h3>
+                  <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Sale Type</h3>
                 </div>
                 <div className="space-y-6">
                   <div className="grid grid-cols-3 gap-2 p-1.5 bg-slate-50 rounded-2xl">
@@ -440,7 +440,7 @@ export default function NewSale() {
                 <div className="flex items-center justify-between mb-8">
                   <div className="flex items-center gap-3">
                     <UserPlus className="w-5 h-5 text-indigo-600" />
-                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Counterparty</h3>
+                    <h3 className="text-sm font-black uppercase tracking-widest text-slate-900">Customer</h3>
                   </div>
                   {saleType === 'credit' && (
                     <span className="bg-red-50 text-red-600 px-3 py-1 rounded-full text-[8px] font-black uppercase">REQUIRED</span>
@@ -491,7 +491,7 @@ export default function NewSale() {
                         </CommandList>
                         <div className="p-4 bg-slate-50 border-t border-slate-100">
                           <Button onClick={() => setNewCustomerOpen(true)} className="w-full bg-black text-white h-12 rounded-xl text-[10px] font-black uppercase tracking-widest">
-                            New Guest Protocol
+                            New Customer
                           </Button>
                         </div>
                       </Command>
@@ -509,7 +509,7 @@ export default function NewSale() {
                     <ShoppingBag className="w-6 h-6 text-indigo-600" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Cart Registry</h3>
+                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Cart Items</h3>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{cart.length} Items Indexed</p>
                   </div>
                 </div>
@@ -537,13 +537,13 @@ export default function NewSale() {
                         handleScan(barcodeQuery);
                       }
                     }}
-                    placeholder="SCAN BARCODE OR MANUAL SKU ENTRY..."
+                    placeholder="SCAN BARCODE OR MANUAL ENTRY..."
                     className="bg-transparent border-none text-white text-xl placeholder:text-slate-700 focus:outline-none flex-1 font-mono tracking-wider font-black"
                     autoFocus
                   />
                   <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
                     <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse shadow-sm shadow-emerald-500/50" />
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">POS Scanner Active</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Scanner Ready</span>
                   </div>
                 </div>
               </div>
@@ -623,7 +623,7 @@ export default function NewSale() {
 
                         <div className="w-32 text-right">
                           <h5 className="text-xl font-black text-slate-900 tracking-tighter">${((item.price - item.discount) * item.quantity).toLocaleString()}</h5>
-                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calculated Net</p>
+                          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total</p>
                         </div>
 
                         <button onClick={() => removeFromCart(item.productId)} className="p-4 opacity-0 group-hover:opacity-100 transition-all bg-red-50 text-red-600 rounded-2xl hover:bg-red-100">
@@ -636,7 +636,7 @@ export default function NewSale() {
               ) : (
                 <div className="py-32 flex flex-col items-center justify-center text-center opacity-30">
                   <ShoppingBag className="w-20 h-20 mb-6 text-slate-200" />
-                  <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight font-mono">Cart Vacant</h3>
+                  <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight font-mono">Cart Empty</h3>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">Initialize selection via search</p>
                 </div>
               )}
@@ -657,7 +657,7 @@ export default function NewSale() {
             {/* 3. Payment Distribution */}
             <div className="space-y-6">
               <div className="flex items-center justify-between">
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Digital Settlement</span>
+                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Payment Amount</span>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -686,7 +686,7 @@ export default function NewSale() {
                       </select>
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Commitment</Label>
+                      <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Amount</Label>
                       <Input
                         type="number"
                         value={p.amount}
@@ -708,7 +708,7 @@ export default function NewSale() {
                       </select>
                     ) : (
                       <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                        <ShieldCheck className="w-3 h-3 text-emerald-500" /> Settlement Finality Verified
+                        <ShieldCheck className="w-3 h-3 text-emerald-500" /> Payment Verified
                       </div>
                     )}
                     <button onClick={() => setPayments(prev => prev.filter((_, i) => i !== idx))} className="p-3 text-red-100 group-hover:text-red-600 transition-colors">
@@ -722,11 +722,11 @@ export default function NewSale() {
                 onClick={() => setPayments([...payments, { mode: 'cash', amount: 0, accountId: accountId }])}
                 className="w-full py-6 rounded-[1.5rem] border-2 border-dashed border-slate-100 text-slate-300 text-[10px] font-black uppercase tracking-[0.2em] hover:border-black hover:text-black transition-all"
               >
-                + Split Instrument
+                + Split Payment
               </button>
             </div>
 
-            {/* 4. Calculations Recap */}
+            {/* 4. Order Summary */}
             <div className="space-y-6 pt-10 border-t border-slate-50">
               <div className="flex justify-between items-center group">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cart Subtotal</span>
@@ -734,7 +734,7 @@ export default function NewSale() {
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bill Reduction</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Discount</span>
                 <div className="relative">
                   <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
                   <input
@@ -747,13 +747,13 @@ export default function NewSale() {
               </div>
 
               <div className="flex justify-between items-center">
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tax Provision</span>
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Tax</span>
                 <select
                   value={selectedTaxSlabId}
                   onChange={(e) => setSelectedTaxSlabId(e.target.value)}
                   className="bg-transparent border-none text-right font-black text-[10px] uppercase text-indigo-600 focus:ring-0 cursor-pointer"
                 >
-                  <option value="">NULL RATE (0%)</option>
+                  <option value="">NO TAX (0%)</option>
                   {taxSlabs.map(slab => <option key={slab.id} value={slab.id}>{slab.name} ({slab.percentage}%)</option>)}
                 </select>
               </div>
@@ -790,7 +790,7 @@ export default function NewSale() {
               disabled={isSubmitting || cart.length === 0}
               className="w-full bg-black text-white h-20 rounded-[1.5rem] font-black uppercase text-[12px] tracking-[0.3em] shadow-2xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-20"
             >
-              {isSubmitting ? 'SECURE COMMITTING...' : 'AUTHORIZE SETTLEMENT'}
+              {isSubmitting ? 'COMPLETING SALE...' : 'COMPLETE SALE'}
             </Button>
             <p className="text-[8px] font-black text-slate-300 text-center uppercase tracking-widest">Digital Audit Logged • Ledger Secured</p>
           </div>
@@ -801,12 +801,12 @@ export default function NewSale() {
       <Dialog open={showOverrideDialog} onOpenChange={setShowOverrideDialog}>
         <DialogContent className="sm:max-w-[480px] rounded-[2.5rem] border-none p-12 shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Price Protocol Override</DialogTitle>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-10 leading-relaxed">Adjusting unit value requires administrative validation.</p>
+            <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Price Override</DialogTitle>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-10 leading-relaxed">Adjusting unit price requires admin approval.</p>
           </DialogHeader>
           <div className="space-y-8 mb-10">
             <div className="space-y-3">
-              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Adjusted Value</Label>
+              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">New Price</Label>
               <div className="relative">
                 <DollarSign className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
                 <Input
@@ -818,7 +818,7 @@ export default function NewSale() {
               </div>
             </div>
             <div className="space-y-3">
-              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Supervisor Passkey</Label>
+              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Admin Code</Label>
               <div className="relative">
                 <ShieldCheck className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
                 <Input
@@ -833,34 +833,34 @@ export default function NewSale() {
           </div>
           <DialogFooter className="flex-col gap-4">
             <Button onClick={handlePriceOverride} className="w-full bg-black text-white h-16 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20">
-              Authorize Injection
+              Confirm Override
             </Button>
             <Button variant="ghost" onClick={() => setShowOverrideDialog(false)} className="w-full h-12 rounded-2xl font-black uppercase text-[9px] text-slate-400">
-              Abort Protocol
+              Cancel
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Guest Onboarding Protocol */}
+      {/* New Customer Dialog */}
       <Dialog open={newCustomerOpen} onOpenChange={setNewCustomerOpen}>
         <DialogContent className="sm:max-w-[500px] rounded-[3rem] border-none p-12 shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-10">New Guest Protocol</DialogTitle>
+            <DialogTitle className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-10">New Customer</DialogTitle>
           </DialogHeader>
           <div className="space-y-6 mb-10">
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Legal Name</Label>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Name</Label>
                 <Input className="w-full h-14 bg-slate-50 border-none rounded-2xl px-6 font-bold uppercase focus:ring-2 focus:ring-black" value={newCustomer.name} onChange={(e) => setNewCustomer({ ...newCustomer, name: e.target.value })} />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Primary Phone</Label>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone</Label>
                 <Input className="w-full h-14 bg-slate-50 border-none rounded-2xl px-6 font-bold focus:ring-2 focus:ring-black" value={newCustomer.phone} onChange={(e) => setNewCustomer({ ...newCustomer, phone: e.target.value })} />
               </div>
             </div>
             <div className="space-y-2">
-              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Geographic Area</Label>
+              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Area</Label>
               <Input className="w-full h-14 bg-slate-50 border-none rounded-2xl px-6 font-bold uppercase focus:ring-2 focus:ring-black" value={newCustomer.area} onChange={(e) => setNewCustomer({ ...newCustomer, area: e.target.value })} />
             </div>
           </div>
@@ -877,7 +877,7 @@ export default function NewSale() {
                 toast.success(`Guest registered: ${newCustomer.name}`);
               }}
             >
-              Initialize Registry
+              Add Customer
             </Button>
           </DialogFooter>
         </DialogContent>

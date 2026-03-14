@@ -65,7 +65,7 @@ export default function NewCustomer() {
     e.preventDefault();
 
     if (!formData.name || !formData.phone) {
-      toast.error("IDENTIFICATION ERROR: Name and Phone are mandatory parameters.");
+      toast.error("Name and phone number are required.");
       return;
     }
 
@@ -84,7 +84,7 @@ export default function NewCustomer() {
           name: formData.name,
           phone: formData.phone,
           email: formData.email,
-          area: formData.area || 'Active Zone',
+          area: formData.area || 'General',
           creditBalance: 0,
           totalPurchases: 0,
           storeId: activeStoreId,
@@ -114,10 +114,10 @@ export default function NewCustomer() {
         await updateCustomerCustomValues(customerId, valuesToSave);
       }
 
-      toast.success(isEditMode ? "Identity Parameters Updated" : "Identity Registered & Synchronized");
+      toast.success(isEditMode ? "Customer Updated" : "Customer Added");
       navigate('/customers');
     } catch (error) {
-      toast.error("PROTOCOL FAILURE: Registration rejected by registry.");
+      toast.error("Failed to save customer. Please try again.");
     }
   };
 
@@ -134,10 +134,10 @@ export default function NewCustomer() {
             </button>
             <div>
               <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">
-                {isEditMode ? 'Modify Identity' : 'Identity Onboarding'}
+                {isEditMode ? 'Edit Customer' : 'Add New Customer'}
               </h1>
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">
-                {isEditMode ? `Updating parameters for ${customer?.name}` : 'Registering a new counterparty entity'}
+                {isEditMode ? `Editing ${customer?.name}` : 'Fill in customer details below'}
               </p>
             </div>
           </div>
@@ -146,7 +146,7 @@ export default function NewCustomer() {
               Discard
             </Button>
             <Button onClick={handleSubmit} className="bg-black text-white rounded-[1.2rem] h-14 px-10 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
-              {isEditMode ? 'Update Sequence' : 'Initialize Entry'}
+              {isEditMode ? 'Save Changes' : 'Save Customer'}
             </Button>
           </div>
         </div>
@@ -160,14 +160,14 @@ export default function NewCustomer() {
               <UserPlus className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Primary Identifiers</h3>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Core identification parameters</p>
+              <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Basic Info</h3>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Required customer details</p>
             </div>
           </div>
 
           <div className="space-y-8">
             <div className="space-y-3">
-              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Trade/Full Name <span className="text-red-500">*</span></Label>
+              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Full Name <span className="text-red-500">*</span></Label>
               <Input
                 name="name"
                 value={formData.name}
@@ -179,7 +179,7 @@ export default function NewCustomer() {
 
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-3">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Primary Dial <span className="text-red-500">*</span></Label>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Phone Number <span className="text-red-500">*</span></Label>
                 <div className="relative">
                   <Smartphone className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
                   <Input
@@ -192,7 +192,7 @@ export default function NewCustomer() {
                 </div>
               </div>
               <div className="space-y-3">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Digital Correspondence</Label>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email Address</Label>
                 <div className="relative">
                   <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
                   <Input
@@ -216,13 +216,13 @@ export default function NewCustomer() {
               <MapPin className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Geographic Sector</h3>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Fulfillment area and regional metadata</p>
+              <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Location</h3>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Customer area or location</p>
             </div>
           </div>
 
           <div className="space-y-3">
-            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Sector / Area Identification</Label>
+            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Area / Location</Label>
             <div className="relative">
               <Globe className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
               <Input
@@ -277,8 +277,8 @@ export default function NewCustomer() {
                 <ShieldCheck className="w-6 h-6 text-emerald-400" />
               </div>
               <div>
-                <h4 className="text-lg font-black uppercase tracking-tight mb-1">Standard Ledger Ready</h4>
-                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Validation protocols active</p>
+                <h4 className="text-lg font-black uppercase tracking-tight mb-1">Ready to Save</h4>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">All details filled in</p>
               </div>
             </div>
             <div className="hidden md:block text-right">

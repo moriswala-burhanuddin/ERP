@@ -69,7 +69,7 @@ export default function SupplierDetails() {
             const data = await getSupplierLedger(id!);
             setLedger(data.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()));
         } catch {
-            toast.error('Failed to load ledger indices');
+            toast.error('Failed to load transactions.');
         } finally {
             setIsLoadingLedger(false);
         }
@@ -80,10 +80,10 @@ export default function SupplierDetails() {
             <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center p-6 text-center">
                 <div className="bg-white rounded-[3rem] p-12 shadow-xl max-w-md w-full border border-white">
                     <Building2 className="w-16 h-16 text-slate-100 mx-auto mb-6" />
-                    <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Source Extinct</h2>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">The requested production node could not be identified.</p>
+                    <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Supplier Not Found</h2>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">This supplier could not be found.</p>
                     <Button onClick={() => navigate('/suppliers')} className="w-full bg-black text-white rounded-2xl h-14 font-black uppercase text-[10px] tracking-widest">
-                        Return to Registry
+                        Back to Suppliers
                     </Button>
                 </div>
             </div>
@@ -91,9 +91,9 @@ export default function SupplierDetails() {
     }
 
     const handleDelete = async () => {
-        if (window.confirm(`TERMINATION AUDIT: Remove ${supplier.companyName} from registry?`)) {
+        if (window.confirm(`Are you sure you want to delete ${supplier.companyName}?`)) {
             await deleteSupplier(id!);
-            toast.success('Supplier Identity Purged');
+            toast.success('Supplier deleted.');
             navigate('/suppliers');
         }
     };
@@ -108,7 +108,7 @@ export default function SupplierDetails() {
     const totalPaid = ledger.filter(t => t.type === 'payment').reduce((s, t) => s + t.amount, 0);
 
     const TABS = [
-        { key: 'profile', icon: <Building2 className="w-4 h-4" />, label: 'Matrix' },
+        { key: 'profile', icon: <Building2 className="w-4 h-4" />, label: 'Profile' },
         { key: 'ledger', icon: <History className="w-4 h-4" />, label: 'Ledger' },
         { key: 'purchases', icon: <Package className="w-4 h-4" />, label: 'Orders' },
     ];
@@ -127,7 +127,7 @@ export default function SupplierDetails() {
                                 <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{supplier.companyName}</h1>
                                 {supplier.isPreferred && <Star className="w-5 h-5 text-amber-400 fill-amber-400" />}
                             </div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Provider Matrix • Code: {supplier.supplierCode || 'NO_HASH'}</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Supplier • Code: {supplier.supplierCode || 'N/A'}</p>
                         </div>
                     </div>
 
@@ -145,7 +145,7 @@ export default function SupplierDetails() {
                         </Button>
                         <Button onClick={() => setIsAddTxModalOpen(true)} className="bg-black text-white rounded-[1.2rem] h-14 px-8 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                             <Plus className="w-4 h-4 mr-2" />
-                            Inject TX
+                            Add Transaction
                         </Button>
                     </div>
                 </div>
@@ -175,7 +175,7 @@ export default function SupplierDetails() {
                             {/* Core Identity Matrix */}
                             <div className="bg-white rounded-[3rem] p-12 shadow-sm border border-white">
                                 <div className="flex items-center justify-between mb-12">
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Source Profile Nodes</h3>
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Supplier Info</h3>
                                     <div className={cn("px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest", supplier.status === 'active' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600')}>
                                         {supplier.status}
                                     </div>
@@ -187,8 +187,8 @@ export default function SupplierDetails() {
                                                 <Phone className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Direct Dial</p>
-                                                <p className="text-base font-black text-slate-900">{supplier.phone || 'NO_HASH'}</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Phone</p>
+                                                <p className="text-base font-black text-slate-900">{supplier.phone || 'Not set'}</p>
                                             </div>
                                         </div>
                                         <div className="flex gap-6">
@@ -196,8 +196,8 @@ export default function SupplierDetails() {
                                                 <Mail className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Electronic Correspondence</p>
-                                                <p className="text-base font-black text-slate-900 lowercase">{supplier.email || 'NO_NODE'}</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Email</p>
+                                                <p className="text-base font-black text-slate-900 lowercase">{supplier.email || 'Not set'}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -207,9 +207,9 @@ export default function SupplierDetails() {
                                                 <MapPin className="w-5 h-5" />
                                             </div>
                                             <div>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Geospatial Sector</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Location</p>
                                                 <p className="text-sm font-black text-slate-900 uppercase">
-                                                    {[supplier.city, supplier.country].filter(Boolean).join(', ') || 'GLOBAL_ZONE'}
+                                                    {[supplier.city, supplier.country].filter(Boolean).join(', ') || 'Not set'}
                                                 </p>
                                             </div>
                                         </div>
@@ -218,7 +218,7 @@ export default function SupplierDetails() {
                                                 <Star className="w-5 h-5 fill-current" />
                                             </div>
                                             <div>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Fulfillment Reliability</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Rating</p>
                                                 <div className="flex gap-1 mt-1">
                                                     {[1, 2, 3, 4, 5].map(s => <Star key={s} className={cn("w-3 h-3", s <= (supplier.rating || 0) ? "text-amber-400 fill-amber-400" : "text-slate-100 fill-slate-100")} />)}
                                                 </div>
@@ -234,25 +234,25 @@ export default function SupplierDetails() {
                                     <div className="p-3 bg-rose-50 rounded-xl w-fit mb-6 text-rose-500">
                                         <TrendingUp className="w-5 h-5" />
                                     </div>
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Aggregated Requisitions</p>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Purchased</p>
                                     <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{fmt(totalPurchased, supplier.currency)}</h3>
                                 </div>
                                 <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
                                     <div className="p-3 bg-emerald-50 rounded-xl w-fit mb-6 text-emerald-500">
                                         <TrendingDown className="w-5 h-5" />
                                     </div>
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Settled Obligations</p>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Paid</p>
                                     <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{fmt(totalPaid, supplier.currency)}</h3>
                                 </div>
                                 <div className={cn("rounded-[2rem] p-8 shadow-xl border relative overflow-hidden", isOverLimit ? 'bg-rose-900 border-rose-800 text-white shadow-rose-200' : 'bg-black border-black text-white')}>
                                     <div className="relative z-10">
-                                        <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">Current Liability Exposure</p>
+                                        <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">Balance Due</p>
                                         <h3 className="text-2xl font-black tracking-tighter mb-4">{fmt(supplier.currentBalance, supplier.currency)}</h3>
 
                                         {supplier.creditLimit > 0 && (
                                             <div className="space-y-2">
                                                 <div className="flex justify-between text-[8px] font-black uppercase tracking-widest opacity-60">
-                                                    <span>Facility Utilization</span>
+                                                    <span>Credit Used</span>
                                                     <span>{Math.round(creditUtilization)}%</span>
                                                 </div>
                                                 <div className="h-1.5 bg-white/20 rounded-full overflow-hidden">
@@ -271,29 +271,29 @@ export default function SupplierDetails() {
                             <div className="bg-indigo-600 rounded-[3rem] p-10 text-white shadow-2xl shadow-indigo-200 relative overflow-hidden group">
                                 <Zap className="absolute -right-10 -top-10 w-40 h-40 text-white/5 rotate-12 group-hover:rotate-45 transition-transform duration-1000" />
                                 <div className="relative z-10">
-                                    <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-200 mb-8">Internal Directives</h4>
+                                    <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-200 mb-8">Notes</h4>
                                     <div className="bg-white/10 rounded-[2rem] p-8 border border-white/10 min-h-[160px]">
                                         <p className="text-xs font-bold leading-relaxed opacity-90 italic">
-                                            {supplier.internalNotes || "No restricted directives available for this node."}
+                                            {supplier.internalNotes || "No notes for this supplier."}
                                         </p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white space-y-8">
-                                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Contractual Parameters</h4>
+                                <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Terms & Limits</h4>
                                 <div className="space-y-6">
                                     <div className="flex items-center justify-between">
-                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Facility Limit</span>
+                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Credit Limit</span>
                                         <span className="text-xs font-black text-slate-900 font-mono">{fmt(supplier.creditLimit, supplier.currency)}</span>
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Settlement Days</span>
-                                        <span className="text-xs font-black text-slate-900">{paymentTerm?.days || 'PAYMENT_ON_RECEIPT'}</span>
+                                        <span className="text-xs font-black text-slate-900">{paymentTerm?.days || 'On Receipt'}</span>
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Tax Identity</span>
-                                        <span className="text-xs font-black text-slate-900 font-mono">{supplier.taxNumber || 'NO_REG'}</span>
+                                        <span className="text-xs font-black text-slate-900 font-mono">{supplier.taxNumber || 'Not set'}</span>
                                     </div>
                                 </div>
                                 <hr className="border-slate-50" />
@@ -303,7 +303,7 @@ export default function SupplierDetails() {
                                             <div className={cn("p-2 rounded-lg", supplier.isPreferred ? "bg-amber-100 text-amber-600" : "bg-slate-100 text-slate-400")}>
                                                 <Star className="w-3.5 h-3.5 fill-current" />
                                             </div>
-                                            <span className={cn("text-[9px] font-black uppercase tracking-widest", supplier.isPreferred ? "text-amber-800" : "text-slate-400")}>Priority Source</span>
+                                            <span className={cn("text-[9px] font-black uppercase tracking-widest", supplier.isPreferred ? "text-amber-800" : "text-slate-400")}>Preferred</span>
                                         </div>
                                         <div className={cn("w-2 h-2 rounded-full", supplier.isPreferred ? "bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.6)]" : "bg-slate-200")} />
                                     </div>
@@ -340,12 +340,12 @@ export default function SupplierDetails() {
                                     <input
                                         value={txSearch}
                                         onChange={e => setTxSearch(e.target.value)}
-                                        placeholder="SCAN ID..."
+                                        placeholder="SEARCH..."
                                         className="h-14 bg-slate-50 border-none rounded-2xl pl-14 pr-6 text-[10px] font-black uppercase focus:ring-2 focus:ring-black w-48 placeholder:text-slate-200"
                                     />
                                 </div>
                                 <Button onClick={() => setIsAddTxModalOpen(true)} className="bg-black text-white h-14 px-8 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/10">
-                                    Inject Record
+                                    Add Record
                                 </Button>
                             </div>
                         </div>
@@ -353,7 +353,7 @@ export default function SupplierDetails() {
                         {isLoadingLedger ? (
                             <div className="py-24 text-center">
                                 <div className="w-12 h-12 border-4 border-slate-100 border-t-black rounded-full animate-spin mx-auto mb-6" />
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Syncing Ledger Nodes...</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Loading...</p>
                             </div>
                         ) : ledger.length > 0 ? (
                             <div className="space-y-4">
@@ -365,7 +365,7 @@ export default function SupplierDetails() {
                                             </div>
                                             <div>
                                                 <div className="flex items-center gap-3 mb-1">
-                                                    <h4 className="font-black text-sm uppercase tracking-tight font-mono">{row.referenceId || 'NO_REF'}</h4>
+                                                    <h4 className="font-black text-sm uppercase tracking-tight font-mono">{row.referenceId || 'N/A'}</h4>
                                                     <span className={cn("px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest", row.type === 'payment' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700')}>
                                                         {row.type.replace('_', ' ')}
                                                     </span>
@@ -379,7 +379,7 @@ export default function SupplierDetails() {
                                                 <p className={cn("text-xl font-black tracking-tighter mb-1", row.type === 'payment' ? 'text-emerald-600' : 'text-rose-600')}>
                                                     {row.type === 'payment' ? '-' : '+'}{fmt(row.amount, supplier.currency)}
                                                 </p>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{row.type === 'payment' ? 'Settlement' : 'Requisition'}</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{row.type === 'payment' ? 'Payment' : 'Purchase'}</p>
                                             </div>
                                             <div className="w-24 px-6 border-l border-slate-100">
                                                 <p className="text-xl font-black text-slate-900 tracking-tighter mb-1">{fmt(row.balanceAfter, supplier.currency)}</p>
@@ -392,8 +392,8 @@ export default function SupplierDetails() {
                         ) : (
                             <div className="py-32 text-center opacity-30">
                                 <History className="w-20 h-20 text-slate-100 mx-auto mb-6" />
-                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Ledger Matrix Vacant</h3>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 px-10">No historical financial indices found for this provider node.</p>
+                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">No Records Found</h3>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 px-10">No transactions found for this supplier.</p>
                             </div>
                         )}
                     </div>
@@ -406,7 +406,7 @@ export default function SupplierDetails() {
                                 <Package className="w-6 h-6" />
                             </div>
                             <div>
-                                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Procurement Index</h3>
+                                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Purchase Orders</h3>
                                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{linkedPurchases.length} Order Records Linked</p>
                             </div>
                         </div>
@@ -428,7 +428,7 @@ export default function SupplierDetails() {
                                         </div>
                                         <div className="text-right">
                                             <p className="text-xl font-black text-slate-900 tracking-tighter mb-1">{fmt(p.totalAmount, supplier.currency)}</p>
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Settlement Required</p>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Amount Due</p>
                                         </div>
                                     </div>
                                 ))}
@@ -436,8 +436,8 @@ export default function SupplierDetails() {
                         ) : (
                             <div className="py-32 text-center opacity-30">
                                 <Package className="w-20 h-20 text-slate-100 mx-auto mb-6" />
-                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Order Log Null</h3>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 px-10">No production acquisitions linked to this identity node.</p>
+                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">No Orders Found</h3>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 px-10">No purchases linked to this supplier.</p>
                             </div>
                         )}
                     </div>
@@ -468,7 +468,7 @@ function AddTransactionModal({ supplier, onClose, onSuccess }: { supplier: Suppl
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const amount = parseFloat(String(formData.amount));
-        if (!amount || amount <= 0) return toast.error('PROTOCOL ERROR: Invalid amount index.');
+        if (!amount || amount <= 0) return toast.error('Please enter a valid amount.');
 
         try {
             const adjustment = formData.type === 'payment' ? -amount : amount;
@@ -485,10 +485,10 @@ function AddTransactionModal({ supplier, onClose, onSuccess }: { supplier: Suppl
                 description: formData.description
             });
 
-            toast.success('Matrix Reconciled: Transaction Recorded');
+            toast.success('Transaction saved.');
             onSuccess();
         } catch {
-            toast.error('FAILURE: Transaction synchronization rejected.');
+            toast.error('Failed to save transaction. Please try again.');
         }
     };
 
@@ -498,8 +498,8 @@ function AddTransactionModal({ supplier, onClose, onSuccess }: { supplier: Suppl
                 <form onSubmit={handleSubmit}>
                     <div className="p-12 pb-8 flex justify-between items-start">
                         <div>
-                            <h3 className="text-2xl font-black uppercase tracking-tight text-slate-900">Inject Ledger Record</h3>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">Adjusting provider exposure matrix</p>
+                            <h3 className="text-2xl font-black uppercase tracking-tight text-slate-900">Add Transaction</h3>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">Record a payment or purchase for this supplier</p>
                         </div>
                         <button type="button" onClick={onClose} className="p-4 bg-slate-50 hover:bg-slate-100 rounded-3xl transition-all">
                             <X className="w-5 h-5 text-slate-400" />
@@ -524,7 +524,7 @@ function AddTransactionModal({ supplier, onClose, onSuccess }: { supplier: Suppl
                         </div>
 
                         <div className="space-y-4">
-                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Acquisition Magnitude</Label>
+                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Amount</Label>
                             <div className="relative">
                                 <BadgeDollarSign className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-300" />
                                 <Input
@@ -540,7 +540,7 @@ function AddTransactionModal({ supplier, onClose, onSuccess }: { supplier: Suppl
 
                         <div className="grid grid-cols-2 gap-8">
                             <div className="space-y-3">
-                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ref ID / Hash</Label>
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Reference ID</Label>
                                 <Input
                                     placeholder="INV-XXXX"
                                     value={formData.referenceId}
@@ -549,7 +549,7 @@ function AddTransactionModal({ supplier, onClose, onSuccess }: { supplier: Suppl
                                 />
                             </div>
                             <div className="space-y-3">
-                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Registry Date</Label>
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Date</Label>
                                 <Input
                                     type="date"
                                     value={formData.date}
@@ -562,10 +562,10 @@ function AddTransactionModal({ supplier, onClose, onSuccess }: { supplier: Suppl
 
                     <div className="p-10 bg-slate-50 flex gap-4 border-t border-slate-100">
                         <Button type="button" onClick={onClose} variant="ghost" className="flex-1 h-16 rounded-[1.5rem] font-black uppercase text-[10px] tracking-widest text-slate-400">
-                            Abort
+                            Cancel
                         </Button>
                         <Button type="submit" className="flex-1 h-16 rounded-[1.5rem] bg-black text-white font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20">
-                            Confirm Injection
+                            Save
                         </Button>
                     </div>
                 </form>

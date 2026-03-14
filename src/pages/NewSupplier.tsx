@@ -74,7 +74,7 @@ export default function NewSupplier() {
                     comments: supplier.comments || '',
                 });
             } else {
-                toast.error("IDENTIFICATION ERROR: Supplier node not found in registry.");
+                toast.error("Supplier not found.");
                 navigate('/suppliers');
             }
         }
@@ -92,14 +92,14 @@ export default function NewSupplier() {
         e.preventDefault();
 
         if (!formData.companyName) {
-            toast.error("VALIDATION FAILURE: Company Name is a mandatory identifier.");
+            toast.error("Company name is required.");
             return;
         }
 
         try {
             if (isEditMode && id) {
                 await updateSupplier(id, formData);
-                toast.success("Identity Updated & Synchronized");
+                toast.success("Supplier updated.");
             } else {
                 await addSupplier({
                     ...formData,
@@ -108,11 +108,11 @@ export default function NewSupplier() {
                     isBlacklisted: false,
                     rating: 0,
                 });
-                toast.success("New Partner Onboarded Successfully");
+                toast.success("Supplier added successfully.");
             }
             navigate('/suppliers');
         } catch (error) {
-            toast.error("PROTOCOL FAILURE: Registry update rejected.");
+            toast.error("Failed to save supplier. Please try again.");
         }
     };
 
@@ -126,8 +126,8 @@ export default function NewSupplier() {
                             <ArrowLeft className="w-5 h-5 text-slate-400" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{isEditMode ? 'Modify Partner' : 'Partner Onboarding'}</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">{isEditMode ? 'Updating existing verified source' : 'Registering a new production node'}</p>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{isEditMode ? 'Edit Supplier' : 'Add New Supplier'}</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">{isEditMode ? 'Update supplier details' : 'Fill in the new supplier details'}</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
@@ -135,7 +135,7 @@ export default function NewSupplier() {
                             Discard
                         </Button>
                         <Button onClick={handleSubmit} className="bg-black text-white rounded-[1.2rem] h-14 px-10 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                            {isEditMode ? 'Synchronize' : 'Authorize Partner'}
+                            {isEditMode ? 'Save Changes' : 'Add Supplier'}
                         </Button>
                     </div>
                 </div>
@@ -150,15 +150,15 @@ export default function NewSupplier() {
                                 <Building2 className="w-6 h-6" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Entity Identification</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Registry and legal identifiers</p>
+                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Company Info</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Basic details about the supplier</p>
                             </div>
                         </div>
 
                         <div className="space-y-8">
                             <div className="grid md:grid-cols-2 gap-8">
                                 <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Entity ERP Code</Label>
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Supplier Code</Label>
                                     <Input
                                         name="supplierCode"
                                         value={formData.supplierCode}
@@ -168,7 +168,7 @@ export default function NewSupplier() {
                                     />
                                 </div>
                                 <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Corporate Name <span className="text-red-500">*</span></Label>
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Company Name <span className="text-red-500">*</span></Label>
                                     <Input
                                         name="companyName"
                                         value={formData.companyName}
@@ -181,7 +181,7 @@ export default function NewSupplier() {
 
                             <div className="grid md:grid-cols-2 gap-8">
                                 <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">First Name (Direct Dial)</Label>
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Contact First Name</Label>
                                     <Input
                                         name="firstName"
                                         value={formData.firstName}
@@ -191,7 +191,7 @@ export default function NewSupplier() {
                                     />
                                 </div>
                                 <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Last Name (Direct Dial)</Label>
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Contact Last Name</Label>
                                     <Input
                                         name="lastName"
                                         value={formData.lastName}
@@ -210,15 +210,15 @@ export default function NewSupplier() {
                                 <Globe className="w-6 h-6" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Geospatial Data</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Logistics and routing parameters</p>
+                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Contact & Address</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Where to reach this supplier</p>
                             </div>
                         </div>
 
                         <div className="space-y-8">
                             <div className="grid md:grid-cols-2 gap-8">
                                 <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Digital Node (Email)</Label>
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email</Label>
                                     <div className="relative">
                                         <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
                                         <Input
@@ -231,7 +231,7 @@ export default function NewSupplier() {
                                     </div>
                                 </div>
                                 <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Universal Dial (Phone)</Label>
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Phone</Label>
                                     <div className="relative">
                                         <Phone className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
                                         <Input
@@ -246,7 +246,7 @@ export default function NewSupplier() {
                             </div>
 
                             <div className="space-y-3">
-                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Corporate Headquarters (Line 1)</Label>
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Address Line 1</Label>
                                 <div className="relative">
                                     <MapPin className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
                                     <Input
@@ -261,7 +261,7 @@ export default function NewSupplier() {
 
                             <div className="grid md:grid-cols-3 gap-8">
                                 <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Terminal (City)</Label>
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">City</Label>
                                     <Input
                                         name="city"
                                         value={formData.city}
@@ -271,7 +271,7 @@ export default function NewSupplier() {
                                     />
                                 </div>
                                 <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Sector (State)</Label>
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">State</Label>
                                     <Input
                                         name="state"
                                         value={formData.state}
@@ -281,7 +281,7 @@ export default function NewSupplier() {
                                     />
                                 </div>
                                 <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Registry Code (Zip)</Label>
+                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">ZIP / Postal Code</Label>
                                     <Input
                                         name="zipCode"
                                         value={formData.zipCode}
@@ -305,14 +305,14 @@ export default function NewSupplier() {
                                     <BadgeDollarSign className="w-6 h-6 text-amber-400" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-black uppercase tracking-tight">Fiscal Ledger</h3>
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mt-1">Financial reconciliation index</p>
+                                    <h3 className="text-xl font-black uppercase tracking-tight">Financial Info</h3>
+                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mt-1">Balance, credit &amp; payment terms</p>
                                 </div>
                             </div>
 
                             <div className="space-y-6">
                                 <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Initial Balance Exposure</Label>
+                                    <Label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Opening Balance</Label>
                                     <Input
                                         name="openingBalance"
                                         type="number"
@@ -322,7 +322,7 @@ export default function NewSupplier() {
                                     />
                                 </div>
                                 <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Authorized Credit Limit</Label>
+                                    <Label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Credit Limit</Label>
                                     <Input
                                         name="creditLimit"
                                         type="number"
@@ -332,7 +332,7 @@ export default function NewSupplier() {
                                     />
                                 </div>
                                 <div className="space-y-3">
-                                    <Label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Standard Settlement Terms</Label>
+                                    <Label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Payment Terms</Label>
                                     <select
                                         name="paymentTermId"
                                         value={formData.paymentTermId}
@@ -352,11 +352,11 @@ export default function NewSupplier() {
                     <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white">
                         <div className="flex items-center gap-3 mb-8">
                             <ShieldCheck className="w-5 h-5 text-emerald-500" />
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">Security Parameters</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-900">Other Details</h3>
                         </div>
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Tax ID / VAT Registry</Label>
+                                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Tax ID / VAT Number</Label>
                                 <Input
                                     name="taxNumber"
                                     value={formData.taxNumber}
@@ -366,14 +366,14 @@ export default function NewSupplier() {
                                 />
                             </div>
                             <div className="space-y-2">
-                                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Registry Status</Label>
+                                <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Status</Label>
                                 <select
                                     name="status"
                                     value={formData.status}
                                     onChange={handleChange}
                                     className="w-full h-14 bg-slate-50 border-none rounded-2xl px-6 text-[10px] font-black uppercase focus:ring-2 focus:ring-black appearance-none"
                                 >
-                                    <option value="active">Active Entry</option>
+                                    <option value="active">Active</option>
                                     <option value="disabled">Restricted / Disabled</option>
                                 </select>
                             </div>

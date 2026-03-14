@@ -29,14 +29,14 @@ export default function ExpenseCategories() {
             name: newCat.name,
             parentId: newCat.parentId === 'none' ? undefined : newCat.parentId
         });
-        toast.success('Protocol Successful: Classification node added to registry.');
+        toast.success('Expense category added.');
         setNewCat({ name: '', parentId: 'none' });
     };
 
     const handleDelete = async (id: string) => {
-        if (confirm('DESTRUCTIVE_PROTOCOL: Purge this classification node? This may affect historical data indexing.')) {
+        if (confirm('Are you sure you want to delete this expense category? This will affect related records.')) {
             await deleteExpenseCategory(id);
-            toast.error('Node Purged: Classification severed from taxonomy.');
+            toast.error('Expense category deleted.');
         }
     };
 

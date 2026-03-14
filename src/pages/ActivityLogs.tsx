@@ -25,13 +25,13 @@ export default function ActivityLogs() {
                             <ArrowLeft className="w-5 h-5 text-slate-400" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Security Audit Registry</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Tactical Logs • Event Horizon</p>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Activity Logs</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">All Actions & Changes</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3 bg-slate-900 text-white px-5 py-2.5 rounded-2xl shadow-xl shadow-black/10">
                         <Shield className="w-4 h-4 text-emerald-400" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">Enclave Status: SECURE</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest">System Secure</span>
                     </div>
                 </div>
             </div>
@@ -45,7 +45,7 @@ export default function ActivityLogs() {
                         </div>
                         <input
                             type="text"
-                            placeholder="SEARCH LOG NODES OR OPERATIVE NAMES..."
+                            placeholder="SEARCH LOGS OR USER NAMES..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full h-16 bg-white border-none rounded-3xl pl-16 pr-8 text-xs font-black uppercase tracking-tight focus:ring-2 focus:ring-black shadow-sm"
@@ -107,8 +107,8 @@ export default function ActivityLogs() {
                         ) : (
                             <div className="py-40 text-center opacity-30 flex flex-col items-center">
                                 <Ghost className="w-20 h-20 text-slate-100 mb-8" />
-                                <h4 className="text-2xl font-black text-slate-900 uppercase">Log Vacuum</h4>
-                                <p className="text-[10px] font-black text-slate-400 uppercase mt-2 px-20 text-center">No tactical data found for the current search parameters.</p>
+                                <h4 className="text-2xl font-black text-slate-900 uppercase">No Logs Found</h4>
+                                <p className="text-[10px] font-black text-slate-400 uppercase mt-2 px-20 text-center">No logs match your search.</p>
                             </div>
                         )}
                     </div>

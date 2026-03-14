@@ -103,7 +103,7 @@ export default function Reports() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success('Protocol Successful: Data packet dispatched.');
+    toast.success('Report exported successfully.');
   };
 
   return (

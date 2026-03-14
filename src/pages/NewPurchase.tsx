@@ -85,7 +85,7 @@ export default function NewPurchase() {
               setIsReviewModalOpen(true);
             }
           } catch (err: unknown) {
-            toast.error("AI Capture Failure: Registry rejected receipt payload.");
+            toast.error("Failed to scan receipt. Please try again.");
           } finally {
             setIsOcrLoading(false);
           }
@@ -93,7 +93,7 @@ export default function NewPurchase() {
         reader.readAsDataURL(file);
       } catch (error) {
         setIsOcrLoading(false);
-        toast.error("File Buffer Error: Could not read source.");
+        toast.error("Could not read the file. Please try again.");
       }
     };
     fileInput.click();
@@ -123,12 +123,12 @@ export default function NewPurchase() {
 
   const handleSubmit = async () => {
     if (cart.length === 0 || !supplier) {
-      toast.error("PROTOCOL REJECTED: Vendor node and item indices required.");
+      toast.error("Please add a supplier name and at least one product.");
       return;
     }
 
     if (!accountId) {
-      toast.error("LIQUIDITY ERROR: No fund source (Account) selected.");
+      toast.error("Please select an account to pay from.");
       return;
     }
 
@@ -148,10 +148,10 @@ export default function NewPurchase() {
         date: new Date().toISOString()
       });
 
-      toast.success("Purchase Protocol Finalized: Inventory Synchronized");
+      toast.success("Purchase saved and stock updated.");
       navigate('/purchases');
     } catch (error: unknown) {
-      toast.error("SYNCHRONIZATION FAILURE: Protocol rejected by registry.");
+      toast.error("Failed to save purchase. Please try again.");
     }
   };
 
@@ -170,14 +170,14 @@ export default function NewPurchase() {
               <ArrowLeft className="w-5 h-5 text-slate-400" />
             </button>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Procurement Protocol</h1>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Direct Acquisition Node • Hash: 0x{activeStoreId?.substring(0, 8)}</p>
+              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">New Purchase</h1>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Record stock you bought from a supplier</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <Button onClick={handleSubmit} className="bg-black text-white rounded-[1.2rem] h-14 px-10 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
-              Finalize Protocol
+              Save Purchase
             </Button>
           </div>
         </div>
@@ -193,8 +193,8 @@ export default function NewPurchase() {
                   <ShieldCheck className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Vendor Identification</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Assigning acquisition source node</p>
+                  <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Supplier Info</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Who did you buy from?</p>
                 </div>
               </div>
               <Button
@@ -209,7 +209,7 @@ export default function NewPurchase() {
 
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Source Node (Supplier)</Label>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Supplier Name</Label>
                 <Input
                   value={supplier}
                   onChange={(e) => setSupplier(e.target.value)}
@@ -218,7 +218,7 @@ export default function NewPurchase() {
                 />
               </div>
               <div className="space-y-4">
-                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Settlement Mode</Label>
+                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Payment Type</Label>
                 <div className="flex bg-slate-50 p-1 rounded-[1.2rem]">
                   <button
                     onClick={() => setPurchaseType('cash')}
@@ -251,8 +251,8 @@ export default function NewPurchase() {
                   <ListPlus className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Acquisition Stream</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">{cart.length} Unit Nodes Aggregated</p>
+                  <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Products</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">{cart.length} items added</p>
                 </div>
               </div>
               <Button onClick={() => setShowProductPicker(true)} className="bg-slate-50 hover:bg-slate-100 text-slate-900 border-none rounded-2xl h-14 px-8 font-black uppercase text-[10px] tracking-widest transition-all">
@@ -271,7 +271,7 @@ export default function NewPurchase() {
                       </div>
                       <div>
                         <h4 className="font-black text-sm uppercase tracking-tight mb-1">{item.productName}</h4>
-                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Protocol ID: {item.productId.substring(0, 8)}</p>
+                        <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">ID: {item.productId.substring(0, 8)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-12 text-right">
@@ -303,8 +303,8 @@ export default function NewPurchase() {
             ) : (
               <div className="py-24 text-center border-2 border-dashed border-slate-100 rounded-[3rem] opacity-30">
                 <ShoppingCart className="w-16 h-16 text-slate-100 mx-auto mb-6" />
-                <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">Stream Vacant</h3>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 px-12">Identify product nodes to begin procurement stream injection</p>
+                <h3 className="text-lg font-black text-slate-900 uppercase tracking-tight">No Products Added</h3>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 px-12">Tap 'Add Unit' to add products to this purchase</p>
               </div>
             )}
           </div>
@@ -315,16 +315,16 @@ export default function NewPurchase() {
           <div className="bg-black rounded-[3rem] p-10 text-white shadow-2xl shadow-black/20 overflow-hidden relative group">
             <Zap className="absolute -right-10 -top-10 w-40 h-40 text-white/5 rotate-12 group-hover:rotate-45 transition-transform duration-1000" />
             <div className="relative z-10">
-              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-8">Reconciliation</h4>
+              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-8">Summary</h4>
 
               <div className="space-y-6">
                 <div className="p-8 bg-white/5 rounded-[2rem] border border-white/5">
-                  <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">Aggregated Value</p>
+                  <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">Total Amount</p>
                   <h3 className="text-4xl font-black tracking-tighter">{fmt(totalAmount)}</h3>
                 </div>
 
                 <div className="space-y-4">
-                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Liquidity Provider</Label>
+                  <Label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Pay From Account</Label>
                   <select
                     value={accountId}
                     onChange={(e) => setAccountId(e.target.value)}
@@ -338,12 +338,12 @@ export default function NewPurchase() {
           </div>
 
           <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white text-center">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-6">Security Protocol</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-6">Safe & Secure</p>
             <div className="flex items-center justify-center p-6 bg-slate-50 rounded-2xl mb-8">
               <ShieldCheck className="w-10 h-10 text-emerald-500" />
             </div>
-            <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">Immutable Record</h4>
-            <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed tracking-wider">Session data is encrypted and validated before registry injection.</p>
+            <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">Your Data is Safe</h4>
+            <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed tracking-wider">All purchase data is saved securely.</p>
           </div>
         </div>
       </main>
@@ -354,8 +354,8 @@ export default function NewPurchase() {
           <div className="bg-white w-full max-w-2xl rounded-[4rem] border border-white shadow-2xl overflow-hidden animate-in zoom-in-95 duration-500">
             <div className="p-12 pb-8 flex items-center justify-between">
               <div>
-                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Node Identification</h3>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 text-indigo-600">Selecting product node for infusion</p>
+                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Select Product</h3>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 text-indigo-600">Choose a product to add to this purchase</p>
               </div>
               <button onClick={() => setShowProductPicker(false)} className="p-4 bg-slate-50 hover:bg-slate-100 rounded-3xl transition-all">
                 <X className="w-6 h-6 text-slate-400" />
@@ -413,7 +413,7 @@ export default function NewPurchase() {
               price: item.price || 0
             }));
             setCart(prev => [...prev, ...newItems]);
-            toast.success(`Acquisition Stream Infused: ${data.items.length} nodes added.`);
+            toast.success(`${data.items.length} products added from receipt.`);
           }
           setIsReviewModalOpen(false);
         }}

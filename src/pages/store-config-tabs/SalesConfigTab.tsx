@@ -33,9 +33,9 @@ export function SalesConfigTab() {
                         <div className="p-3 bg-black rounded-xl text-white">
                             <Hash className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Voucher Identity</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Sales ID & Items</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">System-wide identification protocols for sales vouchers and mandatory validation hooks for external nodes.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Settings for how sales are numbered and how items are displayed.</p>
                 </div>
 
                 <div className="lg:col-span-8 flex flex-col gap-8">
@@ -96,9 +96,9 @@ export function SalesConfigTab() {
                         <div className="p-3 bg-rose-500 rounded-xl text-white">
                             <Percent className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Discount Matrix</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Discount Rules</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Restriction protocols for markdown vectors. Disable specific discount types to enforce fixed pricing tiers.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Turn on or off different types of discounts for your sales.</p>
                 </div>
 
                 <div className="lg:col-span-8 grid md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -130,9 +130,9 @@ export function SalesConfigTab() {
                         <div className="p-3 bg-indigo-500 rounded-xl text-white">
                             <Activity className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Workflow Synthesis</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Work Process</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Optimization parameters for transaction cloning, completion verification, and inventory reordering.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Settings for copying sales, verifying orders, and reordering stock.</p>
                 </div>
 
                 <div className="lg:col-span-8 flex flex-col gap-12">
@@ -195,9 +195,9 @@ export function SalesConfigTab() {
                         <div className="p-3 bg-emerald-500 rounded-xl text-white">
                             <Wallet className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Register Gauges</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Cash Drawer Settings</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Tracking parameters for the cash register session, including automated overflow/underflow alerts.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Settings for tracking cash, cheques, and cards in your register.</p>
                 </div>
 
                 <div className="lg:col-span-8 space-y-8">
@@ -264,9 +264,9 @@ export function SalesConfigTab() {
                         <div className="p-3 bg-indigo-500 rounded-xl text-white">
                             <Monitor className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Interface Topology</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Sales Screen Look</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Display parameters for the POS grid, including visibility filters and quick-select protocols.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Settings for how items are shown on the check-out screen.</p>
                 </div>
 
                 <div className="lg:col-span-8 space-y-8">
@@ -336,18 +336,18 @@ export function SalesConfigTab() {
                         <div className="p-3 bg-black rounded-xl text-white">
                             <ShieldCheck className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Integrity Shields</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Store Safety Rules</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Hard constraints enforcing fiscal safety, stock integrity, and mandatory variation selection.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Main rules to prevent common mistakes and protect your profit.</p>
                 </div>
 
                 <div className="lg:col-span-8 flex flex-col gap-6">
                     <div className="grid md:grid-cols-2 gap-4">
                         {[
-                            { id: 'sbc', label: 'Fiscal Safety Margin', sub: 'Block sales below cost price', state: doNotAllowSaleBelowCost, action: (v: boolean) => updateConfig({ doNotAllowSaleBelowCost: v }) },
-                            { id: 'oos', label: 'Inventory Integrity', sub: 'Block out-of-stock sales', state: doNotAllowOutOfStockSales, action: (v: boolean) => updateConfig({ doNotAllowOutOfStockSales: v }) },
-                            { id: 'dig', label: 'Grid Deduplication', sub: 'Block duplicate item in grid', state: doNotAllowDuplicateItemGrid, action: (v: boolean) => updateConfig({ doNotAllowDuplicateItemGrid: v }) },
-                            { id: 'vws', label: 'Variation Hardlink', sub: 'Block variation without selection', state: doNotAllowVariationWithoutSelection, action: (v: boolean) => updateConfig({ doNotAllowVariationWithoutSelection: v }) },
+                            { id: 'sbc', label: 'Block Sales Below Cost', sub: 'Block sales below cost price', state: doNotAllowSaleBelowCost, action: (v: boolean) => updateConfig({ doNotAllowSaleBelowCost: v }) },
+                            { id: 'oos', label: 'Block Out-of-Stock Sales', sub: 'Block out-of-stock sales', state: doNotAllowOutOfStockSales, action: (v: boolean) => updateConfig({ doNotAllowOutOfStockSales: v }) },
+                            { id: 'dig', label: 'Block Duplicate Items', sub: 'Block duplicate item in grid', state: doNotAllowDuplicateItemGrid, action: (v: boolean) => updateConfig({ doNotAllowDuplicateItemGrid: v }) },
+                            { id: 'vws', label: 'Require Variation Selection', sub: 'Block variation without selection', state: doNotAllowVariationWithoutSelection, action: (v: boolean) => updateConfig({ doNotAllowVariationWithoutSelection: v }) },
                             { id: 'dss', label: 'Supplier Redirection', sub: 'Disable supplier link on sales', state: disableSupplierSelectionOnSales, action: (v: boolean) => updateConfig({ disableSupplierSelectionOnSales: v }) },
                         ].map((item) => (
                             <div key={item.id} className="bg-slate-50 p-6 rounded-[1.8rem] border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all">

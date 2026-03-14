@@ -17,14 +17,14 @@ export function PaymentsTab() {
     } = useStoreConfig();
 
     const methods = [
-        { key: 'cash', label: 'Cash Flow', icon: <Banknote className="w-4 h-4" /> },
-        { key: 'check', label: 'Fiscal Check', icon: <Landmark className="w-4 h-4" /> },
-        { key: 'giftCard', label: 'Stored Value', icon: <Target className="w-4 h-4" /> },
-        { key: 'debitCard', label: 'Direct Debit', icon: <CreditCard className="w-4 h-4" /> },
-        { key: 'creditCard', label: 'Credit Line', icon: <CreditCard className="w-4 h-4" /> },
-        { key: 'airtelMoney', label: 'Digital Mobile', icon: <Smartphone className="w-4 h-4" /> },
-        { key: 'storeAccount', label: 'Internal Ledger', icon: <Wallet className="w-4 h-4" /> },
-        { key: 'pointsSystem', label: 'Reward Nodes', icon: <Zap className="w-4 h-4" /> },
+        { key: 'cash', label: 'Cash', icon: <Banknote className="w-4 h-4" /> },
+        { key: 'check', label: 'Cheque', icon: <Landmark className="w-4 h-4" /> },
+        { key: 'giftCard', label: 'Gift Card', icon: <Target className="w-4 h-4" /> },
+        { key: 'debitCard', label: 'Debit Card', icon: <CreditCard className="w-4 h-4" /> },
+        { key: 'creditCard', label: 'Credit Card', icon: <CreditCard className="w-4 h-4" /> },
+        { key: 'airtelMoney', label: 'Mobile Money', icon: <Smartphone className="w-4 h-4" /> },
+        { key: 'storeAccount', label: 'Store Account', icon: <Wallet className="w-4 h-4" /> },
+        { key: 'pointsSystem', label: 'Loyalty Points', icon: <Zap className="w-4 h-4" /> },
     ] as const;
 
     return (
@@ -36,9 +36,9 @@ export function PaymentsTab() {
                         <div className="p-3 bg-black rounded-xl text-white">
                             <CreditCard className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Settlement Matrix</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Payment Methods</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Authorized payment vectors and their associated adjustment coefficients for financial balancing.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Turn on or off different ways to pay and set any extra fees.</p>
                 </div>
 
                 <div className="lg:col-span-8 grid md:grid-cols-2 gap-6">
@@ -56,16 +56,16 @@ export function PaymentsTab() {
                                 <Switch
                                     checked={paymentMethods[key]}
                                     onCheckedChange={v => {
-                                        updatePaymentMethod(key, v);
-                                        toast.info(`${paymentMethods[key] ? 'Deactivating' : 'Activating'} ${label} Node`);
-                                    }}
+                                    updatePaymentMethod(key, v);
+                                    toast.info(`Turning ${v ? 'On' : 'Off'} ${label}`);
+                                }}
                                     className="data-[state=checked]:bg-black"
                                 />
                             </div>
 
                             <div className="space-y-2">
                                 <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                                    <Percent className="w-3 h-3" /> Adjustment Flux (%)
+                                    <Percent className="w-3 h-3" /> Extra Fee (%)
                                 </Label>
                                 <Input
                                     type="number"
@@ -88,15 +88,15 @@ export function PaymentsTab() {
                         <div className="p-3 bg-indigo-500 rounded-xl text-white">
                             <Settings2 className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Terminal Protocols</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">General Payment Settings</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">System-level payment defaults, security prompts, and specialized benefit integrations.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Set default payment methods, security checks, and other rules.</p>
                 </div>
 
                 <div className="lg:col-span-8 space-y-12">
                     <div className="grid md:grid-cols-2 gap-8">
                         <div className="space-y-3">
-                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Default Sales Vector</Label>
+                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Default Payment for Sales</Label>
                             <Select
                                 value={defaultPaymentType}
                                 onValueChange={val => updateConfig({ defaultPaymentType: val })}
@@ -112,7 +112,7 @@ export function PaymentsTab() {
                             </Select>
                         </div>
                         <div className="space-y-3">
-                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Default Procurement Vector</Label>
+                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Default Payment for Purchases</Label>
                             <Select
                                 value={defaultPaymentTypeReceivings}
                                 onValueChange={val => updateConfig({ defaultPaymentTypeReceivings: val })}
@@ -131,10 +131,10 @@ export function PaymentsTab() {
 
                     <div className="grid md:grid-cols-2 gap-4">
                         {[
-                            { id: 'showSellingPriceOnReceivingReceipt', label: 'Receipt Price Visibility', sub: 'Show price on rec. receipt', state: showSellingPriceOnReceivingReceipt, action: (v: boolean) => updateConfig({ showSellingPriceOnReceivingReceipt: v }) },
-                            { id: 'enableEBT', label: 'Benefit Sync (EBT)', sub: 'Electronic Benefits Transfer', state: enableEBT, action: (v: boolean) => updateConfig({ enableEBT: v }) },
-                            { id: 'enableWIC', label: 'Benefit Sync (WIC)', sub: 'Women, Infants, & Children', state: enableWIC, action: (v: boolean) => updateConfig({ enableWIC: v }) },
-                            { id: 'promptCCV', label: 'Security Prompt (CCV)', sub: 'Verification code validation', state: promptCCV, action: (v: boolean) => updateConfig({ promptCCV: v }) },
+                            { id: 'showSellingPriceOnReceivingReceipt', label: 'Show Price on Purchase Receipt', sub: 'Show prices when receiving stock', state: showSellingPriceOnReceivingReceipt, action: (v: boolean) => updateConfig({ showSellingPriceOnReceivingReceipt: v }) },
+                            { id: 'enableEBT', label: 'EBT Card Payments', sub: 'Enable food stamps (EBT)', state: enableEBT, action: (v: boolean) => updateConfig({ enableEBT: v }) },
+                            { id: 'enableWIC', label: 'WIC Program Payments', sub: 'Enable WIC benefit cards', state: enableWIC, action: (v: boolean) => updateConfig({ enableWIC: v }) },
+                            { id: 'promptCCV', label: 'Ask for Card Code (CCV)', sub: 'Ask for 3-digit security code', state: promptCCV, action: (v: boolean) => updateConfig({ promptCCV: v }) },
                         ].map((item) => (
                             <div key={item.id} className="bg-slate-50 p-6 rounded-[1.8rem] border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all">
                                 <div>

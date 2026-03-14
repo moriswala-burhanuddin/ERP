@@ -74,8 +74,8 @@ const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
 
     const statusConfig: Record<string, { label: string; class: string; icon: React.ReactNode }> = {
         pending: { label: 'Awaiting Review', class: 'bg-amber-50 text-amber-600 border-amber-100', icon: <Clock className="w-3.5 h-3.5" /> },
-        approved: { label: 'Authorized', class: 'bg-emerald-50 text-emerald-600 border-emerald-100', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
-        rejected: { label: 'Declined', class: 'bg-rose-50 text-rose-600 border-rose-100', icon: <XCircle className="w-3.5 h-3.5" /> },
+        approved: { label: 'Approved', class: 'bg-emerald-50 text-emerald-600 border-emerald-100', icon: <CheckCircle2 className="w-3.5 h-3.5" /> },
+        rejected: { label: 'Rejected', class: 'bg-rose-50 text-rose-600 border-rose-100', icon: <XCircle className="w-3.5 h-3.5" /> },
     };
 
     const typeConfig: Record<string, { color: string; bg: string }> = {
@@ -116,9 +116,9 @@ const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Leave Management</h1>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Leave Requests</h1>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">
-                                {isEmployeeView ? 'Your Leave Records' : `${hrLeaves.length} Total Leave Requests`}
+                                {isEmployeeView ? 'Your Leave Records' : `${hrLeaves.length} Total Requests`}
                             </p>
                         </div>
                     </div>
@@ -253,9 +253,9 @@ const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
                         ) : (
                             <div className="py-40 text-center opacity-30 flex flex-col items-center">
                                 <Ghost className="w-24 h-24 text-slate-100 mb-8" />
-                                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Queue Clear</h3>
+                                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">No Pending Requests</h3>
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 px-20 text-center mx-auto max-w-lg leading-relaxed">
-                                    No pending absence requests found. The approval queue is currently vacant.
+                                    All leave requests have been handled.
                                 </p>
                             </div>
                         )}
@@ -296,8 +296,8 @@ const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
                         ) : (
                             <div className="py-40 text-center opacity-30 flex flex-col items-center">
                                 <History className="w-24 h-24 text-slate-100 mb-8" />
-                                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Ledger Empty</h3>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 max-w-lg mx-auto leading-relaxed">No historical absence records found.</p>
+                                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">No Records Yet</h3>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 max-w-lg mx-auto leading-relaxed">No past leave records found.</p>
                             </div>
                         )}
                     </div>
@@ -337,12 +337,12 @@ const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Leave Balance Status</p>
-                                    <h4 className="text-sm font-black uppercase tracking-tight">Leave balances are synced</h4>
+                                    <h4 className="text-sm font-black uppercase tracking-tight">Leave balances are up to date</h4>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
                                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Live Sync</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Updated</span>
                             </div>
                         </div>
                     </div>

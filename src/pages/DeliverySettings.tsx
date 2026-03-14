@@ -30,7 +30,7 @@ export default function DeliverySettings() {
     const handleAddZone = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!newZoneName || !newZoneFee) {
-            toast.error("IDENTIFICATION ERROR: Zone parameters incomplete.");
+            toast.error("Please provide both zone name and fee.");
             return;
         }
 
@@ -41,24 +41,24 @@ export default function DeliverySettings() {
 
         setNewZoneName('');
         setNewZoneFee('');
-        toast.success("Zone Node Integrated: Logistics registry updated.");
+        toast.success("Delivery Zone Added");
     };
 
     const toggleZoneValue = async (id: string, currentStatus: boolean) => {
         await updateDeliveryZone(id, { isActive: !currentStatus });
-        toast.success(`Zone Protocol: Node ${!currentStatus ? 'Activated' : 'Suspended'}`);
+        toast.success(`Zone ${!currentStatus ? 'Activated' : 'Suspended'}`);
     };
 
     const removeZone = async (id: string) => {
-        if (confirm('TERMINATION AUDIT: Purge this zone definition?')) {
+        if (confirm('Are you sure you want to delete this zone?')) {
             await deleteDeliveryZone(id);
-            toast.error("Zone Node Purged from Registry");
+            toast.error("Delivery Zone Deleted");
         }
     };
 
     const toggleDriver = async (id: string, currentStatus: boolean) => {
         await toggleDriverStatus(id, !currentStatus);
-        toast.success(`Personnel Protocol: Node status synchronized`);
+        toast.success(`Driver status updated`);
     };
 
     return (
@@ -71,8 +71,8 @@ export default function DeliverySettings() {
                             <ArrowLeft className="w-5 h-5 text-slate-400" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Logistics Configuration</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Global Parameters • Node Hash: 0x{activeStoreId?.substring(0, 8)}</p>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Delivery Settings</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Manage zones, fees, and drivers</p>
                         </div>
                     </div>
                 </div>
@@ -88,8 +88,8 @@ export default function DeliverySettings() {
                                     <Globe className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Regional Matrix</h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Defining geographical cost nodes</p>
+                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Delivery Zones</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Define delivery areas and fees</p>
                                 </div>
                             </div>
                         </div>
@@ -97,17 +97,17 @@ export default function DeliverySettings() {
                         <div className="bg-slate-50 p-8 rounded-[2.5rem] mb-12">
                             <form onSubmit={handleAddZone} className="grid grid-cols-1 md:grid-cols-3 gap-6 items-end">
                                 <div className="md:col-span-1">
-                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 mb-2 block">Region Identifier</label>
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 mb-2 block">Zone Name</label>
                                     <input
                                         type="text"
                                         className="w-full h-14 bg-white border-none rounded-2xl px-6 text-[11px] font-black uppercase focus:ring-2 focus:ring-black placeholder:text-slate-200 shadow-sm"
-                                        placeholder="E.G. SECTOR_NORTH"
+                                        placeholder="e.g. Downtown"
                                         value={newZoneName}
                                         onChange={(e) => setNewZoneName(e.target.value)}
                                     />
                                 </div>
                                 <div>
-                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 mb-2 block">Fixed Magnitude</label>
+                                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 mb-2 block">Delivery Fee</label>
                                     <div className="relative">
                                         <span className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 text-xs font-black font-mono">$</span>
                                         <input
@@ -120,7 +120,7 @@ export default function DeliverySettings() {
                                     </div>
                                 </div>
                                 <Button type="submit" className="h-14 rounded-2xl bg-black text-white font-black uppercase text-[10px] tracking-widest shadow-lg shadow-black/10 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                                    Integrate Node
+                                    Add Zone
                                 </Button>
                             </form>
                         </div>
@@ -139,10 +139,10 @@ export default function DeliverySettings() {
                                                     "px-3 py-0.5 rounded-full border text-[7px] font-black uppercase tracking-widest",
                                                     zone.isActive ? "bg-emerald-50 text-emerald-600 border-emerald-100" : "bg-slate-50 text-slate-400 border-slate-100"
                                                 )}>
-                                                    {zone.isActive ? 'OPERATIONAL' : 'SUSPENDED'}
+                                                    {zone.isActive ? 'ACTIVE' : 'INACTIVE'}
                                                 </div>
                                             </div>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono">FEE_INDEX: ${zone.fee.toFixed(2)}</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest font-mono">Fee: ${zone.fee.toFixed(2)}</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-4">
@@ -154,7 +154,7 @@ export default function DeliverySettings() {
                                                 zone.isActive ? "text-slate-400 hover:bg-slate-100" : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
                                             )}
                                         >
-                                            {zone.isActive ? 'Suspend Protocol' : 'Reset Protocol'}
+                                            {zone.isActive ? 'Suspend' : 'Activate'}
                                         </Button>
                                         <button onClick={() => removeZone(zone.id)} className="p-3 bg-white text-slate-100 hover:text-rose-500 rounded-xl transition-all border border-slate-50">
                                             <Trash2 className="w-4 h-4" />
@@ -173,8 +173,8 @@ export default function DeliverySettings() {
                                     <Truck className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Fleet Permissions</h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Authorized dispatch personnel</p>
+                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Drivers</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Manage delivery personnel</p>
                                 </div>
                             </div>
                         </div>
@@ -188,7 +188,7 @@ export default function DeliverySettings() {
                                         </div>
                                         <div>
                                             <p className="font-black text-xs uppercase tracking-tight mb-0.5">{driver.name}</p>
-                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest font-mono">ID: {driver.id.substring(0, 8).toUpperCase()}</p>
+                                            <p className="font-black text-xs uppercase tracking-tight mb-0.5">{driver.name}</p>
                                         </div>
                                     </div>
                                     <button
@@ -200,7 +200,7 @@ export default function DeliverySettings() {
                                                 : 'bg-white text-slate-300 border-slate-50 hover:bg-slate-100'
                                         )}
                                     >
-                                        {driver.isActive ? 'Active Courier' : 'Inactive'}
+                                        {driver.isActive ? 'Active Driver' : 'Inactive'}
                                     </button>
                                 </div>
                             ))}
@@ -213,22 +213,22 @@ export default function DeliverySettings() {
                     <div className="bg-black rounded-[3rem] p-10 text-white shadow-2xl shadow-black/20 overflow-hidden relative group">
                         <Gauge className="absolute -right-10 -top-10 w-40 h-40 text-white/5 rotate-12 group-hover:rotate-45 transition-transform duration-1000" />
                         <div className="relative z-10">
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-8">Global Logic</h4>
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-8">Global Settings</h4>
 
                             <div className="space-y-6">
                                 <label className="flex items-start gap-4 cursor-pointer group p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">
                                     <input type="checkbox" className="w-5 h-5 mt-0.5 rounded-lg bg-white/10 border-white/10 text-indigo-500 focus:ring-0" defaultChecked />
                                     <div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest block mb-1">C.O.D. Protocol</span>
-                                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wide leading-relaxed">Enable cash collection nodes on dispatch.</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest block mb-1">C.O.D. Enabled</span>
+                                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wide leading-relaxed">Allow cash on delivery payments.</span>
                                     </div>
                                 </label>
 
                                 <label className="flex items-start gap-4 cursor-pointer group p-4 bg-white/5 rounded-2xl border border-white/5 hover:bg-white/10 transition-colors">
                                     <input type="checkbox" className="w-5 h-5 mt-0.5 rounded-lg bg-white/10 border-white/10 text-indigo-500 focus:ring-0" defaultChecked />
                                     <div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest block mb-1">Verify Node Signature</span>
-                                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wide leading-relaxed">Require receiver authentication on fulfillment.</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest block mb-1">Require Signature</span>
+                                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wide leading-relaxed">Require customer signature on delivery.</span>
                                     </div>
                                 </label>
 
@@ -237,8 +237,8 @@ export default function DeliverySettings() {
                                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                     </div>
                                     <div>
-                                        <span className="text-[10px] font-black uppercase tracking-widest block mb-1 text-emerald-400">Auto-Dispatch Engine</span>
-                                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wide leading-relaxed">Intelligent courier assignment active.</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest block mb-1 text-emerald-400">Auto-Assignment</span>
+                                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wide leading-relaxed">Automatically assign drivers to orders.</span>
                                     </div>
                                 </label>
                             </div>
@@ -246,15 +246,15 @@ export default function DeliverySettings() {
                     </div>
 
                     <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white text-center">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-6">Internal Config Audit</p>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-6">Delivery Config</p>
                         <div className="flex items-center justify-center p-6 bg-slate-50 rounded-2xl mb-8">
                             <Fuel className="w-10 h-10 text-rose-500" />
                         </div>
                         <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">Fuel Surcharges</h4>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed tracking-wider mb-8">Dynamic logistics overhead calculation based on sector density metrics.</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed tracking-wider mb-8">Configure additional delivery charges based on distance.</p>
                         <Button className="w-full bg-slate-50 hover:bg-slate-100 text-slate-900 rounded-xl h-12 font-black uppercase text-[9px] tracking-widest">
                             <Gauge className="w-4 h-4 mr-2" />
-                            Calibrate Engine
+                            Configure Surcharges
                         </Button>
                     </div>
                 </div>

@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Send, Bot, User } from "lucide-react";
+import { Send, Bot, User, Lock } from "lucide-react";
+import { useLicense } from "@/contexts/LicenseContext";
 
 interface Message {
     role: 'user' | 'assistant';
@@ -10,6 +11,7 @@ interface Message {
 }
 
 const HRChatAssistant = () => {
+    const { hasFeature } = useLicense();
     const [messages, setMessages] = useState<Message[]>([
         { role: 'assistant', content: 'Hi! I am Invenza HR. Ask me about policies, leave balance, or your shifts.' }
     ]);
@@ -55,6 +57,20 @@ const HRChatAssistant = () => {
             setLoading(false);
         }
     };
+
+    if (!hasFeature('ai_features')) {
+        return (
+            <Card className="h-[600px] flex flex-col items-center justify-center bg-slate-50 border-dashed">
+                <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mb-4 text-slate-400">
+                    <Lock className="w-8 h-8" />
+                </div>
+                <h2 className="text-xl font-black text-slate-800 uppercase tracking-tight mb-2">Feature Disabled</h2>
+                <p className="text-slate-500 text-sm max-w-sm text-center">
+                    The AI HR Assistant is not enabled for your current license. Please contact your system administrator to upgrade your plan.
+                </p>
+            </Card>
+        );
+    }
 
     return (
         <Card className="h-[600px] flex flex-col">

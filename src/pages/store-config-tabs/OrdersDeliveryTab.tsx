@@ -24,9 +24,9 @@ export function OrdersDeliveryTab() {
                         <div className="p-3 bg-indigo-500 rounded-xl text-white">
                             <Navigation className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Logistics Architecture</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Delivery Settings</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Core dispatch logic, fiscal tax exemptions for services, and automated personnel assignment vectors.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">General settings for how deliveries and orders are handled.</p>
                 </div>
 
                 <div className="lg:col-span-8 space-y-8">
@@ -52,23 +52,23 @@ export function OrdersDeliveryTab() {
                     <div className="grid md:grid-cols-2 gap-8">
                         <div className="space-y-3">
                             <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                                <Truck className="w-3.5 h-3.5" /> Assigned Carrier (Default)
+                                <Truck className="w-3.5 h-3.5" /> Default Delivery Company
                             </Label>
                             <Input
                                 value={defaultDeliveryAssignment}
                                 onChange={e => updateConfig({ defaultDeliveryAssignment: e.target.value })}
-                                placeholder="INTERNAL_COURIER_NODE"
+                                placeholder="INTERNAL_COURIER"
                                 className="h-14 bg-slate-50 border-none rounded-2xl px-6 text-[11px] font-black uppercase focus:ring-2 focus:ring-black"
                             />
                         </div>
                         <div className="space-y-3">
                             <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                                <UserCheck className="w-3.5 h-3.5" /> Assigned Personnel (Default)
+                                <UserCheck className="w-3.5 h-3.5" /> Default Delivery Person
                             </Label>
                             <Input
                                 value={defaultEmployeeDeliveries}
                                 onChange={e => updateConfig({ defaultEmployeeDeliveries: e.target.value })}
-                                placeholder="OPERATIVE_ID"
+                                placeholder="EMPLOYEE_NAME"
                                 className="h-14 bg-slate-50 border-none rounded-2xl px-6 text-[11px] font-black uppercase focus:ring-2 focus:ring-black"
                             />
                         </div>
@@ -83,24 +83,24 @@ export function OrdersDeliveryTab() {
                         <div className="p-3 bg-black rounded-xl text-white">
                             <Package className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Carrier Nexus</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Delivery Companies</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Registry of authorized shipping providers, fiscal fee structures, and estimated transit temporalities.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">List of companies that handle your deliveries and their fees.</p>
                 </div>
 
                 <div className="lg:col-span-8 flex flex-col gap-6">
                     <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Authorized Providers</h4>
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Registered Companies</h4>
                         <Button
                             variant="ghost"
                             className="h-10 px-6 rounded-xl bg-black text-white font-black uppercase text-[9px] tracking-widest hover:scale-[1.02] shadow-xl shadow-black/20"
                             onClick={() => {
                                 addShippingProvider({ id: Date.now().toString(), name: 'NEW_CARRIER', fee: 0, timeDays: 1, isDefault: false });
-                                toast.success("New Carrier Protocol Initialized");
+                                toast.success("New company added successfully");
                             }}
                         >
                             <Plus className="h-4 w-4 mr-2" />
-                            Initialize Carrier
+                            Add Company
                         </Button>
                     </div>
 
@@ -113,7 +113,7 @@ export function OrdersDeliveryTab() {
 
                                 <div className="flex-1 grid md:grid-cols-3 gap-6">
                                     <div className="space-y-2">
-                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Provider Identity</Label>
+                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Company Name</Label>
                                         <Input
                                             value={provider.name}
                                             onChange={e => {
@@ -125,7 +125,7 @@ export function OrdersDeliveryTab() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Fiscal Fee (₹)</Label>
+                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Delivery Fee (₹)</Label>
                                         <Input
                                             type="number"
                                             value={provider.fee}
@@ -138,7 +138,7 @@ export function OrdersDeliveryTab() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Transit (Days)</Label>
+                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Time (Days)</Label>
                                         <Input
                                             type="number"
                                             value={provider.timeDays}
@@ -154,7 +154,7 @@ export function OrdersDeliveryTab() {
 
                                 <div className="flex items-center gap-6">
                                     <div className="flex flex-col items-end gap-2">
-                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Priority</Label>
+                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Default Choice</Label>
                                         <Switch
                                             checked={provider.isDefault}
                                             onCheckedChange={v => {
@@ -181,24 +181,24 @@ export function OrdersDeliveryTab() {
                         <div className="p-3 bg-emerald-500 rounded-xl text-white">
                             <Map className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Spatial Zoning</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Delivery Zones</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Geographical partitioning based on ZIP protocols or regex patterns for automated fee distribution.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Create zones based on areas or pin codes to set different delivery fees.</p>
                 </div>
 
                 <div className="lg:col-span-8 flex flex-col gap-6">
                     <div className="flex items-center justify-between mb-2">
-                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Zonal Partitions</h4>
+                        <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Zones</h4>
                         <Button
                             variant="ghost"
                             className="h-10 px-6 rounded-xl bg-black text-white font-black uppercase text-[9px] tracking-widest hover:scale-[1.02] shadow-xl shadow-black/20"
                             onClick={() => {
                                 addShippingZone({ id: Date.now().toString(), name: 'NEW_ZONE_ALPHA', zipRegex: '', fee: 0, taxGroupId: '' });
-                                toast.success("New Spatial Zone Authorized");
+                                toast.success("New zone added successfully");
                             }}
                         >
                             <Plus className="h-4 w-4 mr-2" />
-                            Initialize Zone
+                            Add Zone
                         </Button>
                     </div>
 
@@ -211,7 +211,7 @@ export function OrdersDeliveryTab() {
 
                                 <div className="flex-1 grid md:grid-cols-3 gap-6">
                                     <div className="space-y-2">
-                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Zone Identity</Label>
+                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Zone Name</Label>
                                         <Input
                                             value={zone.name}
                                             onChange={e => {
@@ -223,7 +223,7 @@ export function OrdersDeliveryTab() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Regex Topology</Label>
+                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Pin Code Pattern</Label>
                                         <Input
                                             value={zone.zipRegex || ''}
                                             onChange={e => {
@@ -236,7 +236,7 @@ export function OrdersDeliveryTab() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Zone Flux (₹)</Label>
+                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Fee (₹)</Label>
                                         <Input
                                             type="number"
                                             value={zone.fee}
@@ -258,8 +258,8 @@ export function OrdersDeliveryTab() {
                         {shippingZones.length === 0 && (
                             <div className="py-20 text-center opacity-30 flex flex-col items-center">
                                 <Ghost className="w-16 h-16 text-slate-100 mb-6" />
-                                <h4 className="text-xl font-black text-slate-900 uppercase">Geographic Void</h4>
-                                <p className="text-[9px] font-black text-slate-400 uppercase mt-2 px-20 text-center">No spatial zones partitioned. Uniform logistics protocol active.</p>
+                                <h4 className="text-xl font-black text-slate-900 uppercase">No Zones Set</h4>
+                                <p className="text-[9px] font-black text-slate-400 uppercase mt-2 px-20 text-center">No delivery zones found. Using same settings for everywhere.</p>
                             </div>
                         )}
                     </div>

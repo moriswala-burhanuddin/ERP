@@ -125,6 +125,13 @@ export interface SalePayment {
   giftCardId?: string;
 }
 
+interface SyncResponse {
+  status: string;
+  updates?: Record<string, unknown[]>;
+  server_time?: string;
+  synced_ids?: Record<string, string[]>;
+}
+
 export interface Sale {
   id: string;
   invoiceNumber: string;
@@ -243,7 +250,9 @@ export interface Quotation {
   items: SaleItem[];
   totalAmount: number;
   date: string;
+  expiryDate?: string;
   status: 'active' | 'converted' | 'expired';
+  notes?: string;
   storeId: string;
   customerId?: string;
   deviceId?: string;
@@ -764,6 +773,7 @@ interface ERPState {
   // Phase 11 Actions
   processStockTransfer: (transfer: Omit<StockTransfer, 'id' | 'status'>) => Promise<void>;
   addPurchaseOrder: (po: Omit<PurchaseOrder, 'id'>) => Promise<void>;
+  updatePurchaseOrder: (id: string, updates: Partial<PurchaseOrder>) => Promise<void>;
   addExpenseCategory: (cat: Omit<ExpenseCategory, 'id'>) => Promise<void>;
   addTaxSlab: (slab: Omit<TaxSlab, 'id'>) => Promise<void>;
   generateBarcode: (sku: string) => Promise<string>;
@@ -1118,13 +1128,21 @@ export const useERPStore = create<ERPState>()(
         if (!isElectron()) return;
         const transfer = { ...transferData, id: `xfer-${Date.now()}`, status: transferData.status || 'completed' } as StockTransfer;
         await dbAdapter.processStockTransfer(transfer);
-        // Refresh local data if needed
+        // Refresh local data to reflect stock changes
+        await get().loadFromDatabase();
       },
 
       addPurchaseOrder: async (poData) => {
         if (!isElectron()) return;
         const po = { ...poData, id: `po-${Date.now()}` };
         await dbAdapter.addPurchaseOrder(po);
+        const purchaseOrders = await dbAdapter.getPurchaseOrders(get().activeStoreId) as PurchaseOrder[];
+        set({ purchaseOrders });
+      },
+
+      updatePurchaseOrder: async (id, updates) => {
+        if (!isElectron()) return;
+        await dbAdapter.updatePurchaseOrder(id, updates);
         const purchaseOrders = await dbAdapter.getPurchaseOrders(get().activeStoreId) as PurchaseOrder[];
         set({ purchaseOrders });
       },
@@ -2052,8 +2070,8 @@ export const useERPStore = create<ERPState>()(
             if (response.ok) {
               // Build synced_ids from VPS response OR fall back to all records in local payload
               // This prevents invalid local records (e.g. seed data) from looping as "pending" forever
-              const confirmedIds = ((pushResult as Record<string, unknown>)?.synced_ids && Object.keys((pushResult as Record<string, unknown>).synced_ids as object).length > 0)
-                ? ((pushResult as Record<string, unknown>).synced_ids as Record<string, string[]>)
+              const confirmedIds = ((pushResult as unknown as SyncResponse)?.synced_ids && Object.keys((pushResult as unknown as SyncResponse).synced_ids as object).length > 0)
+                ? ((pushResult as unknown as SyncResponse).synced_ids as Record<string, string[]>)
                 : Object.fromEntries(
                   Object.entries((dirtyData as { payload: Record<string, { id: string }[]> }).payload || {}).map(([tbl, rows]) => [
                     tbl, rows.map((r: { id: string }) => r.id)
@@ -2102,11 +2120,12 @@ export const useERPStore = create<ERPState>()(
           if (!get().isAuthenticated) return;
 
           if (pullResponse.ok && pullResult) {
-            if ((pullResult as any).status === 'success' && (pullResult as any).updates) {
-              console.log('[SYNC] Pull received updates for tables:', Object.keys((pullResult as any).updates));
+            const result = pullResult as unknown as SyncResponse;
+            if (result.status === 'success' && result.updates) {
+              console.log('[SYNC] Pull received updates for tables:', Object.keys(result.updates));
               const applyResult = await window.electronAPI.applyCloudUpdates({
-                updates: (pullResult as any).updates,
-                serverTime: (pullResult as any).server_time
+                updates: result.updates,
+                serverTime: result.server_time || ''
               });
               if (applyResult.success) {
                 await loadFromDatabase(); // Refresh local state

@@ -32,7 +32,7 @@ export default function TransactionDetails() {
     return (
         <div className="min-h-screen bg-[#F2F2F7] pb-32">
             <PageHeader
-                title="NODE EXPLORER"
+                title="Transaction Details"
                 showBack
             />
 
@@ -45,13 +45,13 @@ export default function TransactionDetails() {
                                     "w-3 h-3 rounded-full animate-pulse",
                                     transaction.type === 'cash_in' ? "bg-emerald-500" : "bg-rose-500"
                                 )} />
-                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Protocol: {transaction.type.replace('_', ' ')}</span>
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Type: {transaction.type.replace('_', ' ')}</span>
                             </div>
                             <h1 className="text-4xl font-black text-slate-900 uppercase tracking-tighter leading-none mb-2">{transaction.description}</h1>
                             <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">ID: {transaction.id}</p>
                         </div>
                         <div className="text-right">
-                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Magnitude</p>
+                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-1">Amount</p>
                             <p className={cn(
                                 "text-4xl font-black tracking-tighter",
                                 transaction.type === 'cash_in' ? "text-emerald-600" : "text-rose-600"
@@ -63,20 +63,20 @@ export default function TransactionDetails() {
 
                     <div className="p-12 bg-slate-50/50 grid grid-cols-2 md:grid-cols-3 gap-12">
                         <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Temporal Node</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Date</p>
                             <p className="text-sm font-black text-slate-900">{new Date(transaction.date).toLocaleDateString()} {new Date(transaction.date).toLocaleTimeString()}</p>
                         </div>
                         <div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Account Channel</p>
-                            <p className="text-sm font-black text-slate-900">{account?.name || 'GENERIC_BUFFER'}</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Account</p>
+                            <p className="text-sm font-black text-slate-900">{account?.name || 'N/A'}</p>
                         </div>
                         <div>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Account Type</p>
-                            <p className="text-sm font-black text-slate-900 uppercase">{account?.type || 'UNCATEGORIZED'}</p>
+                            <p className="text-sm font-black text-slate-900 uppercase">{account?.type || 'Unknown'}</p>
                         </div>
                         {transaction.customerName && (
                             <div>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">External Entity</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Customer</p>
                                 <p className="text-sm font-black text-slate-900">{transaction.customerName}</p>
                             </div>
                         )}
@@ -84,7 +84,7 @@ export default function TransactionDetails() {
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Sync Status</p>
                             <div className="flex items-center gap-2">
                                 <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Immutably Stored</span>
+                                <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Saved</span>
                             </div>
                         </div>
                     </div>
@@ -94,7 +94,7 @@ export default function TransactionDetails() {
                             onClick={() => navigate('/transactions')}
                             className="h-14 bg-slate-100 text-slate-600 rounded-2xl px-10 font-black uppercase text-[10px] tracking-widest hover:bg-slate-200 transition-all"
                         >
-                            Back to Ledger
+                            Back to Transactions
                         </Button>
                         <Button className="h-14 bg-black text-white rounded-2xl px-10 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20">
                             Download Receipt

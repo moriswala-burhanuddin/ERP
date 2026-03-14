@@ -40,11 +40,11 @@ export default function Suppliers() {
     };
 
     const handleDeleteSelected = async () => {
-        if (window.confirm(`TERMINATION AUDIT: Delete ${selectedIds.length} supplier nodes?`)) {
+        if (window.confirm(`Are you sure you want to delete ${selectedIds.length} supplier(s)?`)) {
             for (const id of selectedIds) {
                 await deleteSupplier(id);
             }
-            toast.success('Procurement Registry Cleansed');
+            toast.success('Suppliers deleted.');
             setSelectedIds([]);
         }
     };
@@ -58,8 +58,8 @@ export default function Suppliers() {
             <div className="bg-white border-b border-slate-100 z-50 sticky top-0">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
                     <div>
-                        <h1 className="text-2xl font-black uppercase tracking-tight">Supply Registry</h1>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{suppliers.length} Registered Producers</p>
+                        <h1 className="text-2xl font-black uppercase tracking-tight">Suppliers</h1>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{suppliers.length} Suppliers</p>
                     </div>
 
                     <div className="flex items-center gap-3">
@@ -69,7 +69,7 @@ export default function Suppliers() {
                         <div className="h-10 w-px bg-slate-100 mx-2" />
                         <Button onClick={() => navigate('/suppliers/new')} className="bg-black text-white rounded-[1.2rem] h-14 px-8 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                             <Plus className="w-4 h-4 mr-2" />
-                            Register Provider
+                            Add Supplier
                         </Button>
                     </div>
                 </div>
@@ -83,10 +83,10 @@ export default function Suppliers() {
                             <div className="p-4 bg-emerald-50 rounded-2xl text-emerald-600">
                                 <Building2 className="w-6 h-6" />
                             </div>
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Asset Pool</span>
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Total</span>
                         </div>
                         <h2 className="text-3xl font-black leading-none mb-1">{suppliers.length}</h2>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Verified Sources</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Suppliers</p>
                     </div>
 
                     <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
@@ -94,10 +94,10 @@ export default function Suppliers() {
                             <div className="p-4 bg-amber-50 rounded-2xl text-amber-600">
                                 <Star className="w-6 h-6" />
                             </div>
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Elite Tier</span>
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Preferred</span>
                         </div>
                         <h2 className="text-3xl font-black leading-none mb-1">{preferredCount}</h2>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Preferred Partners</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Preferred Suppliers</p>
                     </div>
 
                     <div className="bg-black rounded-[2rem] p-8 text-white shadow-xl shadow-black/10">
@@ -105,7 +105,7 @@ export default function Suppliers() {
                             <div className="p-4 bg-white/10 rounded-2xl text-rose-400">
                                 <DollarSign className="w-6 h-6" />
                             </div>
-                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Liability Index</span>
+                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Amount Owed</span>
                         </div>
                         <h2 className="text-3xl font-black leading-none mb-1">${totalExposure.toLocaleString()}</h2>
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Outstanding Payables</p>
@@ -118,7 +118,7 @@ export default function Suppliers() {
                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-black transition-colors" />
                         <input
                             type="text"
-                            placeholder="Scan Provider Code or Search Entity..."
+                            placeholder="SEARCH BY NAME, EMAIL OR PHONE..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full h-16 bg-[#F8F8FA] border-none rounded-2xl pl-16 pr-6 text-sm font-bold focus:ring-2 focus:ring-black placeholder:text-slate-200 transition-all uppercase"
@@ -148,7 +148,7 @@ export default function Suppliers() {
                         </button>
                         {selectedIds.length > 0 && (
                             <div className="flex items-center gap-2 animate-in slide-in-from-right duration-500">
-                                <Button onClick={() => handleEmailSelected()} variant="outline" className="h-16 rounded-2xl border-none bg-emerald-50/50 hover:bg-emerald-100 text-emerald-600 font-black uppercase text-[9px] px-6">Email Pulse</Button>
+                                <Button onClick={() => handleEmailSelected()} variant="outline" className="h-16 rounded-2xl border-none bg-emerald-50/50 hover:bg-emerald-100 text-emerald-600 font-black uppercase text-[9px] px-6">Email</Button>
                                 <Button onClick={handleDeleteSelected} variant="ghost" className="h-16 w-16 rounded-2xl bg-red-50 hover:bg-red-100 text-red-600 p-0"><Trash2 className="w-5 h-5" /></Button>
                             </div>
                         )}
@@ -192,11 +192,11 @@ export default function Suppliers() {
 
                                 <div className="space-y-4 mb-8">
                                     <div className="flex items-center justify-between text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                                        <span className="flex items-center gap-2"><Globe className="w-3.5 h-3.5" /> Jurisdiction</span>
-                                        <span className="text-slate-900">{s.city || 'Global Terminal'}</span>
+                                        <span className="flex items-center gap-2"><Globe className="w-3.5 h-3.5" /> City</span>
+                                        <span className="text-slate-900">{s.city || 'Not Set'}</span>
                                     </div>
                                     <div className="flex items-center justify-between text-[11px] font-black text-slate-400 uppercase tracking-widest">
-                                        <span className="flex items-center gap-2"><DollarSign className="w-3.5 h-3.5" /> Exposure</span>
+                                        <span className="flex items-center gap-2"><DollarSign className="w-3.5 h-3.5" /> Balance</span>
                                         <span className={cn(s.currentBalance > 0 ? "text-red-500" : "text-emerald-500")}>
                                             ${(s.currentBalance || 0).toLocaleString()}
                                         </span>
@@ -216,7 +216,7 @@ export default function Suppliers() {
                                         onClick={(e) => { e.stopPropagation(); navigate(`/suppliers/${s.id}`); }}
                                         className="flex-1 bg-slate-50 hover:bg-black hover:text-white text-slate-900 rounded-[1.2rem] h-14 font-black uppercase text-[9px] tracking-widest transition-all shadow-none"
                                     >
-                                        Provider Profile
+                                        View Profile
                                         <ArrowRight className="w-3 h-3 ml-2" />
                                     </Button>
                                     <button onClick={(e) => e.stopPropagation()} className="w-14 h-14 rounded-[1.2rem] bg-slate-50 hover:bg-slate-100 flex items-center justify-center transition-all text-slate-300 hover:text-black">
@@ -241,5 +241,5 @@ export default function Suppliers() {
 }
 
 function handleEmailSelected() {
-    toast.info("Dispatch layer: email composition layer initiated");
+    toast.info("Email feature coming soon.");
 }

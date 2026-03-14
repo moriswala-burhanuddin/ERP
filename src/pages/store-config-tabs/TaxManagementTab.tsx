@@ -18,16 +18,16 @@ export function TaxManagementTab() {
 
     return (
         <div className="space-y-12">
-            {/* Sector 1: Fiscal Logic Nexus */}
+            {/* Tax Rates */}
             <div className="grid lg:grid-cols-12 gap-12">
                 <div className="lg:col-span-4">
                     <div className="flex items-center gap-4 mb-4">
                         <div className="p-3 bg-indigo-500 rounded-xl text-white">
                             <Calculator className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Fiscal Logic Nexus</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Tax Settings</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Integration parameters for external tax computation engines and location-aware fiscal routing.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Settings for automatic tax calculations and location-based taxes.</p>
                 </div>
 
                 <div className="lg:col-span-8 flex flex-col gap-8">
@@ -87,18 +87,18 @@ export function TaxManagementTab() {
                         <div className="p-3 bg-black rounded-xl text-white">
                             <ShieldCheck className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Regulatory Protocols</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">General Tax Rules</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Core processing logic for tax inclusion, discount vectors, and cumulative fiscal stacking.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Basic rules for how discounts, prices, and purchases are taxed.</p>
                 </div>
 
                 <div className="lg:col-span-8 space-y-8">
                     <div className="grid md:grid-cols-2 gap-4">
                         {[
-                            { id: 'flatDiscountTax', label: 'Discount Vector Inclusion', sub: 'Flat discount affects tax', state: flatDiscountAlsoDiscountsTax, action: (v: boolean) => updateConfig({ flatDiscountAlsoDiscountsTax: v }) },
-                            { id: 'pricesIncludeTax', label: 'Intrinsic Inclusion', sub: 'Unit prices include tax', state: pricesIncludeTax, action: (v: boolean) => updateConfig({ pricesIncludeTax: v }) },
-                            { id: 'chargeTaxOnReceivings', label: 'Procurement Duty', sub: 'Tax active on receivings', state: chargeTaxOnReceivings, action: (v: boolean) => updateConfig({ chargeTaxOnReceivings: v }) },
-                            { id: 'cumulativeTax', label: 'Stacking Protocol', sub: 'Enable cumulative tax', state: cumulativeTax, action: (v: boolean) => updateConfig({ cumulativeTax: v }) },
+                            { id: 'flatDiscountTax', label: 'Discount Affects Tax', sub: 'Flat discount affects tax', state: flatDiscountAlsoDiscountsTax, action: (v: boolean) => updateConfig({ flatDiscountAlsoDiscountsTax: v }) },
+                            { id: 'pricesIncludeTax', label: 'Prices Include Tax', sub: 'Unit prices include tax', state: pricesIncludeTax, action: (v: boolean) => updateConfig({ pricesIncludeTax: v }) },
+                            { id: 'chargeTaxOnReceivings', label: 'Tax on Receivings', sub: 'Tax active on receivings', state: chargeTaxOnReceivings, action: (v: boolean) => updateConfig({ chargeTaxOnReceivings: v }) },
+                            { id: 'cumulativeTax', label: 'Cumulative Tax', sub: 'Enable cumulative tax', state: cumulativeTax, action: (v: boolean) => updateConfig({ cumulativeTax: v }) },
                         ].map((item) => (
                             <div key={item.id} className="bg-slate-50 p-6 rounded-[1.8rem] border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all">
                                 <div>
@@ -115,7 +115,7 @@ export function TaxManagementTab() {
                     </div>
 
                     <div className="space-y-3 max-w-sm">
-                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Standard Fiscal Cluster (Default Tax Group)</Label>
+                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Default Tax Group</Label>
                         <Input
                             value={defaultTaxGroup}
                             onChange={e => updateConfig({ defaultTaxGroup: e.target.value })}
@@ -133,9 +133,9 @@ export function TaxManagementTab() {
                         <div className="p-3 bg-emerald-500 rounded-xl text-white">
                             <Percent className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Percentage Registry</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Tax Rates</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Discrete tax nodes defining specific percentage vectors for financial settlement.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Set the different tax percentages for your items.</p>
                 </div>
 
                 <div className="lg:col-span-8 flex flex-col gap-6">
@@ -146,7 +146,7 @@ export function TaxManagementTab() {
                             className="h-10 px-6 rounded-xl bg-black text-white font-black uppercase text-[9px] tracking-widest hover:scale-[1.02] shadow-xl shadow-black/20"
                             onClick={() => {
                                 addTaxRate({ id: Date.now().toString(), name: 'NEW_VECTOR', percentage: 0 });
-                                toast.success("New Fiscal Vector Initialized");
+                                toast.success("New Tax Rate Added");
                             }}
                         >
                             <Plus className="h-4 w-4 mr-2" />
@@ -174,7 +174,7 @@ export function TaxManagementTab() {
                                         />
                                     </div>
                                     <div className="space-y-2 relative">
-                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Magnitude (%)</Label>
+                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Rate (%)</Label>
                                         <div className="relative">
                                             <Input
                                                 type="number"

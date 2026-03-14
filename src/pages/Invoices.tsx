@@ -43,13 +43,13 @@ export default function Invoices() {
 
     const handleDelete = async () => {
         if (adminCode !== '1234') {
-            toast.error("Security Breach: Invalid administrative authorization code.");
+            toast.error("Wrong code. Please try again.");
             return;
         }
 
         if (invoiceToDelete) {
             await deleteInvoice(invoiceToDelete);
-            toast.error("Instrument Purged: Invoice successfully removed from registry.");
+            toast.success("Invoice deleted.");
         }
         setShowDeleteDialog(false);
         setInvoiceToDelete(null);
@@ -58,11 +58,11 @@ export default function Invoices() {
 
     const getStatusConfig = (status: string) => {
         switch (status) {
-            case 'paid': return { class: 'bg-emerald-50 text-emerald-600 border-emerald-100', label: 'SETTLED' };
-            case 'draft': return { class: 'bg-slate-50 text-slate-400 border-slate-100', label: 'DRAFT_NODE' };
-            case 'sent': return { class: 'bg-blue-50 text-blue-600 border-blue-100', label: 'ACTIVE_DISPATCH' };
-            case 'overdue': return { class: 'bg-rose-50 text-rose-600 border-rose-100', label: 'CRITICAL_LATENCY' };
-            case 'cancelled': return { class: 'bg-red-50 text-red-600 border-red-100', label: 'VOID_NULL' };
+            case 'paid': return { class: 'bg-emerald-50 text-emerald-600 border-emerald-100', label: 'PAID' };
+            case 'draft': return { class: 'bg-slate-50 text-slate-400 border-slate-100', label: 'DRAFT' };
+            case 'sent': return { class: 'bg-blue-50 text-blue-600 border-blue-100', label: 'SENT' };
+            case 'overdue': return { class: 'bg-rose-50 text-rose-600 border-rose-100', label: 'OVERDUE' };
+            case 'cancelled': return { class: 'bg-red-50 text-red-600 border-red-100', label: 'CANCELLED' };
             default: return { class: 'bg-slate-50 text-slate-400', label: status.toUpperCase() };
         }
     };
@@ -77,8 +77,8 @@ export default function Invoices() {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Fiscal Instrument Registry</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Invoice Topology • {filteredInvoices.length} Active Records</p>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Invoices</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">All Invoices • {filteredInvoices.length} Records</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -87,7 +87,7 @@ export default function Invoices() {
                             className="bg-black text-white rounded-[1.2rem] h-14 px-8 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                         >
                             <Plus className="w-4 h-4 mr-2 text-indigo-400" />
-                            Initialize {activeTab.toUpperCase()} Node
+                            New {activeTab.toUpperCase()} Invoice
                         </Button>
                     </div>
                 </div>
@@ -102,14 +102,14 @@ export default function Invoices() {
                             className="rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-2xl transition-all h-full"
                         >
                             <ArrowDownLeft className="w-3.5 h-3.5 mr-3" />
-                            Receivable Matrix
+                            Customer Invoices
                         </TabsTrigger>
                         <TabsTrigger
                             value="supplier"
                             className="rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest data-[state=active]:bg-black data-[state=active]:text-white data-[state=active]:shadow-2xl transition-all h-full"
                         >
                             <ArrowUpRight className="w-3.5 h-3.5 mr-3" />
-                            Payable Matrix
+                            Supplier Invoices
                         </TabsTrigger>
                     </TabsList>
                 </Tabs>
@@ -120,7 +120,7 @@ export default function Invoices() {
                         <div className="p-4 bg-indigo-50 rounded-2xl w-fit mb-8 text-indigo-500">
                             <BarChart3 className="w-6 h-6" />
                         </div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Sector Magnitude</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Amount</p>
                         <h3 className="text-3xl font-black text-slate-900 tracking-tighter">₹{totalAmount.toLocaleString()}</h3>
                         <Zap className="absolute -right-4 -bottom-4 w-24 h-24 text-slate-50 opacity-0 group-hover:opacity-100 transition-all rotate-12" />
                     </div>
@@ -138,11 +138,11 @@ export default function Invoices() {
                             <div className="p-4 bg-white/10 rounded-2xl text-white">
                                 <FileText className="w-6 h-6" />
                             </div>
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Global Status</span>
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Status</span>
                         </div>
                         <div className="flex items-center gap-3">
                             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-[11px] font-black uppercase tracking-widest text-emerald-400">Ledger Synchronized</span>
+                            <span className="text-[11px] font-black uppercase tracking-widest text-emerald-400">Up to Date</span>
                         </div>
                     </div>
                 </div>
@@ -153,7 +153,7 @@ export default function Invoices() {
                         <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-black transition-colors" />
                         <input
                             type="text"
-                            placeholder="IDENTIFY BY INSTRUMENT_REF OR ENTITY NAME..."
+                            placeholder="SEARCH BY INVOICE NUMBER OR NAME..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="w-full h-16 bg-slate-50 border-none rounded-2xl pl-16 pr-6 text-[10px] font-black uppercase tracking-[0.2em] focus:ring-2 focus:ring-black transition-all"
@@ -166,12 +166,12 @@ export default function Invoices() {
                             onChange={(e) => setFilterStatus(e.target.value)}
                             className="h-16 bg-slate-50 border-none rounded-2xl px-10 text-[10px] font-black uppercase tracking-[0.2em] focus:ring-2 focus:ring-black appearance-none cursor-pointer"
                         >
-                            <option value="all">ANY_STATUS</option>
-                            <option value="draft">DRAFT_NODES</option>
-                            <option value="sent">ACTIVE_DISPATCH</option>
-                            <option value="paid">SETTLED_NODES</option>
-                            <option value="overdue">CRITICAL_LATENCY</option>
-                            <option value="cancelled">VOID_NULL</option>
+                            <option value="all">ALL STATUS</option>
+                            <option value="draft">DRAFT</option>
+                            <option value="sent">SENT</option>
+                            <option value="paid">PAID</option>
+                            <option value="overdue">OVERDUE</option>
+                            <option value="cancelled">CANCELLED</option>
                         </select>
                         <button className="h-16 w-16 bg-slate-50 hover:bg-slate-100 text-slate-400 rounded-2xl flex items-center justify-center transition-all border border-slate-50">
                             <Download className="w-5 h-5" />
@@ -196,7 +196,7 @@ export default function Invoices() {
                                             inv.status === 'paid' ? "bg-emerald-50 text-emerald-600" :
                                                 inv.status === 'overdue' ? "bg-rose-50 text-rose-600" : "bg-slate-50 text-slate-400"
                                         )}>
-                                            <span className="text-[9px] font-black uppercase tracking-tighter opacity-40 leading-none mb-1">NODE</span>
+                                            <span className="text-[9px] font-black uppercase tracking-tighter opacity-40 leading-none mb-1">INV</span>
                                             <span className="text-xl font-black tracking-tighter">#{inv.invoiceNumber.slice(-3)}</span>
                                         </div>
 
@@ -212,14 +212,14 @@ export default function Invoices() {
                                             <div className="flex flex-wrap gap-x-8 gap-y-2">
                                                 <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                                     <Calendar className="w-4 h-4" />
-                                                    INITIATED: {new Date(inv.date).toLocaleDateString()}
+                                                    DATE: {new Date(inv.date).toLocaleDateString()}
                                                 </div>
                                                 {inv.dueDate && (
                                                     <div className={cn("flex items-center gap-2 text-[10px] font-black uppercase tracking-widest",
                                                         new Date(inv.dueDate) < new Date() && inv.status !== 'paid' ? 'text-rose-500' : 'text-slate-400'
                                                     )}>
                                                         <Clock className="w-4 h-4" />
-                                                        EXPIRY: {new Date(inv.dueDate).toLocaleDateString()}
+                                                        DUE DATE: {new Date(inv.dueDate).toLocaleDateString()}
                                                     </div>
                                                 )}
                                             </div>
@@ -228,12 +228,12 @@ export default function Invoices() {
 
                                     <div className="flex items-center gap-10 self-end lg:self-center">
                                         <div className="text-right">
-                                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none mb-2 opacity-50">Aggregate Magnitude</p>
+                                            <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none mb-2 opacity-50">Total</p>
                                             <p className="text-3xl font-black text-slate-900 leading-none mb-3">₹{inv.totalAmount.toLocaleString()}</p>
                                             <div className={cn("flex items-center gap-2 justify-end text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest w-fit ml-auto",
                                                 inv.amountDue > 0 ? "bg-rose-50 text-rose-600" : "bg-emerald-50 text-emerald-600"
                                             )}>
-                                                {inv.amountDue > 0 ? `LATENCY: ₹${inv.amountDue.toLocaleString()}` : 'ZERO_LATENCY'}
+                                                {inv.amountDue > 0 ? `DUE: ₹${inv.amountDue.toLocaleString()}` : 'PAID'}
                                             </div>
                                         </div>
 
@@ -259,18 +259,18 @@ export default function Invoices() {
                     ) : (
                         <div className="py-40 text-center opacity-30 flex flex-col items-center">
                             <Ghost className="w-20 h-20 text-slate-100 mb-8" />
-                            <h4 className="text-2xl font-black text-slate-900 uppercase">Registry Empty</h4>
-                            <p className="text-[10px] font-black text-slate-400 uppercase mt-2 px-20 text-center max-w-sm">No instruments identified matching the target sector and parameters.</p>
+                            <h4 className="text-2xl font-black text-slate-900 uppercase">No Invoices Found</h4>
+                            <p className="text-[10px] font-black text-slate-400 uppercase mt-2 px-20 text-center max-w-sm">No invoices match your search.</p>
                         </div>
                     )}
                 </div>
             </main>
 
-            {/* Administrative Validation */}
+            {/* Delete Confirmation */}
             <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
                 <DialogContent className="rounded-[3rem] border-none p-12 shadow-2xl max-w-lg">
                     <DialogHeader>
-                        <DialogTitle className="text-2xl font-black tracking-tight text-slate-900 uppercase mb-4">Security Firewall</DialogTitle>
+                        <DialogTitle className="text-2xl font-black tracking-tight text-slate-900 uppercase mb-4">Confirm Delete</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-8 py-6">
                         <div className="p-8 bg-rose-50 rounded-[2rem] border border-rose-100 flex items-center gap-6">
@@ -278,13 +278,13 @@ export default function Invoices() {
                                 <AlertTriangle className="w-6 h-6 text-rose-600" />
                             </div>
                             <div className="flex-1">
-                                <h4 className="text-[11px] font-black uppercase text-rose-900 leading-none mb-2 tracking-widest">Destructive Protocol</h4>
-                                <p className="text-[9px] font-black text-rose-400 uppercase tracking-widest leading-relaxed">Permanent erasure of fiscal instruments is a restricted operation.</p>
+                                <h4 className="text-[11px] font-black uppercase text-rose-900 leading-none mb-2 tracking-widest">Warning</h4>
+                                <p className="text-[9px] font-black text-rose-400 uppercase tracking-widest leading-relaxed">This action will permanently delete the invoice.</p>
                             </div>
                         </div>
 
                         <div className="space-y-4">
-                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-4">Administrative Passkey</Label>
+                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-4">Admin Code</Label>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
                                     <ShieldCheck className="w-6 h-6 text-slate-300 group-focus-within:text-black transition-colors" />
@@ -304,14 +304,14 @@ export default function Invoices() {
                             className="w-full bg-rose-600 text-white rounded-2xl h-16 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-rose-200 hover:bg-rose-700"
                             onClick={handleDelete}
                         >
-                            Execute Termination
+                            Delete Invoice
                         </Button>
                         <Button
                             variant="ghost"
                             className="w-full rounded-2xl h-16 font-black uppercase text-[10px] tracking-widest text-slate-400 hover:text-black"
                             onClick={() => setShowDeleteDialog(false)}
                         >
-                            Abort Operation
+                            Cancel
                         </Button>
                     </DialogFooter>
                 </DialogContent>

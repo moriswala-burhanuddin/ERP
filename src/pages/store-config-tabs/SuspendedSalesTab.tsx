@@ -30,9 +30,9 @@ export function SuspendedSalesTab() {
                         <div className="p-3 bg-indigo-500 rounded-xl text-white">
                             <PauseCircle className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Persistence Protocols</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Held Sales Types</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Taxonomy for non-finalized transaction states and specialized nodes for e-commerce integration.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Create types for sales that are not finished yet, like Quotes or Layaways.</p>
                 </div>
 
                 <div className="lg:col-span-8 space-y-8">
@@ -116,19 +116,19 @@ export function SuspendedSalesTab() {
                         <div className="p-3 bg-black rounded-xl text-white">
                             <ShieldCheck className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Stability Controls</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Holding Sales Rules</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Safety parameters for multi-terminal access, cost stability, and temporal date synchronicity.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Rules to prevent mistakes and keep data accurate when holding sales.</p>
                 </div>
 
                 <div className="lg:col-span-8 flex flex-col gap-6">
                     <div className="grid md:grid-cols-2 gap-4">
                         {[
-                            { id: 'rcs', label: 'Identity Filter', sub: 'Require customer node', icon: <UserCheck className="w-4 h-4" />, state: requireCustomerSuspendedSale, action: (v: boolean) => updateConfig({ requireCustomerSuspendedSale: v }) },
-                            { id: 'lss', label: 'Access Lock-out', sub: 'Prevent duplicate terminal access', icon: <ShieldCheck className="w-4 h-4" />, state: lockSuspendedSale, action: (v: boolean) => updateConfig({ lockSuspendedSale: v }) },
-                            { id: 'dnc', label: 'Fiscal Stability', sub: 'Do not recal. cost on unsuspend', icon: <Zap className="w-4 h-4" />, state: doNotRecalculateCostOnUnsuspend, action: (v: boolean) => updateConfig({ doNotRecalculateCostOnUnsuspend: v }) },
-                            { id: 'cdw', label: 'Temporal Pivot (Sus)', sub: 'Change date when suspending', icon: <Calendar className="w-4 h-4" />, state: changeDateWhenSuspending, action: (v: boolean) => updateConfig({ changeDateWhenSuspending: v }) },
-                            { id: 'cdc', label: 'Temporal Pivot (Com)', sub: 'Change date when completing', icon: <Calendar className="w-4 h-4" />, state: changeDateWhenCompletingSuspended, action: (v: boolean) => updateConfig({ changeDateWhenCompletingSuspended: v }) },
+                            { id: 'rcs', label: 'Require Customer', sub: 'Require customer node', icon: <UserCheck className="w-4 h-4" />, state: requireCustomerSuspendedSale, action: (v: boolean) => updateConfig({ requireCustomerSuspendedSale: v }) },
+                            { id: 'lss', label: 'Lock Paused Sale', sub: 'Prevent duplicate terminal access', icon: <ShieldCheck className="w-4 h-4" />, state: lockSuspendedSale, action: (v: boolean) => updateConfig({ lockSuspendedSale: v }) },
+                            { id: 'dnc', label: 'Keep Cost on Resume', sub: 'Do not recal. cost on unsuspend', icon: <Zap className="w-4 h-4" />, state: doNotRecalculateCostOnUnsuspend, action: (v: boolean) => updateConfig({ doNotRecalculateCostOnUnsuspend: v }) },
+                            { id: 'cdw', label: 'Change Date on Pause', sub: 'Change date when suspending', icon: <Calendar className="w-4 h-4" />, state: changeDateWhenSuspending, action: (v: boolean) => updateConfig({ changeDateWhenSuspending: v }) },
+                            { id: 'cdc', label: 'Change Date on Complete', sub: 'Change date when completing', icon: <Calendar className="w-4 h-4" />, state: changeDateWhenCompletingSuspended, action: (v: boolean) => updateConfig({ changeDateWhenCompletingSuspended: v }) },
                             { id: 'sra', label: 'Receipt Auto-Sync', sub: 'Show receipt after suspending', icon: <Receipt className="w-4 h-4" />, state: showReceiptAfterSuspending, action: (v: boolean) => updateConfig({ showReceiptAfterSuspending: v }) },
                         ].map((item) => (
                             <div key={item.id} className="bg-slate-50 p-6 rounded-[1.8rem] border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-xl hover:shadow-slate-200/50 transition-all">
@@ -160,9 +160,9 @@ export function SuspendedSalesTab() {
                         <div className="p-3 bg-emerald-500 rounded-xl text-white">
                             <Tag className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Label Semantics</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Custom Names</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Linguistic overrides for modular states and automated statement messaging templates.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Change the name of special sale types (like Layaway) to whatever you prefer.</p>
                 </div>
 
                 <div className="lg:col-span-8 space-y-8">

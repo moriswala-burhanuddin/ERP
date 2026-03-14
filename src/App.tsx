@@ -91,6 +91,8 @@ import { useEffect } from "react";
 import { useERPStore } from "@/lib/store-data";
 import { useStoreConfig } from "@/lib/store-config";
 import { dbAdapter } from "@/lib/db-adapter";
+import { LicenseProvider, useLicense } from "@/contexts/LicenseContext";
+import LicenseSetup from "@/components/LicenseSetup";
 
 import { Component, ErrorInfo, ReactNode } from "react";
 
@@ -137,6 +139,26 @@ class ErrorBoundary extends Component<{ children: ReactNode }, { hasError: boole
 
 const queryClient = new QueryClient();
 
+// A generic wrapper component to block access if license is not verified
+const LicenseGate = ({ children }: { children: ReactNode }) => {
+  const { isLicensed, isLoading } = useLicense();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
+        <p className="text-slate-400 font-medium">Verifying License...</p>
+      </div>
+    );
+  }
+
+  if (!isLicensed) {
+    return <LicenseSetup />;
+  }
+
+  return <>{children}</>;
+};
+
 const App = () => {
   const loadFromDatabase = useERPStore(state => state.loadFromDatabase);
   const syncData = useERPStore(state => state.syncData);
@@ -178,12 +200,14 @@ const App = () => {
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <AIChatSidebar />
-          <UpdateNotification />
-          <HashRouter>
+        <LicenseProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <LicenseGate>
+              <AIChatSidebar />
+              <UpdateNotification />
+              <HashRouter>
             <Routes>
               {/* ... same routes ... */}
               <Route path="/login" element={<Login />} />
@@ -302,7 +326,9 @@ const App = () => {
               <Route path="*" element={<NotFound />} />
             </Routes>
           </HashRouter>
-        </TooltipProvider>
+            </LicenseGate>
+          </TooltipProvider>
+        </LicenseProvider>
       </QueryClientProvider>
     </ErrorBoundary>
   );

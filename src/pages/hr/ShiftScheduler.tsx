@@ -46,18 +46,18 @@ const ShiftScheduler = () => {
                 const sales = await window.electronAPI.getSales('store-1');
                 const result = await window.electronAPI.optimizeSchedule(sales, users);
                 if (result.recommendedShifts?.length > 0) {
-                    toast.success(`AI Calibration complete: ${result.recommendedShifts.length} optimal shifts generated.`);
+                    toast.success(`Smart schedule done: ${result.recommendedShifts.length} shifts added.`);
                     setAiInsights(result.insights);
                     for (const s of result.recommendedShifts) {
                         await window.electronAPI.assignShift({ id: `shift-${Date.now()}-${Math.random()}`, employeeId: s.employeeId || s.userId, storeId: 'store-1', startTime: `${s.date}T${s.startTime}:00`, endTime: `${s.date}T${s.endTime}:00`, type: s.type });
                     }
                     loadData();
                 } else {
-                    toast.info("AI Protocol: Current coverage matrix is adequate. No intervention required.");
+                    toast.info("Shifts look fine. No changes needed.");
                 }
             }
         } catch (e) {
-            toast.error("AI Synthesis Failed: Schedule optimization protocol terminated.");
+            toast.error("Smart schedule failed. Please try again.");
         } finally {
             setAnalyzing(false);
         }
@@ -70,16 +70,16 @@ const ShiftScheduler = () => {
         if (shiftType === 'evening') { start = "12:00"; end = "20:00"; }
         try {
             await window.electronAPI?.assignShift({ id: `shift-${Date.now()}`, employeeId: selectedUser, storeId: 'store-1', startTime: `${shiftDate}T${start}:00`, endTime: `${shiftDate}T${end}:00`, type: shiftType });
-            toast.success("Coverage Node Materialized: Shift assignment synchronized.");
+            toast.success("Shift assigned successfully.");
             setIsDialogOpen(false);
             loadData();
         } catch { toast.error("Assignment protocol failed."); }
     };
 
     const shiftTypeConfig: Record<string, { class: string; label: string }> = {
-        morning: { class: 'bg-amber-50 text-amber-600 border-amber-100', label: 'MORNING_SHIFT' },
-        evening: { class: 'bg-indigo-50 text-indigo-600 border-indigo-100', label: 'EVENING_SHIFT' },
-        full: { class: 'bg-blue-50 text-blue-600 border-blue-100', label: 'FULL_DAY_SHIFT' },
+        morning: { class: 'bg-amber-50 text-amber-600 border-amber-100', label: 'Morning Shift' },
+        evening: { class: 'bg-indigo-50 text-indigo-600 border-indigo-100', label: 'Evening Shift' },
+        full: { class: 'bg-blue-50 text-blue-600 border-blue-100', label: 'Full Day Shift' },
     };
 
     const groupedShifts = shifts.reduce((acc: any, shift) => {
@@ -99,33 +99,33 @@ const ShiftScheduler = () => {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Temporal Coverage Matrix</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Workforce Schedule Architecture • {shifts.length} Coverage Nodes</p>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Shift Schedule</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Staff Shifts • {shifts.length} Total</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
                         <Button onClick={handleSmartSchedule} disabled={analyzing} className="h-14 px-8 rounded-2xl bg-indigo-600 text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98] transition-all gap-3">
                             <Sparkles className={cn("w-4 h-4", analyzing && "animate-pulse")} />
-                            {analyzing ? "Synthesizing..." : "AI Optimize"}
+                            {analyzing ? "Setting up..." : "Smart Schedule"}
                         </Button>
                         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                             <DialogTrigger asChild>
                                 <Button className="bg-black text-white rounded-[1.2rem] h-14 px-10 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all gap-3">
                                     <Plus className="w-4 h-4 text-indigo-400" />
-                                    Assign Coverage
+                                    Add Shift
                                 </Button>
                             </DialogTrigger>
                             <DialogContent className="rounded-[3rem] p-12 max-w-md border-none shadow-2xl">
                                 <DialogHeader>
-                                    <DialogTitle className="text-2xl font-black uppercase tracking-tight">Coverage Assignment</DialogTitle>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Assign a personnel node to a temporal slot.</p>
+                                    <DialogTitle className="text-2xl font-black uppercase tracking-tight">Add a Shift</DialogTitle>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-1">Pick an employee, date, and shift time.</p>
                                 </DialogHeader>
                                 <div className="space-y-6 py-8">
                                     <div className="space-y-3">
-                                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Personnel Node</Label>
+                                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Employee</Label>
                                         <Select onValueChange={setSelectedUser}>
                                             <SelectTrigger className="h-14 bg-slate-50 border-none rounded-2xl px-6 text-[11px] font-black uppercase">
-                                                <SelectValue placeholder="SELECT UNIT" />
+                                                <SelectValue placeholder="Select Employee" />
                                             </SelectTrigger>
                                             <SelectContent className="rounded-2xl border-none shadow-2xl">
                                                 {users.filter(u => u.employeeId).map(u => <SelectItem key={u.id} value={u.employeeId} className="text-[11px] font-black uppercase">{u.name}</SelectItem>)}
@@ -133,27 +133,27 @@ const ShiftScheduler = () => {
                                         </Select>
                                     </div>
                                     <div className="space-y-3">
-                                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Temporal Slot</Label>
+                                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Date</Label>
                                         <input type="date" className="w-full h-14 bg-slate-50 border-none rounded-2xl px-6 text-sm font-black focus:ring-2 focus:ring-black outline-none" value={shiftDate} onChange={e => setShiftDate(e.target.value)} />
                                     </div>
                                     <div className="space-y-3">
-                                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Coverage Protocol</Label>
+                                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Shift Type</Label>
                                         <Select onValueChange={setShiftType} defaultValue="morning">
                                             <SelectTrigger className="h-14 bg-slate-50 border-none rounded-2xl px-6 text-[11px] font-black uppercase">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent className="rounded-2xl border-none shadow-2xl">
-                                                <SelectItem value="morning" className="text-[11px] font-black uppercase">MORNING_PROTOCOL (08:00—16:00)</SelectItem>
-                                                <SelectItem value="evening" className="text-[11px] font-black uppercase">EVENING_PROTOCOL (12:00—20:00)</SelectItem>
-                                                <SelectItem value="full" className="text-[11px] font-black uppercase">FULL_DAY_PROTOCOL (09:00—18:00)</SelectItem>
+                                                <SelectItem value="morning" className="text-[11px] font-black uppercase">Morning (08:00—16:00)</SelectItem>
+                                                <SelectItem value="evening" className="text-[11px] font-black uppercase">Evening (12:00—20:00)</SelectItem>
+                                                <SelectItem value="full" className="text-[11px] font-black uppercase">Full Day (09:00—18:00)</SelectItem>
                                             </SelectContent>
                                         </Select>
                                     </div>
                                 </div>
                                 <div className="flex gap-4">
-                                    <Button type="button" onClick={() => setIsDialogOpen(false)} variant="ghost" className="flex-1 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400">Abort</Button>
+                                    <Button type="button" onClick={() => setIsDialogOpen(false)} variant="ghost" className="flex-1 h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400">Cancel</Button>
                                     <Button onClick={handleAddShift} className="flex-1 h-14 rounded-2xl bg-black text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20">
-                                        Authorize Node
+                                        Save Shift
                                     </Button>
                                 </div>
                             </DialogContent>
@@ -170,7 +170,7 @@ const ShiftScheduler = () => {
                             <Zap className="w-6 h-6" />
                         </div>
                         <div>
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-200 mb-2">AI Synthesis Output</h4>
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-200 mb-2">Smart Suggestion</h4>
                             <p className="text-sm font-bold leading-relaxed opacity-90">{aiInsights}</p>
                         </div>
                     </div>
@@ -179,7 +179,7 @@ const ShiftScheduler = () => {
                 {loading ? (
                     <div className="py-40 text-center flex flex-col items-center">
                         <div className="w-12 h-12 border-4 border-slate-100 border-t-black rounded-full animate-spin mx-auto mb-6" />
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Syncing Coverage Matrix...</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Loading shifts...</p>
                     </div>
                 ) : Object.keys(groupedShifts).length > 0 ? (
                     <div className="space-y-12">
@@ -192,7 +192,7 @@ const ShiftScheduler = () => {
                                     <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">
                                         {new Date(date + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase()}
                                     </h3>
-                                    <span className="px-4 py-1 bg-slate-100 text-slate-500 text-[9px] font-black rounded-full uppercase tracking-widest">{dayShifts.length} Nodes</span>
+                                    <span className="px-4 py-1 bg-slate-100 text-slate-500 text-[9px] font-black rounded-full uppercase tracking-widest">{dayShifts.length} Shifts</span>
                                 </div>
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {dayShifts.map((shift: any) => {
@@ -227,9 +227,9 @@ const ShiftScheduler = () => {
                 ) : (
                     <div className="bg-white rounded-[3.5rem] py-40 text-center flex flex-col items-center opacity-30">
                         <Ghost className="w-24 h-24 text-slate-100 mb-8" />
-                        <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Coverage Matrix Null</h3>
+                        <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">No Shifts Scheduled</h3>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 max-w-lg mx-auto leading-relaxed px-12">
-                            No coverage nodes scheduled for the coming cycle. Activate AI Optimize or manually assign coverage slots.
+                            No shifts for the next 7 days. Use Smart Schedule or add a shift manually.
                         </p>
                     </div>
                 )}

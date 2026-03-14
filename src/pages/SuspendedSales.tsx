@@ -24,16 +24,16 @@ export default function SuspendedSales() {
 
     const handleDelete = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (window.confirm('SECURITY_AUDIT: Purge halted node? Transaction state will be permanently unlinked.')) {
+        if (window.confirm('Are you sure you want to delete this paused sale?')) {
             await deleteSale(id);
-            toast.error("State Purged: Halted node terminated.");
+            toast.error("Sale Deleted.");
         }
     };
 
     const handleResume = async (id: string, invoice: string) => {
         await resumeSale(id);
         navigate('/sales/new');
-        toast.success(`Protocol Resumed: Pipeline synchronized with #${invoice}.`);
+        toast.success(`Sale Resumed: #${invoice}.`);
     };
 
     return (
@@ -88,7 +88,7 @@ export default function SuspendedSales() {
                             <div className="p-4 bg-white/10 rounded-2xl text-amber-400">
                                 <ShieldCheck className="w-6 h-6" />
                             </div>
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Protocol Integrity</span>
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Sale Status</span>
                         </div>
                         <div className="flex items-center gap-3">
                             <div className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse" />
@@ -172,7 +172,7 @@ export default function SuspendedSales() {
                                             className="w-full bg-black text-white rounded-2xl h-16 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20 hover:bg-amber-500 transition-all flex items-center justify-center gap-3 group/btn"
                                         >
                                             <Play className="w-4 h-4 text-amber-400 group-hover/btn:text-white" />
-                                            Resume Protocol
+                                            Resume Sale
                                             <ArrowRight className="w-4 h-4 ml-2 opacity-0 group-hover/btn:opacity-100 transition-all" />
                                         </Button>
                                     </div>

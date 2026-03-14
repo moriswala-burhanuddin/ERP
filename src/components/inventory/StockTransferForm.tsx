@@ -18,9 +18,9 @@ interface StockTransferFormProps {
 }
 
 export function StockTransferForm({ onSuccess, initialProductId }: StockTransferFormProps) {
-    const { products, stores, processStockTransfer } = useERPStore();
+    const { products, stores, processStockTransfer, activeStoreId } = useERPStore();
     const [productId, setProductId] = useState(initialProductId || '');
-    const [fromStoreId, setFromStoreId] = useState('');
+    const [fromStoreId, setFromStoreId] = useState(activeStoreId || '');
     const [toStoreId, setToStoreId] = useState('');
     const [quantity, setQuantity] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);

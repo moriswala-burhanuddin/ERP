@@ -12,6 +12,18 @@ import { InventoryRow, ExcelUploadSummary, BarcodeResponse } from '../lib/invent
 
 type Updates<T> = Partial<T> & { id?: string };
 
+export interface HiringCandidate {
+    id: string;
+    name: string;
+    role: string;
+    status: 'applied' | 'interview' | 'offer' | 'hired' | 'rejected';
+    score: number;
+    email?: string;
+    phone?: string;
+    skills?: string;
+    storeId?: string;
+}
+
 export interface ElectronAPI {
     // Products
     getProducts: (storeId: string) => Promise<Product[]>;
@@ -84,6 +96,7 @@ export interface ElectronAPI {
     getCustomerLedger: (customerId: string) => Promise<unknown[]>;
     getPurchaseOrders: (storeId: string) => Promise<PurchaseOrder[]>;
     addPurchaseOrder: (po: PurchaseOrder) => Promise<{ success: boolean }>;
+    updatePurchaseOrder: (id: string, updates: Updates<PurchaseOrder>) => Promise<{ success: boolean }>;
     getExpenseCategories: () => Promise<ExpenseCategory[]>;
     addExpenseCategory: (cat: ExpenseCategory) => Promise<{ success: boolean }>;
     getTaxSlabs: () => Promise<TaxSlab[]>;
@@ -196,6 +209,10 @@ export interface ElectronAPI {
     deleteEmployee: (id: string) => Promise<{ success: boolean }>;
     getPayroll: (storeId: string, employeeId?: string) => Promise<HRPayroll[]>;
     addPayroll: (payroll: HRPayroll) => Promise<void>;
+    getCandidates: (storeId: string) => Promise<HiringCandidate[]>;
+    addCandidate: (candidate: HiringCandidate & { resumeText?: string }) => Promise<{ success: boolean }>;
+    updateCandidateStatus: (id: string, status: string) => Promise<{ success: boolean }>;
+    parseResume: (resumeText: string) => Promise<{ name?: string; email?: string; phone?: string; skills?: string | string[]; score?: number }>;
 
     // Store Configuration
     getStoreConfig: (storeId: string) => Promise<Record<string, unknown> | null>;

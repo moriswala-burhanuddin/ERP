@@ -6,11 +6,13 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useLicense } from '@/contexts/LicenseContext';
 
 export default function NewProduct() {
   const navigate = useNavigate();
   const location = useLocation();
   const { id } = useParams();
+  const { hasFeature } = useLicense();
   const {
     addProduct,
     updateProduct,
@@ -202,7 +204,7 @@ export default function NewProduct() {
       }
       navigate('/products');
     } catch (error) {
-      toast.error("Process failed.");
+      toast.error("Failed to save product.");
     }
   };
 
@@ -226,7 +228,7 @@ export default function NewProduct() {
             </Button>
             <Button onClick={handleSubmit} className="bg-black text-white rounded-[1.2rem] h-12 px-8 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
               <Save className="w-4 h-4 mr-2" />
-              Complete Create
+              Save Product
             </Button>
           </div>
         </div>
@@ -241,8 +243,8 @@ export default function NewProduct() {
                 <Info className="w-6 h-6 text-indigo-600" />
               </div>
               <div>
-                <h3 className="text-lg font-black uppercase tracking-tight">Identity & Labeling</h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Core identification details</p>
+                <h3 className="text-lg font-black uppercase tracking-tight">Product Details</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Basic information</p>
               </div>
             </div>
 
@@ -250,15 +252,17 @@ export default function NewProduct() {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Product Name *</label>
-                  <button
-                    type="button"
-                    onClick={handleAiSuggest}
-                    disabled={isAiLoading}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-[9px] font-black uppercase hover:bg-indigo-100 transition-all"
-                  >
-                    {isAiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
-                    AI Suggest
-                  </button>
+                  {hasFeature('ai_features') && (
+                    <button
+                      type="button"
+                      onClick={handleAiSuggest}
+                      disabled={isAiLoading}
+                      className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-[9px] font-black uppercase hover:bg-indigo-100 transition-all"
+                    >
+                      {isAiLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                      AI Suggest
+                    </button>
+                  )}
                 </div>
                 <input
                   name="name"
@@ -269,7 +273,7 @@ export default function NewProduct() {
                 />
               </div>
               <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Universal Sku / Barcode *</label>
+                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">SKU / Barcode *</label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
                     <Barcode className="w-4 h-4 text-slate-300 group-focus-within:text-black transition-colors" />
@@ -341,8 +345,8 @@ export default function NewProduct() {
                 <DollarSign className="w-6 h-6 text-emerald-600" />
               </div>
               <div>
-                <h3 className="text-lg font-black uppercase tracking-tight">Value & Quantity</h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pricing strategy and initial inventory</p>
+                <h3 className="text-lg font-black uppercase tracking-tight">Pricing & Stock</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Set prices and starting inventory</p>
               </div>
             </div>
 
@@ -375,25 +379,25 @@ export default function NewProduct() {
                 <ShieldCheck className="w-6 h-6 text-amber-600" />
               </div>
               <div>
-                <h3 className="text-lg font-black uppercase tracking-tight">Stock Protection</h3>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Reorder thresholds and sale limits</p>
+                <h3 className="text-lg font-black uppercase tracking-tight">Inventory Limits</h3>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">When to reorder and alert levels</p>
               </div>
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Low Stock Threshold</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Low Stock Alert</label>
                   <input name="minStock" type="number" value={formData.minStock} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black" placeholder="20" />
                 </div>
-                <p className="text-[9px] font-bold text-slate-400 uppercase leading-relaxed ml-1">System will trigger "Stock Alert" when quantity reaches this level.</p>
+                <p className="text-[9px] font-bold text-slate-400 uppercase leading-relaxed ml-1">Get an alert when stock reaches this amount.</p>
               </div>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Optimization Quantity</label>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Reorder Amount</label>
                   <input name="reorderQuantity" type="number" value={formData.reorderQuantity} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black" placeholder="50" />
                 </div>
-                <p className="text-[9px] font-bold text-slate-400 uppercase leading-relaxed ml-1">The recommended purchase amount during restock operations.</p>
+                <p className="text-[9px] font-bold text-slate-400 uppercase leading-relaxed ml-1">Recommended amount to buy when restocking.</p>
               </div>
             </div>
 
@@ -403,8 +407,8 @@ export default function NewProduct() {
                   <Barcode className="w-5 h-5 text-slate-900" />
                 </div>
                 <div>
-                  <h4 className="text-[11px] font-black uppercase">Barcode Label Support</h4>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase">Enable for automatic cataloging</p>
+                  <h4 className="text-[11px] font-black uppercase">Print Barcode Labels</h4>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase">Allow printing labels for this item</p>
                 </div>
               </div>
               <div className="relative inline-flex items-center cursor-pointer">
@@ -428,8 +432,8 @@ export default function NewProduct() {
                   <Tag className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-black uppercase tracking-tight">Extended Attributes</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Custom business metadata</p>
+                  <h3 className="text-lg font-black uppercase tracking-tight">Additional Details</h3>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Extra information for this product</p>
                 </div>
               </div>
 

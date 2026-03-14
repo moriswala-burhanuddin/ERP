@@ -25,10 +25,10 @@ export default function PurchaseDetails() {
             <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center p-6 text-center">
                 <div className="bg-white rounded-[3rem] p-12 shadow-xl max-w-md w-full border border-white">
                     <ShoppingBag className="w-16 h-16 text-slate-100 mx-auto mb-6" />
-                    <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Acquisition Null</h2>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">The requested purchase record does not exist in the current sector registry.</p>
+                    <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Purchase Not Found</h2>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">The requested purchase record does not exist.</p>
                     <Button onClick={() => navigate('/purchases')} className="w-full bg-black text-white rounded-2xl h-14 font-black uppercase text-[10px] tracking-widest">
-                        Return to Command
+                        Return to Purchases
                     </Button>
                 </div>
             </div>
@@ -36,9 +36,9 @@ export default function PurchaseDetails() {
     }
 
     const handleDelete = async () => {
-        if (window.confirm('TERMINATION AUDIT: Are you sure you want to purge this purchase record?')) {
+        if (window.confirm('Are you sure you want to delete this purchase record?')) {
             deletePurchase(id!);
-            toast.success("Purchase Record Purged");
+            toast.success("Purchase Record Deleted");
             navigate('/purchases');
         }
     };
@@ -54,14 +54,14 @@ export default function PurchaseDetails() {
                         </button>
                         <div>
                             <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{purchase.invoiceNumber}</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Acquisition Index • Source: {purchase.supplier || 'UNIDENTIFIED'}</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Purchase Details • Supplier: {purchase.supplier || 'UNKNOWN'}</p>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-3">
                         <Button variant="ghost" className="rounded-2xl h-12 bg-slate-50 font-black uppercase text-[10px] tracking-widest text-slate-400 px-6">
                             <Printer className="w-4 h-4 mr-2" />
-                            Print Certificate
+                            Print Receipt
                         </Button>
                         <Button onClick={handleDelete} variant="ghost" className="rounded-2xl h-12 w-12 p-0 bg-red-50 text-red-600 hover:bg-red-100">
                             <Trash2 className="w-5 h-5" />
@@ -80,8 +80,8 @@ export default function PurchaseDetails() {
                                     <ShieldCheck className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Acquisition Profile</h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Verified procurement node details</p>
+                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Purchase Summary</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Supplier and payment details</p>
                                 </div>
                             </div>
                             <div className={cn(
@@ -89,38 +89,38 @@ export default function PurchaseDetails() {
                                 purchase.type === 'credit' ? "bg-amber-50 text-amber-600 border-amber-100" : "bg-emerald-50 text-emerald-600 border-emerald-100"
                             )}>
                                 {purchase.type === 'credit' ? <History className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
-                                {purchase.type?.toUpperCase() || 'CASH NODE'}
+                                {purchase.type?.toUpperCase() || 'CASH PURCHASE'}
                             </div>
                         </div>
 
                         <div className="grid md:grid-cols-3 gap-12">
                             <div className="space-y-1">
                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-                                    <User className="w-3.5 h-3.5" /> Source Node
+                                    <User className="w-3.5 h-3.5" /> Supplier
                                 </p>
-                                <p className="text-base font-black text-slate-900">{purchase.supplier || 'IDENTIFICATION_PENDING'}</p>
-                                <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mt-1">Certified Provider</p>
+                                <p className="text-base font-black text-slate-900">{purchase.supplier || 'UNKNOWN'}</p>
+                                <p className="text-[9px] font-black text-indigo-500 uppercase tracking-widest mt-1">Verified Supplier</p>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-                                    <Calendar className="w-3.5 h-3.5" /> Registry Timestamp
+                                    <Calendar className="w-3.5 h-3.5" /> Date & Time
                                 </p>
                                 <p className="text-base font-black text-slate-900 uppercase">{new Date(purchase.date).toLocaleDateString()}</p>
                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">{new Date(purchase.date).toLocaleTimeString()}</p>
                             </div>
                             <div className="space-y-1">
                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-                                    <Wallet className="w-3.5 h-3.5" /> Fund Source
+                                    <Wallet className="w-3.5 h-3.5" /> Account
                                 </p>
-                                <p className="text-base font-black text-slate-900 tracking-tight">{account?.name || 'CREDIT_LIABILITY'}</p>
-                                <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mt-1">Node Verified</p>
+                                <p className="text-base font-black text-slate-900 tracking-tight">{account?.name || 'CREDIT ACCOUNT'}</p>
+                                <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest mt-1">Payment Verified</p>
                             </div>
                         </div>
 
                         <hr className="my-12 border-slate-50" />
 
                         <div className="space-y-6">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-8">Aggregated Manifest</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-8">Items List</h3>
                             <div className="space-y-4">
                                 {purchase.items.map((item, idx) => (
                                     <div key={idx} className="flex items-center justify-between p-8 bg-slate-50 rounded-[2.5rem] group hover:bg-white hover:shadow-xl transition-all duration-500 border border-transparent hover:border-slate-100">
@@ -130,17 +130,17 @@ export default function PurchaseDetails() {
                                             </div>
                                             <div>
                                                 <h4 className="font-black text-sm uppercase tracking-tight mb-2">{item.productName}</h4>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Protocol ID: {item.productId.substring(0, 8)}</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">ID: {item.productId.substring(0, 8)}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-12 text-right">
                                             <div>
                                                 <p className="text-xl font-black text-slate-900 tracking-tighter mb-1 font-mono">{item.quantity}</p>
-                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Units Payload</p>
+                                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Quantity</p>
                                             </div>
                                             <div>
                                                 <p className="text-lg font-black text-slate-400 tracking-tighter mb-1 font-mono">{fmt(item.price)}</p>
-                                                <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Unit Value</p>
+                                                <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Price</p>
                                             </div>
                                             <div className="w-28 pl-12 border-l border-slate-100">
                                                 <p className="text-xl font-black text-slate-900 tracking-tighter mb-1 font-mono">{fmt(item.price * item.quantity)}</p>
@@ -159,20 +159,20 @@ export default function PurchaseDetails() {
                     <div className="bg-black rounded-[3rem] p-10 text-white shadow-2xl shadow-black/20 overflow-hidden relative group">
                         <Zap className="absolute -right-10 -top-10 w-40 h-40 text-white/5 rotate-12 group-hover:rotate-45 transition-transform duration-1000" />
                         <div className="relative z-10 font-mono">
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-10">Financial Synthesis</h4>
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-10">Payment Summary</h4>
 
                             <div className="space-y-6">
                                 <div className="flex justify-between items-center text-slate-400 text-xs">
-                                    <span className="uppercase tracking-widest">Sub-Total Index</span>
+                                    <span className="uppercase tracking-widest">Subtotal</span>
                                     <span>{fmt(purchase.totalAmount)}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-slate-400 text-xs">
-                                    <span className="uppercase tracking-widest">Tax (0%) NODE</span>
+                                    <span className="uppercase tracking-widest">Tax (0%)</span>
                                     <span>$0.00</span>
                                 </div>
                                 <hr className="border-white/10" />
                                 <div className="flex justify-between items-end">
-                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest pb-1">Final Magnitude</p>
+                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest pb-1">Total Amount</p>
                                     <h3 className="text-4xl font-black tracking-tighter">{fmt(purchase.totalAmount)}</h3>
                                 </div>
                             </div>
@@ -180,15 +180,15 @@ export default function PurchaseDetails() {
                     </div>
 
                     <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white text-center">
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-6">Internal Registry</p>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-6">System Status</p>
                         <div className="flex items-center justify-center p-6 bg-slate-50 rounded-2xl mb-8">
                             <Activity className="w-10 h-10 text-indigo-500" />
                         </div>
-                        <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">Audit Verified</h4>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed tracking-wider mb-8">This acquisition node has been recorded and inventory levels successfully reconciled.</p>
+                        <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2">Purchase Recorded</h4>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase leading-relaxed tracking-wider mb-8">This purchase has been recorded and inventory levels updated.</p>
                         <Button className="w-full bg-slate-50 hover:bg-slate-100 text-slate-900 rounded-xl h-12 font-black uppercase text-[9px] tracking-widest">
                             <Download className="w-4 h-4 mr-2" />
-                            Download Ledger
+                            Download Info
                         </Button>
                     </div>
                 </div>

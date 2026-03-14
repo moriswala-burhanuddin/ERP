@@ -20,28 +20,28 @@ export function AdvancedModulesTab() {
     const toggleModule = (moduleName: string, enabled: boolean) => {
         if (enabled) {
             updateConfig({ disabledModules: disabledModules.filter(m => m !== moduleName) });
-            toast.success(`${moduleName.toUpperCase()} Extension Activated`);
+            toast.success(`${moduleName.toUpperCase()} Turned On`);
         } else {
             updateConfig({ disabledModules: [...disabledModules, moduleName] });
-            toast.info(`${moduleName.toUpperCase()} Extension Hibernated`);
+            toast.info(`${moduleName.toUpperCase()} Turned Off`);
         }
     };
 
     const isEnabled = (moduleName: string) => !disabledModules.includes(moduleName);
 
     const advancedModules = [
-        { key: 'employeeManagement', label: 'Human Capital', icon: <Users className="w-4 h-4" />, value: employeeManagementSettings, setter: 'employeeManagementSettings' },
-        { key: 'storeAccount', label: 'Internal Debit', icon: <Wallet className="w-4 h-4" />, value: storeAccountConfiguration, setter: 'storeAccountConfiguration' },
-        { key: 'idNumber', label: 'Identity Audit', icon: <Key className="w-4 h-4" />, value: idNumberConfiguration, setter: 'idNumberConfiguration' },
-        { key: 'customerLoyalty', label: 'Loyalty Logic', icon: <Target className="w-4 h-4" />, value: customerLoyaltyConfig, setter: 'customerLoyaltyConfig' },
-        { key: 'priceTier', label: 'Fiscal Tiers', icon: <Layers className="w-4 h-4" />, value: priceTierConfig, setter: 'priceTierConfig' },
-        { key: 'customFields', label: 'Schema Ext.', icon: <Box className="w-4 h-4" />, value: customFieldsConfig, setter: 'customFieldsConfig' },
-        { key: 'itemKitBundles', label: 'Bundle Arch.', icon: <Box className="w-4 h-4" />, value: itemKitBundlesConfig, setter: 'itemKitBundlesConfig' },
-        { key: 'purchaseOrders', label: 'Procure Opt.', icon: <Truck className="w-4 h-4" />, value: purchaseOrdersConfig, setter: 'purchaseOrdersConfig' },
-        { key: 'expenseCategories', label: 'Cost Taxonomy', icon: <Receipt className="w-4 h-4" />, value: expenseCategoriesConfig, setter: 'expenseCategoriesConfig' },
-        { key: 'salesCommissions', label: 'Incentive Flux', icon: <Zap className="w-4 h-4" />, value: salesCommissionsConfig, setter: 'salesCommissionsConfig' },
-        { key: 'analytics', label: 'Fiscal Intel', icon: <BarChart3 className="w-4 h-4" />, value: analyticsConfig, setter: 'analyticsConfig' },
-        { key: 'securityAudit', label: 'Tactical Log', icon: <Lock className="w-4 h-4" />, value: securityAuditConfig, setter: 'securityAuditConfig' },
+        { key: 'employeeManagement', label: 'Employees', icon: <Users className="w-4 h-4" />, value: employeeManagementSettings, setter: 'employeeManagementSettings' },
+        { key: 'storeAccount', label: 'Store Account', icon: <Wallet className="w-4 h-4" />, value: storeAccountConfiguration, setter: 'storeAccountConfiguration' },
+        { key: 'idNumber', label: 'ID Numbers', icon: <Key className="w-4 h-4" />, value: idNumberConfiguration, setter: 'idNumberConfiguration' },
+        { key: 'customerLoyalty', label: 'Loyalty Points', icon: <Target className="w-4 h-4" />, value: customerLoyaltyConfig, setter: 'customerLoyaltyConfig' },
+        { key: 'priceTier', label: 'Price Tiers', icon: <Layers className="w-4 h-4" />, value: priceTierConfig, setter: 'priceTierConfig' },
+        { key: 'customFields', label: 'Custom Fields', icon: <Box className="w-4 h-4" />, value: customFieldsConfig, setter: 'customFieldsConfig' },
+        { key: 'itemKitBundles', label: 'Item Kits', icon: <Box className="w-4 h-4" />, value: itemKitBundlesConfig, setter: 'itemKitBundlesConfig' },
+        { key: 'purchaseOrders', label: 'Purchase Orders', icon: <Truck className="w-4 h-4" />, value: purchaseOrdersConfig, setter: 'purchaseOrdersConfig' },
+        { key: 'expenseCategories', label: 'Expense Categories', icon: <Receipt className="w-4 h-4" />, value: expenseCategoriesConfig, setter: 'expenseCategoriesConfig' },
+        { key: 'salesCommissions', label: 'Sales Commissions', icon: <Zap className="w-4 h-4" />, value: salesCommissionsConfig, setter: 'salesCommissionsConfig' },
+        { key: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" />, value: analyticsConfig, setter: 'analyticsConfig' },
+        { key: 'securityAudit', label: 'Security Log', icon: <Lock className="w-4 h-4" />, value: securityAuditConfig, setter: 'securityAuditConfig' },
     ];
 
     return (
@@ -53,9 +53,9 @@ export function AdvancedModulesTab() {
                         <div className="p-3 bg-black rounded-xl text-white">
                             <Cpu className="w-5 h-5" />
                         </div>
-                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Modular Topology</h3>
+                        <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Extra Features</h3>
                     </div>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Activation matrix for advanced system extensions and their associated parameter configurations.</p>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed">Turn on or off additional features for your store.</p>
                 </div>
 
                 <div className="lg:col-span-8 flex flex-col gap-4">
@@ -80,9 +80,9 @@ export function AdvancedModulesTab() {
                             </div>
 
                             <div className="flex-1 min-w-[200px]">
-                                <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Parameter Logic (JSON/KEYS)</Label>
+                                <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Settings</Label>
                                 <Input
-                                    placeholder={`INITIALIZE_${mod.key.toUpperCase()}_LOGIC...`}
+                                    placeholder={`Enter ${mod.label} settings...`}
                                     disabled={!isEnabled(mod.key)}
                                     value={mod.value}
                                     onChange={(e) => updateConfig({ [mod.setter]: e.target.value })}
@@ -102,8 +102,8 @@ export function AdvancedModulesTab() {
 
             <div className="p-10 bg-slate-50 border border-slate-100 rounded-[3rem] text-center">
                 <ShieldCheck className="w-8 h-8 text-slate-200 mx-auto mb-4" />
-                <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-2">Extension Guard Active</h4>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed max-w-md mx-auto">All modular toggles are synchronized across the system cluster. Hibernating a module will decouple its logic from the primary execution thread.</p>
+                <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-widest mb-2">Protection ON</h4>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest leading-relaxed max-w-md mx-auto">All feature changes are updated across the entire system. Turning off a feature will disable it everywhere.</p>
             </div>
         </div>
     );

@@ -20,17 +20,17 @@ export default function Users() {
   );
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('SECURITY_AUDIT: Purge personnel node? Role permissions and access history will be archived.')) {
+    if (window.confirm('Are you sure you want to delete this user?')) {
       await deleteUser(id);
-      toast.error("Personnel Purged: Access node terminated.");
+      toast.success("User deleted.");
     }
   };
 
   const getRoleConfig = (role: string) => {
     switch (role) {
-      case 'admin': return { icon: <ShieldCheck className="w-3.5 h-3.5" />, class: 'bg-indigo-50 text-indigo-600 border-indigo-100', label: 'SYSTEM_ADMIN' };
-      case 'manager': return { icon: <Shield className="w-3.5 h-3.5" />, class: 'bg-emerald-50 text-emerald-600 border-emerald-100', label: 'OPERATIONS_MGR' };
-      case 'sales': return { icon: <Zap className="w-3.5 h-3.5" />, class: 'bg-amber-50 text-amber-600 border-amber-100', label: 'TRANSACTION_OFFICER' };
+      case 'admin': return { icon: <ShieldCheck className="w-3.5 h-3.5" />, class: 'bg-indigo-50 text-indigo-600 border-indigo-100', label: 'ADMIN' };
+      case 'manager': return { icon: <Shield className="w-3.5 h-3.5" />, class: 'bg-emerald-50 text-emerald-600 border-emerald-100', label: 'MANAGER' };
+      case 'sales': return { icon: <Zap className="w-3.5 h-3.5" />, class: 'bg-amber-50 text-amber-600 border-amber-100', label: 'SALES' };
       default: return { icon: <UserIcon className="w-3.5 h-3.5" />, class: 'bg-slate-50 text-slate-500 border-slate-100', label: role.toUpperCase() };
     }
   };
@@ -45,8 +45,8 @@ export default function Users() {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Login Access Management</h1>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Login credentials &amp; roles only • {filteredUsers.length} accounts</p>
+              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Users</h1>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Login accounts & roles • {filteredUsers.length} users</p>
             </div>
           </div>
 
@@ -82,7 +82,7 @@ export default function Users() {
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-black transition-colors" />
             <input
               type="text"
-              placeholder="IDENTIFY PERSONNEL BY NAME, ID, OR ROLE..."
+              placeholder="SEARCH BY NAME, USERNAME, OR ROLE..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-16 bg-slate-50 border-none rounded-[1.5rem] pl-16 pr-8 text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-black placeholder:text-slate-200 transition-all font-mono"
@@ -114,16 +114,16 @@ export default function Users() {
 
                   <div className="space-y-6 mb-10">
                     <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-slate-400 bg-slate-50/50 p-4 rounded-2xl">
-                      <span className="flex items-center gap-3"><Key className="w-4 h-4 text-indigo-500" /> USER_ID</span>
+                      <span className="flex items-center gap-3"><Key className="w-4 h-4 text-indigo-500" /> USERNAME</span>
                       <span className="text-slate-900 font-mono">@{u.username}</span>
                     </div>
                     <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-slate-400 bg-slate-50/50 p-4 rounded-2xl">
-                      <span className="flex items-center gap-3"><Building2 className="w-4 h-4 text-emerald-500" /> DEPLOYMENT</span>
-                      <span className="text-slate-900 truncate max-w-[120px]">{u.storeId === 'all' ? 'CENTRAL_CMD' : 'SITE_LOCAL'}</span>
+                      <span className="flex items-center gap-3"><Building2 className="w-4 h-4 text-emerald-500" /> STORE</span>
+                      <span className="text-slate-900 truncate max-w-[120px]">{u.storeId === 'all' ? 'ALL STORES' : 'THIS STORE'}</span>
                     </div>
                     <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-slate-400 bg-slate-50/50 p-4 rounded-2xl">
-                      <span className="flex items-center gap-3"><ShieldAlert className="w-4 h-4 text-rose-500" /> CLEARANCE</span>
-                      <span className="text-slate-900">{u.role === 'admin' ? 'LVL_0_INIT' : 'SITE_AUTH'}</span>
+                      <span className="flex items-center gap-3"><ShieldAlert className="w-4 h-4 text-rose-500" /> ROLE</span>
+                      <span className="text-slate-900">{u.role === 'admin' ? 'ADMIN' : 'STAFF'}</span>
                     </div>
                   </div>
 
@@ -132,7 +132,7 @@ export default function Users() {
                       onClick={() => navigate(`/users/edit/${u.id}`)}
                       className="flex-1 bg-slate-50 hover:bg-black hover:text-white text-slate-900 rounded-2xl h-14 font-black uppercase text-[10px] tracking-widest transition-all shadow-none border border-slate-50"
                     >
-                      Adjust Params
+                      Edit User
                       <Edit className="w-4 h-4 ml-3" />
                     </Button>
                     <button
@@ -150,8 +150,8 @@ export default function Users() {
               <div className="w-32 h-32 bg-slate-50 rounded-full flex items-center justify-center mb-10">
                 <UsersIcon className="w-16 h-16 text-slate-100" />
               </div>
-              <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Registry Vacant</h3>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4 px-20 max-w-2xl leading-loose text-center">No personnel nodes identified matching the target parameters. Provision a new user to assign roles within the matrix.</p>
+              <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">No Users Found</h3>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4 px-20 max-w-2xl leading-loose text-center">No users found. Add a new user to get started.</p>
             </div>
           )}
         </div>

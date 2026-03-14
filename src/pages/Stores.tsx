@@ -71,24 +71,24 @@ export default function Stores() {
     try {
       if (editingId) {
         await updateStore(editingId, formData);
-        toast.success("Protocol Updated: Node parameters refined.");
+        toast.success("Store updated.");
       } else {
         await addStore(formData);
-        toast.success("Node Initialized: New corporate hub added to registry.");
+        toast.success("New store added.");
       }
       handleCloseForm();
     } catch (error) {
-      toast.error("Operation Failed: Topology configuration error.");
+      toast.error("Failed to save store. Please try again.");
     }
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm('DESTRUCTIVE_PROTOCOL: Purge this node from corporate infrastructure? This is immutable.')) {
+        if (confirm(`Are you sure you want to delete this store? This cannot be undone.`)) {
       try {
         await deleteStore(id);
-        toast.error("Node Severed: Store hub removed from matrix.");
+        toast.error("Store deleted.");
       } catch (error) {
-        toast.error("Termination Blocked: Safety protocols engaged.");
+        toast.error("Could not delete this store.");
       }
     }
   };
@@ -103,21 +103,21 @@ export default function Stores() {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Infrastructure Matrix</h1>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Global Node Registry • {stores.length} Corporate Hubs</p>
+              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Stores</h1>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">All Your Stores • {stores.length} Stores</p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="flex items-center gap-2 bg-indigo-50 px-4 py-2 rounded-xl text-indigo-600 border border-indigo-100">
               <Globe className="w-3.5 h-3.5 animate-spin-slow" />
-              <span className="text-[10px] font-black uppercase tracking-widest leading-none">Global Coverage Active</span>
+              <span className="text-[10px] font-black uppercase tracking-widest leading-none">All Stores</span>
             </div>
             <Button
               onClick={() => handleOpenForm()}
               className="bg-black text-white rounded-[1.2rem] h-14 px-8 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
             >
               <Plus className="w-4 h-4 mr-2 text-indigo-400" />
-              Initialize Node
+              Add Store
             </Button>
           </div>
         </div>
@@ -130,21 +130,21 @@ export default function Stores() {
             <div className="p-3 bg-indigo-50 rounded-xl w-fit mb-6 text-indigo-500">
               <Building2 className="w-5 h-5" />
             </div>
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Hub Count</p>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{stores.length} Nodes</h3>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Stores</p>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{stores.length}</h3>
           </div>
           <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
             <div className="p-3 bg-amber-50 rounded-xl w-fit mb-6 text-amber-500">
               <Package className="w-5 h-5" />
             </div>
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Asset Distribution</p>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{products.length} Units</h3>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Products</p>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{products.length}</h3>
           </div>
           <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
             <div className="p-3 bg-emerald-50 rounded-xl w-fit mb-6 text-emerald-500">
               <IndianRupee className="w-5 h-5" />
             </div>
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Consolidated Value</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Stock Value</p>
             <h3 className="text-2xl font-black text-slate-900 tracking-tighter">
               ₹{products.reduce((s, p) => s + (p.purchasePrice * p.quantity), 0).toLocaleString()}
             </h3>
@@ -155,7 +155,7 @@ export default function Stores() {
               <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2">Network Health</p>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-200">Grid Synchronized</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-200">All Good</span>
               </div>
             </div>
           </div>
@@ -187,7 +187,7 @@ export default function Stores() {
                       <div className="flex items-center gap-3 mb-1">
                         <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">{store.name}</h3>
                         {isActive && (
-                          <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 rounded-full px-3 py-1 font-black text-[8px] uppercase tracking-[0.2em]">Active_Hub</Badge>
+                          <Badge className="bg-indigo-50 text-indigo-600 border-indigo-100 rounded-full px-3 py-1 font-black text-[8px] uppercase tracking-[0.2em]">Active</Badge>
                         )}
                       </div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">{store.branch}</p>
@@ -233,7 +233,7 @@ export default function Stores() {
                       onClick={() => setActiveStore(store.id)}
                       className="flex-1 bg-slate-900 text-white rounded-2xl h-14 font-black uppercase text-[10px] tracking-widest hover:bg-black transition-all"
                     >
-                      Switch To This Sector
+                      Switch To This Store
                       <ChevronRight className="w-4 h-4 ml-2 text-indigo-400" />
                     </Button>
                   ) : (
@@ -253,8 +253,8 @@ export default function Stores() {
           {stores.length === 0 && (
             <div className="col-span-full py-40 text-center opacity-30 flex flex-col items-center">
               <Ghost className="w-20 h-20 text-slate-100 mb-8" />
-              <h4 className="text-2xl font-black text-slate-900 uppercase">Infrastructure Void</h4>
-              <p className="text-[10px] font-black text-slate-400 uppercase mt-2 px-20 text-center max-w-sm">No corporate hubs identified in this matrix. Initialize your first node to begin operation.</p>
+              <h4 className="text-2xl font-black text-slate-900 uppercase">No Stores Found</h4>
+              <p className="text-[10px] font-black text-slate-400 uppercase mt-2 px-20 text-center max-w-sm">Click "Add Store" to create your first store.</p>
             </div>
           )}
         </div>
@@ -267,9 +267,9 @@ export default function Stores() {
             <div className="p-10 border-b border-slate-50 flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">
-                  {editingId ? 'Edit Hub Parameters' : 'Initialize New Node'}
+                  {editingId ? 'Edit Store' : 'Add New Store'}
                 </h2>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Infrastructure Configuration Registry</p>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">Store Details</p>
               </div>
               <button
                 onClick={handleCloseForm}
@@ -282,7 +282,7 @@ export default function Stores() {
             <form onSubmit={handleSubmit} className="p-10 space-y-8">
               <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2 group">
-                  <label className="text-[10px] font-black text-slate-400 ml-4 h-4 block uppercase tracking-widest opacity-0 group-focus-within:opacity-100 transition-opacity">Entity Name</label>
+                  <label className="text-[10px] font-black text-slate-400 ml-4 h-4 block uppercase tracking-widest opacity-0 group-focus-within:opacity-100 transition-opacity">Store Name</label>
                   <input
                     type="text"
                     value={formData.name}
@@ -294,7 +294,7 @@ export default function Stores() {
                 </div>
 
                 <div className="space-y-2 group">
-                  <label className="text-[10px] font-black text-slate-400 ml-4 h-4 block uppercase tracking-widest opacity-0 group-focus-within:opacity-100 transition-opacity">Sector / Branch</label>
+                  <label className="text-[10px] font-black text-slate-400 ml-4 h-4 block uppercase tracking-widest opacity-0 group-focus-within:opacity-100 transition-opacity">Branch</label>
                   <input
                     type="text"
                     value={formData.branch}
@@ -307,7 +307,7 @@ export default function Stores() {
               </div>
 
               <div className="space-y-2 group">
-                <label className="text-[10px] font-black text-slate-400 ml-4 h-4 block uppercase tracking-widest opacity-0 group-focus-within:opacity-100 transition-opacity">Geo-Spatial Coordinates</label>
+                <label className="text-[10px] font-black text-slate-400 ml-4 h-4 block uppercase tracking-widest opacity-0 group-focus-within:opacity-100 transition-opacity">Address</label>
                 <input
                   type="text"
                   value={formData.address}
@@ -319,7 +319,7 @@ export default function Stores() {
               </div>
 
               <div className="space-y-2 group">
-                <label className="text-[10px] font-black text-slate-400 ml-4 h-4 block uppercase tracking-widest opacity-0 group-focus-within:opacity-100 transition-opacity">Comm Link Protocol</label>
+                <label className="text-[10px] font-black text-slate-400 ml-4 h-4 block uppercase tracking-widest opacity-0 group-focus-within:opacity-100 transition-opacity">Phone</label>
                 <input
                   type="tel"
                   value={formData.phone}
@@ -342,7 +342,7 @@ export default function Stores() {
                   type="submit"
                   className="flex-1 bg-black text-white font-black uppercase text-[10px] tracking-widest h-16 rounded-2xl shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
-                  {editingId ? 'Refine Node' : 'Initialize Node'}
+                  {editingId ? 'Save Changes' : 'Add Store'}
                 </button>
               </div>
             </form>

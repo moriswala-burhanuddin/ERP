@@ -212,6 +212,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
     installUpdate: () => ipcRenderer.send('updater:install-now'),
     getVersion: () => ipcRenderer.invoke('system:getVersion'),
 
+    // License & Feature Flags
+    getDeviceId: () => ipcRenderer.invoke('system:getDeviceId'),
+    getLicenseKey: () => ipcRenderer.invoke('system:getLicenseKey'),
+    saveLicenseKey: (key) => ipcRenderer.invoke('system:saveLicenseKey', key),
+
     // Payroll
     getPayroll: (storeId, employeeId) => ipcRenderer.invoke('db:getPayroll', storeId, employeeId),
     addPayroll: (payroll) => ipcRenderer.invoke('db:addPayroll', payroll),

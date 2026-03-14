@@ -58,7 +58,7 @@ export default function CustomerDetails() {
 
     const handleAddPoints = async () => {
         if (!pointsToAdd || !id) return;
-        toast.info("Loyalty adjustment protocol: Access restricted to Admin level.");
+        toast.info("Only Admin can add loyalty points.");
     }
 
     if (!customer) {
@@ -66,10 +66,10 @@ export default function CustomerDetails() {
             <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center p-6 text-center">
                 <div className="bg-white rounded-[3rem] p-12 shadow-xl max-w-md w-full border border-white">
                     <User className="w-16 h-16 text-slate-100 mx-auto mb-6" />
-                    <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Profile Lost</h2>
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">The requested identity hash could not be identified in the registry.</p>
+                    <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Customer Not Found</h2>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">This customer could not be found.</p>
                     <Button onClick={() => navigate('/customers')} className="w-full bg-black text-white rounded-2xl h-14 font-black uppercase text-[10px] tracking-widest">
-                        Return to Rolodex
+                        Back to Customers
                     </Button>
                 </div>
             </div>
@@ -87,7 +87,7 @@ export default function CustomerDetails() {
                         </button>
                         <div>
                             <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{customer.name}</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Client Profile Matrix • ID: {customer.id.slice(0, 8)}</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Customer Details</p>
                         </div>
                     </div>
 
@@ -101,7 +101,7 @@ export default function CustomerDetails() {
                             className="bg-black text-white rounded-[1.2rem] h-14 px-8 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
                         >
                             <Edit className="w-4 h-4 mr-2" />
-                            Modify Profile
+                            Edit Profile
                         </Button>
                     </div>
                 </div>
@@ -120,7 +120,7 @@ export default function CustomerDetails() {
                         <h2 className={cn("text-3xl font-black leading-none mb-1", customer.creditBalance > 0 ? 'text-red-900' : 'text-emerald-900')}>
                             ${customer.creditBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </h2>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Exposure Ledger</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Amount Owed</p>
                     </div>
 
                     <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
@@ -128,10 +128,10 @@ export default function CustomerDetails() {
                             <div className="p-4 bg-emerald-50 rounded-2xl text-emerald-600">
                                 <Activity className="w-6 h-6" />
                             </div>
-                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Aggregated</span>
+                            <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Total</span>
                         </div>
                         <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">${(customer.totalPurchases || 0).toLocaleString()}</h2>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Gross Lifetime Acquisition</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Spent</p>
                     </div>
 
                     <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
@@ -142,7 +142,7 @@ export default function CustomerDetails() {
                             <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Loyalty</span>
                         </div>
                         <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">{loyaltyPoints.toLocaleString()}</h2>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Available Points Index</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Loyalty Points</p>
                     </div>
 
                     <div className="bg-black rounded-[2rem] p-8 text-white shadow-xl shadow-black/10">
@@ -153,7 +153,7 @@ export default function CustomerDetails() {
                             <span className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em]">Tenure</span>
                         </div>
                         <h2 className="text-xl font-black leading-none mb-2 uppercase">{new Date(customer.joinedAt).toLocaleDateString()}</h2>
-                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Identity Entry Date</p>
+                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Member Since</p>
                     </div>
                 </div>
 
@@ -163,7 +163,7 @@ export default function CustomerDetails() {
                         <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white">
                             <div className="flex items-center gap-3 mb-10">
                                 <User className="w-5 h-5 text-slate-400" />
-                                <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-900">Communication Nodes</h3>
+                                <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-900">Contact Info</h3>
                             </div>
                             <div className="space-y-8">
                                 <div className="flex items-center gap-6">
@@ -171,7 +171,7 @@ export default function CustomerDetails() {
                                         <Phone className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Primary Dial</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Phone</p>
                                         <p className="text-sm font-black text-slate-900">{customer.phone}</p>
                                     </div>
                                 </div>
@@ -180,8 +180,8 @@ export default function CustomerDetails() {
                                         <MapPin className="w-5 h-5" />
                                     </div>
                                     <div>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Sector Area</p>
-                                        <p className="text-sm font-black text-slate-900 uppercase">{customer.area || 'Regional Matrix'}</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Area</p>
+                                        <p className="text-sm font-black text-slate-900 uppercase">{customer.area || 'Not Set'}</p>
                                     </div>
                                 </div>
                             </div>
@@ -191,7 +191,7 @@ export default function CustomerDetails() {
                                 <div className="mt-12 pt-10 border-t border-slate-50">
                                     <div className="flex items-center gap-3 mb-8">
                                         <History className="w-5 h-5 text-slate-400" />
-                                        <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-900">Custom Metadata</h3>
+                                        <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-900">Additional Details</h3>
                                     </div>
                                     <div className="space-y-5">
                                         {clientCustomFields.map(field => {
@@ -211,7 +211,7 @@ export default function CustomerDetails() {
                         <div className="bg-indigo-600 rounded-[2.5rem] p-10 text-white shadow-xl shadow-indigo-200">
                             <Gift className="w-10 h-10 text-white/30 mb-8" />
                             <h3 className="text-xl font-black uppercase tracking-tight mb-2">Loyalty Adjustment</h3>
-                            <p className="text-[10px] font-black text-indigo-200 uppercase tracking-widest mb-10">Administrative point injection protocol</p>
+                            <p className="text-[10px] font-black text-indigo-200 uppercase tracking-widest mb-10">Add loyalty points manually</p>
 
                             <div className="space-y-4">
                                 <Input
@@ -222,7 +222,7 @@ export default function CustomerDetails() {
                                     className="h-16 bg-white/10 border-none rounded-2xl px-6 text-white font-black placeholder:text-white/30"
                                 />
                                 <Button onClick={handleAddPoints} className="w-full bg-white text-indigo-600 rounded-[1.2rem] h-16 font-black uppercase text-[10px] tracking-[0.2em] hover:bg-slate-50 active:scale-95 transition-all">
-                                    EXECUTE INJECTION
+                                    ADD POINTS
                                 </Button>
                             </div>
                         </div>
@@ -237,8 +237,8 @@ export default function CustomerDetails() {
                                         <History className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Audit Ledger</h3>
-                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{ledger.length} Verified Entries</p>
+                                        <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Transaction History</h3>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{ledger.length} Entries</p>
                                     </div>
                                 </div>
                                 <div className="p-4 bg-emerald-50 rounded-2xl text-emerald-600">
@@ -249,7 +249,7 @@ export default function CustomerDetails() {
                             {isLoadingLedger ? (
                                 <div className="py-24 text-center">
                                     <div className="w-12 h-12 border-4 border-slate-100 border-t-black rounded-full animate-spin mx-auto mb-6" />
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Retrieving Secure Ledger Entries...</p>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Loading transactions...</p>
                                 </div>
                             ) : ledger.length > 0 ? (
                                 <div className="space-y-4">
@@ -274,13 +274,13 @@ export default function CustomerDetails() {
                                                 {row.debit > 0 && (
                                                     <div>
                                                         <p className="text-xl font-black text-red-600 tracking-tighter mb-1">+${row.debit.toLocaleString()}</p>
-                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Accrued</p>
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Added</p>
                                                     </div>
                                                 )}
                                                 {row.credit > 0 && (
                                                     <div>
                                                         <p className="text-xl font-black text-emerald-600 tracking-tighter mb-1">-${row.credit.toLocaleString()}</p>
-                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Settled</p>
+                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Paid</p>
                                                     </div>
                                                 )}
                                                 <div className="w-24 px-6 border-l border-slate-100">
@@ -294,8 +294,8 @@ export default function CustomerDetails() {
                             ) : (
                                 <div className="py-24 text-center opacity-30">
                                     <History className="w-16 h-16 text-slate-200 mx-auto mb-6" />
-                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Ledger Vacant</h3>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">No historical transaction indices found</p>
+                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">No Transactions Yet</h3>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">No transactions found for this customer</p>
                                 </div>
                             )}
                         </div>

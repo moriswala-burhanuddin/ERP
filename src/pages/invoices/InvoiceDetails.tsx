@@ -109,21 +109,21 @@ export default function InvoiceDetails() {
             const result = await window.electronAPI.generatePDF(styledHtml, `Invoice_${invoice.invoiceNumber}.pdf`);
             if (result.success) {
                 toast({
-                    title: "Invoice Securely Saved",
-                    description: `File: ${result.filePath}`,
+                    title: "Invoice Saved",
+                    description: `Saved to: ${result.filePath}`,
                     variant: "default"
                 });
             } else if (result.error !== 'Cancelled') {
                 toast({
-                    title: "PDF Protocol Breach",
+                    title: "Could Not Save PDF",
                     description: result.error,
                     variant: "destructive"
                 });
             }
         } else {
             toast({
-                title: "Download Protocol Required",
-                description: "Requires Desktop Environment",
+                title: "Not Available",
+                description: "This feature only works in the desktop app.",
                 variant: "destructive"
             });
         }

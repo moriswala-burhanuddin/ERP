@@ -46,8 +46,8 @@ const ProfitAndLoss = () => {
                             <Scale className="w-6 h-6" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Profitability Synthesis</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Fiscal Integrity Audit • Q1 ANALYSIS</p>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Profit & Loss Report</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Summary of your income and expenses</p>
                         </div>
                     </div>
 
@@ -123,7 +123,7 @@ const ProfitAndLoss = () => {
                             <div className="p-12 space-y-8">
                                 <div className="group space-y-2">
                                     <div className="flex justify-between items-center">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Procurement Nodes</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Purchase Cost</p>
                                         <FormatCurrency amount={financials.totalPurchases} className="text-slate-900 text-lg opacity-80 group-hover:opacity-100 transition-opacity" />
                                     </div>
                                     <div className="h-1 bg-slate-100 rounded-full overflow-hidden">

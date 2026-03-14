@@ -33,11 +33,11 @@ export default function Customers() {
   };
 
   const handleDeleteSelected = async () => {
-    if (window.confirm(`SECURITY_AUDIT: Purge ${selectedIds.length} customer nodes from registry?`)) {
+    if (window.confirm(`Are you sure you want to delete these ${selectedIds.length} customers?`)) {
       for (const id of selectedIds) {
         await deleteCustomer(id);
       }
-      toast.error("Registry Purged: Entity nodes removed.");
+      toast.error("Customers deleted.");
       setSelectedIds([]);
     }
   };
@@ -56,8 +56,8 @@ export default function Customers() {
               <ArrowLeft className="w-5 h-5" />
             </button>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Customer Rolodex</h1>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Entity Registry • {totalCustomers} Active Nodes</p>
+              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Customers</h1>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">All Customers • {totalCustomers}</p>
             </div>
           </div>
 
@@ -68,7 +68,7 @@ export default function Customers() {
             <div className="h-10 w-px bg-slate-100 mx-2" />
             <Button onClick={() => navigate('/customers/new')} className="bg-black text-white rounded-[1.2rem] h-14 px-8 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
               <Plus className="w-4 h-4 mr-2 text-indigo-400" />
-              Enroll New Entity
+              Add New Customer
             </Button>
           </div>
         </div>
@@ -81,8 +81,8 @@ export default function Customers() {
             <div className="p-4 bg-indigo-50 rounded-2xl w-fit mb-8 text-indigo-500">
               <UsersIcon className="w-6 h-6" />
             </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Population</p>
-            <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{totalCustomers} Nodes</h3>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Customers</p>
+            <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{totalCustomers}</h3>
             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-50/50 rounded-full blur-2xl group-hover:scale-150 transition-all" />
           </div>
 
@@ -90,8 +90,8 @@ export default function Customers() {
             <div className="p-4 bg-amber-50 rounded-2xl w-fit mb-8 text-amber-500">
               <Star className="w-6 h-6" />
             </div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">High-Tier Indices</p>
-            <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{highValueCustomers} Elite</h3>
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">High Value</p>
+            <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{highValueCustomers}</h3>
             <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-amber-50/50 rounded-full blur-2xl group-hover:scale-150 transition-all" />
           </div>
 
@@ -100,12 +100,12 @@ export default function Customers() {
               <div className="p-4 bg-white/10 rounded-2xl text-rose-400">
                 <DollarSign className="w-6 h-6" />
               </div>
-              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Liability Index</span>
+              <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Credit Owed</span>
             </div>
-            <h3 className="text-3xl font-black tracking-tighter mb-1">{activeDebtors} Active Debts</h3>
+            <h3 className="text-3xl font-black tracking-tighter mb-1">{activeDebtors} With Balance</h3>
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-              <span className="text-[10px] font-black uppercase text-rose-400 tracking-widest">Monitoring Exposure</span>
+              <span className="text-[10px] font-black uppercase text-rose-400 tracking-widest">Has Outstanding Balance</span>
             </div>
           </div>
         </div>
@@ -116,7 +116,7 @@ export default function Customers() {
             <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-black transition-colors" />
             <input
               type="text"
-              placeholder="IDENTIFY BY NAME, EMAIL, OR TELE-INDEX..."
+              placeholder="SEARCH BY NAME, EMAIL, OR PHONE..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full h-16 bg-slate-50 border-none rounded-[1.5rem] pl-16 pr-8 text-[10px] font-black uppercase tracking-widest focus:ring-2 focus:ring-black placeholder:text-slate-200 transition-all"
@@ -131,7 +131,7 @@ export default function Customers() {
                 selectedIds.length > 0 ? "bg-emerald-50 text-emerald-600 shadow-sm" : "bg-slate-50 text-slate-400 hover:bg-slate-100"
               )}
             >
-              {selectedIds.length === filteredCustomers.length ? "CLEAR_SELECTION" : `SELECT_ALL (${filteredCustomers.length})`}
+              {selectedIds.length === filteredCustomers.length ? "CLEAR SELECTION" : `SELECT ALL (${filteredCustomers.length})`}
             </button>
 
             {selectedIds.length > 0 && (
@@ -143,7 +143,7 @@ export default function Customers() {
                   <Trash2 className="w-5 h-5" />
                 </button>
                 <button className="h-16 px-8 bg-black text-white rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest shadow-xl shadow-black/20">
-                  BULK_ACTION ({selectedIds.length})
+                  BULK ACTION ({selectedIds.length})
                 </button>
               </div>
             )}
@@ -180,7 +180,7 @@ export default function Customers() {
                     <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight mb-2 group-hover:text-indigo-600 transition-colors truncate w-full px-4">{c.name}</h4>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                       <ShieldCheck className="w-3.5 h-3.5 text-indigo-500" />
-                      NODE_{c.id.slice(-6).toUpperCase()}
+                      ID: {c.id.slice(-6).toUpperCase()}
                     </p>
                   </div>
 
@@ -190,11 +190,11 @@ export default function Customers() {
                       <span className="text-slate-900">{c.phone || 'HIDDEN'}</span>
                     </div>
                     <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-slate-400 bg-slate-50/50 p-4 rounded-2xl">
-                      <span className="flex items-center gap-3"><MapPin className="w-4 h-4 text-rose-500" /> LOCALE</span>
-                      <span className="text-slate-900 truncate max-w-[120px]">{c.area || 'GLOBAL'}</span>
+                      <span className="flex items-center gap-3"><MapPin className="w-4 h-4 text-rose-500" /> AREA</span>
+                      <span className="text-slate-900 truncate max-w-[120px]">{c.area || 'Not Set'}</span>
                     </div>
                     <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-slate-400 bg-slate-50/50 p-4 rounded-2xl">
-                      <span className="flex items-center gap-3"><DollarSign className="w-4 h-4 text-indigo-500" /> EXPOSURE</span>
+                      <span className="flex items-center gap-3"><DollarSign className="w-4 h-4 text-indigo-500" /> BALANCE</span>
                       <span className={cn(
                         "font-black",
                         (c.creditBalance || 0) > 0 ? "text-rose-600" : "text-emerald-600"
@@ -222,8 +222,8 @@ export default function Customers() {
               <div className="w-32 h-32 bg-slate-50 rounded-full flex items-center justify-center mb-10">
                 <UsersIcon className="w-16 h-16 text-slate-100" />
               </div>
-              <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Rolodex Empty</h3>
-              <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4 px-20 max-w-2xl leading-loose text-center">No entity nodes identified matching the target parameters. Enroll a new customer to expand the registry.</p>
+              <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">No Customers Found</h3>
+              <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4 px-20 max-w-2xl leading-loose text-center">No customers match your search. Add a new customer to get started.</p>
             </div>
           )}
         </div>

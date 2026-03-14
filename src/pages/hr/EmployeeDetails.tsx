@@ -225,7 +225,7 @@ export default function EmployeeDetails() {
 
             <main className="max-w-7xl mx-auto px-6 mt-12">
                 <div className="grid lg:grid-cols-4 gap-8">
-                    {/* Sidebar: Profile Overview */}
+                    {/* Sidebar: Employee Info */}
                     <div className="lg:col-span-1 space-y-8">
                         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-white flex flex-col items-center text-center">
                             <div className="w-24 h-24 bg-slate-100 rounded-[2rem] flex items-center justify-center text-slate-300 mb-6 border-4 border-slate-50">
@@ -263,7 +263,7 @@ export default function EmployeeDetails() {
                             </div>
                             <div className="text-center py-4">
                                 <p className="text-4xl font-black italic tracking-tighter">A+</p>
-                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mt-2">Current Efficiency</p>
+                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mt-2">Performance Grade</p>
                             </div>
                         </div>
                     </div>
@@ -315,7 +315,7 @@ export default function EmployeeDetails() {
                                     <div className="space-y-8">
                                         <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-white">
                                             <div className="flex items-center justify-between mb-8">
-                                                <h3 className="text-[10px] font-black uppercase tracking-widest">Attendance Status</h3>
+                                                <h3 className="text-[10px] font-black uppercase tracking-widest">Presence Status</h3>
                                                 <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.5)]" />
                                             </div>
                                             <div className="grid grid-cols-2 gap-6">
@@ -337,7 +337,7 @@ export default function EmployeeDetails() {
                                             </div>
                                             <div className="space-y-4">
                                                 <div className="flex justify-between items-center text-[11px] font-bold">
-                                                    <span className="text-slate-400 uppercase">Casual Leaves</span>
+                                                    <span className="text-slate-400 uppercase">Normal Leaves</span>
                                                     <span className="text-slate-900">12 / 15 Remaining</span>
                                                 </div>
                                                 <div className="h-2 bg-slate-50 rounded-full overflow-hidden">
@@ -359,7 +359,7 @@ export default function EmployeeDetails() {
                             <TabsContent value="attendance" className="mt-0">
                                 <Card className="rounded-[2.5rem] border-none shadow-sm overflow-hidden">
                                     <CardHeader className="bg-white p-8 border-b border-slate-50 flex flex-row items-center justify-between">
-                                        <CardTitle className="text-[10px] font-black uppercase tracking-widest">Full Attendance Ledger</CardTitle>
+                                        <CardTitle className="text-[10px] font-black uppercase tracking-widest">Detailed Attendance History</CardTitle>
                                     </CardHeader>
                                     <CardContent className="bg-white p-0">
                                         <div className="divide-y divide-slate-50">
@@ -390,7 +390,7 @@ export default function EmployeeDetails() {
                                             {empAttendance.length === 0 && (
                                                 <div className="py-32 text-center opacity-20">
                                                     <Ghost className="w-16 h-16 mx-auto mb-4" />
-                                                    <p className="text-sm font-black uppercase tracking-widest">Registry Empty</p>
+                                                    <p className="text-sm font-black uppercase tracking-widest">No History Found</p>
                                                 </div>
                                             )}
                                         </div>
@@ -401,7 +401,7 @@ export default function EmployeeDetails() {
                             <TabsContent value="payroll" className="mt-0">
                                 <Card className="rounded-[2.5rem] border-none shadow-sm overflow-hidden">
                                     <CardHeader className="bg-white p-8 border-b border-slate-50">
-                                        <CardTitle className="text-[10px] font-black uppercase tracking-widest">Payroll History</CardTitle>
+                                        <CardTitle className="text-[10px] font-black uppercase tracking-widest">Salary History</CardTitle>
                                     </CardHeader>
                                     <CardContent className="bg-white p-0">
                                         <div className="divide-y divide-slate-50">
@@ -418,7 +418,7 @@ export default function EmployeeDetails() {
                                                     </div>
                                                     <div className="flex items-center gap-6">
                                                         <div className="text-right">
-                                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Net Payout</p>
+                                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Net Salary</p>
                                                             <p className="text-xl font-black text-slate-900 tracking-tighter">PKR {p.netSalary.toLocaleString()}</p>
                                                         </div>
                                                         <Button
@@ -452,8 +452,8 @@ export default function EmployeeDetails() {
                                         <div className="w-24 h-24 bg-slate-50 rounded-[2.5rem] flex items-center justify-center text-slate-200 mb-8">
                                             <FileText className="w-10 h-10" />
                                         </div>
-                                        <h3 className="text-xl font-black uppercase text-slate-900">Virtual Filing Cabinet</h3>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 max-w-xs mx-auto leading-relaxed">Secure document storage for CNIC, Contracts, and Education certificates.</p>
+                                        <h3 className="text-xl font-black uppercase text-slate-900">Saved Documents</h3>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 max-w-xs mx-auto leading-relaxed">Keep copies of ID cards, contracts, and degrees here.</p>
                                         <Button className="mt-10 bg-black text-white rounded-2xl h-14 px-10 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 hover:scale-[1.02] transition-all">
                                             UPLOAD NEW DOCUMENT
                                         </Button>
@@ -468,7 +468,7 @@ export default function EmployeeDetails() {
             <Dialog open={payslipOpen} onOpenChange={setPayslipOpen}>
                 <DialogContent className="max-w-[800px] p-0 border-none bg-white rounded-[2rem] overflow-hidden">
                     <div className="p-8 border-b border-slate-100 flex justify-between items-center no-print">
-                        <h2 className="text-xl font-black uppercase tracking-tight">Preview Payslip</h2>
+                        <h2 className="text-xl font-black uppercase tracking-tight">Preview Salary Slip</h2>
                         <Button onClick={handlePrint} className="bg-black text-white rounded-xl h-12 px-8 font-black uppercase text-[10px] tracking-widest">
                             <Printer className="w-4 h-4 mr-2" />
                             Print / PDF
@@ -488,12 +488,12 @@ export default function EmployeeDetails() {
                                 </div>
                             </div>
                             <div className="text-right">
-                                <h2 className="text-xl font-black uppercase tracking-widest text-slate-300">Official Payslip</h2>
+                                <h2 className="text-xl font-black uppercase tracking-widest text-slate-300">Salary Slip</h2>
                                 <p className="text-[12px] font-bold text-slate-900 mt-1">{selectedPayroll?.month}</p>
                             </div>
                         </div>
 
-                        {/* Employee Summary */}
+                        {/* Employee Details */}
                         <div className="grid grid-cols-2 gap-12 bg-slate-50/50 p-10 rounded-[2rem]">
                             <div className="space-y-4">
                                 <div className="flex justify-between border-b border-slate-100 pb-2">
@@ -510,16 +510,16 @@ export default function EmployeeDetails() {
                                 </div>
                             </div>
                             <div className="flex flex-col items-end justify-center">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Net Pay Amount</p>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Salary Paid</p>
                                 <p className="text-4xl font-black text-slate-900 tracking-tighter">PKR {selectedPayroll?.netSalary.toLocaleString()}</p>
                                 <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest">Paid on: {new Date().toLocaleDateString()}</p>
                             </div>
                         </div>
 
-                        {/* Earnings and Deductions Matrix */}
+                        {/* Salary & Deduction Details */}
                         <div className="grid grid-cols-2 gap-12 pt-4">
                             <div className="space-y-6">
-                                <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-emerald-500 border-b border-emerald-100 pb-3">Earnings Summary</h3>
+                                <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-emerald-500 border-b border-emerald-100 pb-3">Income Details</h3>
                                 <div className="space-y-3">
                                     <div className="flex justify-between text-[13px]">
                                         <span className="font-bold text-slate-400">Basic Salary</span>
@@ -530,28 +530,28 @@ export default function EmployeeDetails() {
                                         <span className="font-black">PKR {selectedPayroll?.allowances.toLocaleString()}</span>
                                     </div>
                                     <div className="pt-4 mt-4 border-t-2 border-slate-900 flex justify-between">
-                                        <span className="text-[11px] font-black uppercase tracking-widest">Gross Earnings</span>
+                                        <span className="text-[11px] font-black uppercase tracking-widest">Total Income</span>
                                         <span className="text-lg font-black tracking-tight">PKR {((selectedPayroll?.basicSalary || 0) + (selectedPayroll?.allowances || 0)).toLocaleString()}</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="space-y-6">
-                                <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-rose-500 border-b border-rose-100 pb-3">Deductions Matrix</h3>
+                                <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-rose-500 border-b border-rose-100 pb-3">Deduction Details</h3>
                                 <div className="space-y-3">
                                     <div className="flex justify-between text-[13px]">
                                         <span className="font-bold text-slate-400">Other Deductions</span>
                                         <span className="font-black">PKR {selectedPayroll?.deductions.toLocaleString()}</span>
                                     </div>
                                     <div className="pt-4 mt-4 border-t-2 border-slate-900 flex justify-between">
-                                        <span className="text-[11px] font-black uppercase tracking-widest">Total Deductions</span>
+                                        <span className="text-[11px] font-black uppercase tracking-widest">Total Cut</span>
                                         <span className="text-lg font-black tracking-tight">PKR {selectedPayroll?.deductions.toLocaleString()}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Footer Summary */}
+                        {/* Verification Info */}
                         <div className="pt-12 mt-12 border-t-2 border-slate-900">
                             <div className="flex justify-between items-center mb-8">
                                 <div>
@@ -562,7 +562,7 @@ export default function EmployeeDetails() {
                                 </div>
                                 <div className="text-right">
                                     <p className="text-2xl font-black tracking-tighter uppercase mb-1">Invenza ERP</p>
-                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Digital Verification Key: {selectedPayroll?.id}</p>
+                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Record ID: {selectedPayroll?.id}</p>
                                 </div>
                             </div>
                         </div>

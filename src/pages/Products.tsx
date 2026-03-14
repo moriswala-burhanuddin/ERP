@@ -45,7 +45,7 @@ export default function Products() {
   const [isBulkEditOpen, setIsBulkEditOpen] = useState(false);
 
   const products = getStoreProducts();
-  const categories = [...new Set(products.map(p => p.category))];
+  const categories = [...new Set(products.map(p => p.categoryName).filter(Boolean))];
 
   const runOptimization = async () => {
     if (!window.electronAPI) return;
@@ -83,7 +83,7 @@ export default function Products() {
       const result = await handleBarcodeScan(barcode, 'OUT');
 
       if (result.status === 'SUCCESS') {
-        toast.success(`Stock Out: ${result.product_name}`, {
+        toast.success(`Stock Removed: ${result.product_name}`, {
           description: `Quantity: ${result.previous_stock} -> ${result.updated_stock}`
         });
         setBarcodeInput('');
@@ -198,7 +198,7 @@ export default function Products() {
   const handleBulkCategoryUpdate = async () => {
     if (!bulkCategory) return;
     try {
-      await bulkUpdateProducts(selectedIds, { category: bulkCategory });
+      await bulkUpdateProducts(selectedIds, { categoryName: bulkCategory });
       toast.success('Bulk Update Successful', { description: `Updated ${selectedIds.length} items.` });
       setSelectedIds([]);
       setIsBulkEditOpen(false);
@@ -224,7 +224,7 @@ export default function Products() {
     const matchesSearch =
       product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       product.sku.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = filterCategory === 'all' || product.category === filterCategory;
+    const matchesCategory = filterCategory === 'all' || product.categoryName === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
@@ -290,7 +290,7 @@ export default function Products() {
               <DialogTrigger asChild>
                 <button onClick={() => { setSelectedProductId(undefined); setIsTransferOpen(true); }} className="flex items-center gap-2 bg-white text-slate-900 border-none shadow-sm px-5 py-3 rounded-[1.2rem] font-black text-[10px] tracking-widest hover:bg-slate-50 transition-all active:scale-95 whitespace-nowrap">
                   <ArrowRightLeft className="w-4 h-4" />
-                  TRANSFER
+                  TRANSFER STOCK
                 </button>
               </DialogTrigger>
               <DialogContent className="rounded-[2.5rem] border-none shadow-2xl">
@@ -331,7 +331,7 @@ export default function Products() {
                 type="text"
                 value={barcodeInput}
                 onChange={(e) => setBarcodeInput(e.target.value)}
-                placeholder={scanMode === 'lookup' ? "SEARCH BY SCANNING..." : "SCAN FOR QUICK STOCK OUT..."}
+                placeholder={scanMode === 'lookup' ? "SCAN TO FIND ITEM..." : "SCAN TO REMOVE STOCK..."}
                 className="bg-transparent border-none text-white text-xl placeholder:text-slate-500 focus:outline-none flex-1 font-mono tracking-wider font-black"
                 autoFocus
               />
@@ -345,7 +345,7 @@ export default function Products() {
                   scanMode === 'lookup' ? "bg-white text-black shadow-lg" : "text-slate-400 hover:text-white"
                 )}
               >
-                Lookup
+                Find Item
               </button>
               <button
                 onClick={() => setScanMode('out')}
@@ -354,7 +354,7 @@ export default function Products() {
                   scanMode === 'out' ? "bg-orange-600 text-white shadow-lg shadow-orange-900/20" : "text-slate-400 hover:text-white"
                 )}
               >
-                Stock Out
+                Remove Stock
               </button>
             </div>
           </div>
@@ -438,7 +438,7 @@ export default function Products() {
                 <div className="flex flex-col h-full pt-4">
                   <div className="mb-6">
                     <div className="inline-block px-3 py-1 bg-slate-50 text-slate-400 text-[9px] font-black uppercase tracking-widest rounded-lg mb-2 group-hover:bg-white group-hover:shadow-sm transition-all">
-                      {product.category || 'Other'}
+                      {product.categoryName || 'Other'}
                     </div>
                     <h3 className="font-black text-slate-900 text-xl leading-snug group-hover:translate-x-1 transition-transform">{product.name}</h3>
                     <p className="font-mono text-slate-400 text-[10px] font-black mt-1 uppercase tracking-tighter">{product.sku}</p>
@@ -446,7 +446,7 @@ export default function Products() {
 
                   <div className="mt-auto flex items-end justify-between">
                     <div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">STOCK LEVEL</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">IN STOCK</p>
                       <div className="flex items-center gap-2">
                         <span className={cn(
                           "text-2xl font-black leading-none",
@@ -465,7 +465,7 @@ export default function Products() {
                     </div>
 
                     <div className="text-right">
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">SELLING PRICE</p>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">PRICE</p>
                       <div
                         onClick={(e) => {
                           e.stopPropagation();
@@ -508,7 +508,7 @@ export default function Products() {
 
           <div className="flex gap-2">
             <button onClick={() => setIsBulkEditOpen(true)} className="px-6 py-4 rounded-[1.5rem] bg-indigo-600 font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-600/20">
-              CATEGORY
+              CHANGE CATEGORY
             </button>
             <button onClick={handleBulkDelete} className="px-6 py-4 rounded-[1.5rem] bg-red-600 font-black text-[10px] uppercase tracking-widest hover:bg-red-700 transition-all active:scale-95 shadow-lg shadow-red-600/20">
               DELETE

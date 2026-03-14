@@ -29,10 +29,10 @@ export default function Login() {
         else if (user?.role === 'employee') navigate('/employee/dashboard');
         else navigate('/');
       } else {
-        setError(result.message || 'AUTHENTICATION_FAILURE: Invalid identifier or security key.');
+        setError(result.message || 'Login failed: Please check your email and password.');
       }
     } catch (err) {
-      setError('SYSTEM_ERROR: Access protocol interrupted.');
+      setError('System error: Please try again later.');
     } finally {
       setLoading(false);
     }
@@ -73,7 +73,7 @@ export default function Login() {
             <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-3">Invenza<span className="text-indigo-500 text-5xl">.</span></h1>
             <div className="flex items-center gap-3 bg-white/5 border border-white/5 px-5 py-2 rounded-full">
               <Cpu className="w-3.5 h-3.5 text-indigo-400" />
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Quantum Core v3.0</span>
+              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Version 3.0</span>
             </div>
           </div>
 
@@ -88,7 +88,7 @@ export default function Login() {
 
             <div className="space-y-3">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-3">
-                Access Identifier
+                Email Address
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
@@ -99,7 +99,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-white/5 border border-white/5 rounded-[2rem] py-5 pl-14 pr-6 text-sm font-bold text-white focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/50 outline-none transition-all placeholder:text-slate-700 hover:bg-white/[0.08]"
-                  placeholder="OPERATIVE_ID@CLUSTER"
+                  placeholder="yourname@example.com"
                   required
                 />
               </div>
@@ -107,7 +107,7 @@ export default function Login() {
 
             <div className="space-y-3">
               <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-3">
-                Security Lattice
+                Password
               </label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-6 flex items-center pointer-events-none">
@@ -140,7 +140,7 @@ export default function Login() {
                 <div className="w-6 h-6 border-3 border-black/20 border-t-black rounded-full animate-spin" />
               ) : (
                 <>
-                  INITIALIZE SESSION
+                  LOGIN NOW
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </>
               )}
@@ -150,21 +150,21 @@ export default function Login() {
           {/* Footer Metrics */}
           <div className="mt-14 pt-10 border-t border-white/5 flex items-center justify-between">
             <div className="flex flex-col">
-              <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Node Uplink</span>
+              <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Status</span>
               <div className="flex items-center gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-black text-white">ENCRYPTED</span>
+                <span className="text-[10px] font-black text-white">SECURE</span>
               </div>
             </div>
             <div className="flex flex-col items-end">
-              <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Support Vector</span>
+              <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Support ID</span>
               <span className="text-[10px] font-black text-white">SF-CORE-992</span>
             </div>
           </div>
         </div>
 
         <p className="text-center text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] mt-12 leading-relaxed">
-          Authorized Operatives Only • Terminal Echo Active • Session Encrypted
+          Authorized Users Only • System Active • Direct Connection
         </p>
       </div>
 

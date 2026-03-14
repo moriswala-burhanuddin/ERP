@@ -22,7 +22,7 @@ export default function TaxSettings() {
             name: newSlab.name.toUpperCase(),
             percentage: parseFloat(newSlab.percentage)
         });
-        toast.success('Fiscal Node Integrated: Tax registry synchronized.');
+        toast.success('Tax rate saved.');
         setNewSlab({ name: '', percentage: '' });
     };
 
@@ -36,7 +36,7 @@ export default function TaxSettings() {
                             <ArrowLeft className="w-5 h-5 text-slate-400" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Fiscal Policy Nexus</h1>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Tax Settings</h1>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Taxation Tiers • System Governance</p>
                         </div>
                     </div>

@@ -54,9 +54,9 @@ export default function ProductDetails() {
     };
 
     const handleDelete = () => {
-        if (window.confirm('IRREVERSIBLE ACTION: DELETE THIS PRODUCT?')) {
+        if (window.confirm('Are you sure you want to delete this product? This cannot be undone.')) {
             deleteProduct(id!);
-            toast.success("Product Purged");
+            toast.success("Product deleted.");
             navigate('/products');
         }
     };
@@ -83,7 +83,7 @@ export default function ProductDetails() {
                                 <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{product.name}</h1>
                                 <span className="bg-slate-100 px-3 py-1 rounded-full text-[9px] font-black text-slate-500 uppercase tracking-widest">{product.sku}</span>
                             </div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Product Intelligence • Live Profile</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Product Details</p>
                         </div>
                     </div>
 
@@ -93,7 +93,7 @@ export default function ProductDetails() {
                         </button>
                         <Button onClick={() => navigate(`/products/edit/${id}`)} className="bg-black text-white rounded-[1.2rem] h-14 px-8 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                             <Edit3 className="w-4 h-4 mr-2" />
-                            Modify Profile
+                            Edit Product
                         </Button>
                     </div>
                 </div>
@@ -132,10 +132,10 @@ export default function ProductDetails() {
                             <div className="p-4 bg-slate-100 rounded-2xl">
                                 <Layers className="w-6 h-6 text-slate-600" />
                             </div>
-                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Asset Worth</span>
+                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Stock Value</span>
                         </div>
                         <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">${stockValue.toLocaleString()}</h2>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">At Cost Basis</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">At Purchase Price</p>
                     </div>
 
                     <div className={cn(
@@ -165,12 +165,12 @@ export default function ProductDetails() {
                             </div>
                             <div className="space-y-5">
                                 {[
-                                    { label: 'Category', value: product.category },
+                                    { label: 'Category', value: product.categoryName || product.categoryId || 'Uncategorized' },
                                     { label: 'Brand', value: product.brand || 'No Brand' },
                                     { label: 'Cost Price', value: `$${product.purchasePrice.toLocaleString()}`, highlight: true },
                                     { label: 'Selling Price', value: `$${product.sellingPrice.toLocaleString()}`, highlight: true },
-                                    { label: 'Reference Unit', value: product.unit || 'Standard' },
-                                    { label: 'Last Registry', value: new Date(product.updatedAt).toLocaleDateString() },
+                                    { label: 'Unit', value: product.unit || 'Standard' },
+                                    { label: 'Last Updated', value: new Date(product.updatedAt).toLocaleDateString() },
                                 ].map((row, i) => (
                                     <div key={i} className="flex justify-between items-center group">
                                         <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{row.label}</span>
@@ -209,7 +209,7 @@ export default function ProductDetails() {
                             </div>
                             <div className="mt-8 pt-8 border-t border-white/10">
                                 <p className="text-[9px] font-bold text-slate-400 uppercase leading-relaxed">
-                                    AI-Powered reorder logic ensures zero stockouts based on consumer velocity.
+                                    AI-powered reorder suggestions based on your sales history.
                                 </p>
                             </div>
                         </div>
@@ -220,7 +220,7 @@ export default function ProductDetails() {
                         <div className="flex items-center justify-between mb-10">
                             <div>
                                 <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Movement History</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Recent sales and warehouse checkout</p>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Recent sales of this product</p>
                             </div>
                             <div className="p-3 bg-slate-50 rounded-2xl">
                                 <Activity className="w-5 h-5 text-indigo-600" />
@@ -264,8 +264,8 @@ export default function ProductDetails() {
                             <div className="flex items-center gap-4">
                                 <ShieldCheck className="w-6 h-6 text-indigo-600" />
                                 <div>
-                                    <h4 className="text-[11px] font-black uppercase text-indigo-900">Asset Protection</h4>
-                                    <p className="text-[9px] font-bold text-indigo-400 uppercase">Movement data is encrypted and ledger-verified</p>
+                                    <h4 className="text-[11px] font-black uppercase text-indigo-900">Data Security</h4>
+                                    <p className="text-[9px] font-bold text-indigo-400 uppercase">Your product data is safely stored</p>
                                 </div>
                             </div>
                         </div>

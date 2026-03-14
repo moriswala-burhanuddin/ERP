@@ -98,12 +98,12 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#F2F2F7] pb-20">
       <PageHeader
         title="Dashboard"
-        subtitle={activeStore ? `${activeStore.name} • Live Overview` : 'System Intelligence'}
+        subtitle={activeStore ? `${activeStore.name} • Live Overview` : 'Quick Summary'}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
 
-        {/* Superior Filter Bar */}
+        {/* View Options */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-2 bg-white/50 backdrop-blur-md p-1.5 rounded-[1.5rem] shadow-sm border border-white">
             {['today', 'week', 'month', 'year'].map((range) => (
@@ -149,7 +149,7 @@ export default function Dashboard() {
                 <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">
                   {stat.isCurrency ? `$${(stat.value || 0).toLocaleString()}` : (stat.value || 0).toLocaleString()}
                 </h2>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Real-time Data</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Latest Update</p>
               </div>
             </div>
           ))}
@@ -161,7 +161,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-10">
               <div>
                 <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-1">Revenue Performance</h3>
-                <p className="text-xs font-bold text-slate-400">Weekly comparative analytics based on sales volume</p>
+                <p className="text-xs font-bold text-slate-400">Weekly sales and profit report</p>
               </div>
               <div className="flex gap-2">
                 <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl">
@@ -212,11 +212,11 @@ export default function Dashboard() {
             </div>
           </div>
 
-          {/* Quick Intelligence Side Panel */}
+          {/* Stats Summary */}
           <div className="space-y-6">
             <div className="bg-black rounded-[2.5rem] p-8 text-white relative overflow-hidden">
               <Target className="absolute -bottom-4 -right-4 w-32 h-32 opacity-10" />
-              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6">Monthly Goal</h4>
+              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6">Target</h4>
               <div className="relative">
                 <div className="flex justify-between items-end mb-4">
                   <span className="text-4xl font-black">78%</span>
@@ -282,13 +282,13 @@ export default function Dashboard() {
           ))}
         </div>
 
-        {/* Intelligence Tables (Low Stock & Debt) */}
+        {/* Stock and Payment Tables */}
         <div className="grid md:grid-cols-2 gap-8">
           <div className="bg-white rounded-[3rem] p-10 shadow-sm border border-white relative overflow-hidden">
             <div className="flex items-center justify-between mb-8">
               <div>
                 <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight">Stock Alerts</h4>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Inventory requiring action</p>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Items that need to be restocked</p>
               </div>
               <div className="bg-red-50 text-red-500 px-4 py-2 rounded-2xl font-black text-[10px]">
                 {metrics?.lowStockItems?.length || 0} ITEMS
@@ -324,8 +324,8 @@ export default function Dashboard() {
           <div className="bg-white rounded-[3rem] p-10 shadow-sm border border-white relative overflow-hidden">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight">Credit Exposure</h4>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Outstanding receivables</p>
+                <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight">Unpaid Sales</h4>
+                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Money to be collected from customers</p>
               </div>
               <div className="bg-indigo-50 text-indigo-600 px-4 py-2 rounded-2xl font-black text-[10px]">
                 CRITICAL
@@ -340,7 +340,7 @@ export default function Dashboard() {
                     </div>
                     <div>
                       <h5 className="font-black text-slate-900 text-sm uppercase">{c.name}</h5>
-                      <p className="text-[10px] font-bold text-slate-400">Balance Due</p>
+                      <p className="text-[10px] font-bold text-slate-400">Pending Amount</p>
                     </div>
                   </div>
                   <div className="text-right">

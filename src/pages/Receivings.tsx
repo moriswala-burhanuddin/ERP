@@ -108,7 +108,7 @@ export default function Receivings() {
                 {/* Logistics Registry */}
                 <div className="bg-white rounded-[3rem] p-12 shadow-sm border border-white min-h-[600px]">
                     <div className="flex items-center justify-between mb-12">
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Inbound Acquisition Stream</h3>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Incoming Stock</h3>
                     </div>
 
                     {filteredReceivings.length > 0 ? (

@@ -70,7 +70,7 @@ export default function NewQuotation() {
 
     const removeFromCart = (productId: string) => {
         setCart(cart.filter(item => item.productId !== productId));
-        toast.info("Item discarded from proposal");
+        toast.info("Item removed.");
     };
 
     const totalAmount = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -92,10 +92,10 @@ export default function NewQuotation() {
             storeId: storeId || activeStoreId,
             date: new Date().toISOString(),
             expiryDate: new Date(expiryDate).toISOString(),
-            status: 'pending',
+            status: 'active',
             notes
         });
-        toast.success("Proposal Drafted & Registered");
+        toast.success("Quotation saved.");
         navigate('/quotations');
     };
 
@@ -111,14 +111,14 @@ export default function NewQuotation() {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
                     <div>
                         <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Proposal Builder</h1>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Configuring Estimation Record • SF-QT-2024</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">New Quotation</p>
                     </div>
                     <div className="flex items-center gap-3">
                         <Button variant="ghost" onClick={() => navigate('/quotations')} className="rounded-2xl h-12 px-6 font-black uppercase text-[10px] text-slate-400">
                             Cancel
                         </Button>
                         <Button onClick={handleSubmit} disabled={cart.length === 0} className="bg-black text-white rounded-[1.2rem] h-14 px-10 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                            Release Proposal
+                            Save Quotation
                         </Button>
                     </div>
                 </div>
@@ -132,15 +132,15 @@ export default function NewQuotation() {
                             <User className="w-6 h-6" />
                         </div>
                         <div>
-                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Counterparty Profile</h3>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Identifying the recipient entity</p>
+                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Customer Info</h3>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Customer details for this quotation</p>
                         </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-10">
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fulfillment Store</Label>
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Store</Label>
                                 <select
                                     value={storeId}
                                     onChange={(e) => setStoreId(e.target.value)}
@@ -153,7 +153,7 @@ export default function NewQuotation() {
                             </div>
 
                             <div className="space-y-2">
-                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Client Selection</Label>
+                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Customer</Label>
                                 <Popover open={customerSearchOpen} onOpenChange={setCustomerSearchOpen}>
                                     <PopoverTrigger asChild>
                                         <button className={cn(
@@ -162,20 +162,20 @@ export default function NewQuotation() {
                                         )}>
                                             <div className="flex items-center gap-3">
                                                 <Smartphone className="w-4 h-4 opacity-30" />
-                                                {customerId ? customers.find(c => c.id === customerId)?.name : "IDENTIFY CLIENT"}
+                                                {customerId ? customers.find(c => c.id === customerId)?.name : "SELECT CUSTOMER"}
                                             </div>
                                             <ChevronsUpDown className="w-4 h-4 opacity-30" />
                                         </button>
                                     </PopoverTrigger>
                                     <PopoverContent className="w-[400px] p-0 rounded-[2rem] overflow-hidden border-none shadow-2xl z-[100]" align="start">
                                         <Command className="font-black uppercase">
-                                            <CommandInput placeholder="Search Registry..." className="h-14 pl-12" />
+                                            <CommandInput placeholder="Search customers..." className="h-14 pl-12" />
                                             <CommandList>
                                                 <CommandEmpty className="py-10 text-center text-slate-400 text-[10px]">Client Not Found</CommandEmpty>
                                                 <CommandGroup>
                                                     <CommandItem className="py-4 px-6 gap-4" onSelect={() => { setCustomerId(""); setCustomerSearchOpen(false); }}>
                                                         <Check className={cn("h-4 w-4", !customerId ? "opacity-100" : "opacity-0")} />
-                                                        ADHOC / WALK-IN CLIENT
+                                                        WALK-IN CUSTOMER
                                                     </CommandItem>
                                                     {customers.map(c => (
                                                         <CommandItem key={c.id} onSelect={() => { setCustomerId(c.id); setCustomerSearchOpen(false); }} className="py-4 px-6 gap-4">
@@ -196,14 +196,14 @@ export default function NewQuotation() {
 
                         {!customerId && (
                             <div className="bg-slate-50 rounded-[2rem] p-8 space-y-6">
-                                <h4 className="text-[10px] font-black text-indigo-900 uppercase tracking-widest text-center">AdHoc Client Identity</h4>
+                                <h4 className="text-[10px] font-black text-indigo-900 uppercase tracking-widest text-center">Walk-in Customer</h4>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Trade Name</Label>
+                                        <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Name</Label>
                                         <Input className="h-12 bg-white border-none rounded-xl px-4 font-bold uppercase transition-all focus:ring-1 focus:ring-black" value={customerName} onChange={(e) => setCustomerName(e.target.value)} />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Contact Dial</Label>
+                                        <Label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone</Label>
                                         <Input className="h-12 bg-white border-none rounded-xl px-4 font-bold transition-all focus:ring-1 focus:ring-black" value={customerPhone} onChange={(e) => setCustomerPhone(e.target.value)} />
                                     </div>
                                 </div>
@@ -219,14 +219,14 @@ export default function NewQuotation() {
                             <ClipboardList className="w-6 h-6" />
                         </div>
                         <div>
-                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Proposal Metadata</h3>
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Validity and additional context</p>
+                            <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Dates & Notes</h3>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Validity and additional details</p>
                         </div>
                     </div>
 
                     <div className="grid md:grid-cols-2 gap-10">
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Validity Horizon (Expiry)</Label>
+                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Expiry Date</Label>
                             <div className="relative">
                                 <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300" />
                                 <Input
@@ -238,9 +238,9 @@ export default function NewQuotation() {
                             </div>
                         </div>
                         <div className="space-y-2">
-                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Proposal Remarks</Label>
+                            <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Notes</Label>
                             <Input
-                                placeholder="IDENTIFY SPECIAL DISCOUNTS OR TERMS..."
+                                placeholder="E.g. special discount, delivery terms..."
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
                                 className="h-16 bg-slate-50 border-none rounded-2xl px-6 font-bold uppercase focus:ring-2 focus:ring-black"
@@ -257,8 +257,8 @@ export default function NewQuotation() {
                                 <Tag className="w-6 h-6" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Asset Registry</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{cart.length} Items Provisioned</p>
+                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Items</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{cart.length} Items Added</p>
                             </div>
                         </div>
 
@@ -275,12 +275,12 @@ export default function NewQuotation() {
                                     <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-100 mb-8 mt-2" />
                                     <div className="max-w-3xl mx-auto w-full flex-1 flex flex-col overflow-hidden px-8">
                                         <div className="mb-8">
-                                            <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Inventory Discovery</h2>
+                                            <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Search Products</h2>
                                             <div className="relative group">
                                                 <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-300 group-focus-within:text-black transition-colors" />
                                                 <input
                                                     className="w-full h-16 bg-slate-50 border-none rounded-[1.5rem] pl-16 pr-6 text-sm font-bold focus:ring-2 focus:ring-black placeholder:text-slate-200 uppercase"
-                                                    placeholder="Scan Barcode or Search Inventory Registry..."
+                                                    placeholder="Search by name or SKU..."
                                                     value={searchQuery}
                                                     onChange={(e) => setSearchQuery(e.target.value)}
                                                     autoFocus
@@ -323,7 +323,7 @@ export default function NewQuotation() {
                                     </div>
                                     <div className="min-w-0">
                                         <h4 className="font-black text-lg text-slate-900 uppercase truncate mb-1">{item.productName}</h4>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">${item.price.toLocaleString()} / UNIT RATE</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">${item.price.toLocaleString()} per unit</p>
                                     </div>
                                 </div>
 
@@ -348,7 +348,7 @@ export default function NewQuotation() {
 
                                     <div className="w-32 text-right">
                                         <h3 className="text-xl font-black text-slate-900 tracking-tighter">${(item.price * item.quantity).toLocaleString()}</h3>
-                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Gross Value</p>
+                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total</p>
                                     </div>
 
                                     <button onClick={() => removeFromCart(item.productId)} className="p-4 bg-red-50 text-red-600 rounded-2xl hover:bg-red-100 opacity-0 group-hover:opacity-100 transition-all">
@@ -361,8 +361,8 @@ export default function NewQuotation() {
                         {cart.length === 0 && (
                             <div className="py-24 flex flex-col items-center justify-center opacity-30 border-2 border-dashed border-slate-100 rounded-[3rem]">
                                 <ShoppingBag className="w-16 h-16 text-slate-200 mb-6" />
-                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Proposal Vacant</h3>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">Initialize asset injection via discovery</p>
+                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">No Items Yet</h3>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mt-2">Click "Add Items" to start building this quotation</p>
                             </div>
                         )}
                     </div>
@@ -377,12 +377,12 @@ export default function NewQuotation() {
                             </div>
                             <div>
                                 <h3 className="text-3xl font-black tracking-tighter mb-1 uppercase">Proposal Ready</h3>
-                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Validated Estimation Registry</p>
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Ready to save</p>
                             </div>
                         </div>
 
                         <div className="text-center md:text-right">
-                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] block mb-2">Aggregated Value</span>
+                            <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] block mb-2">Total Amount</span>
                             <div className="flex items-center gap-4">
                                 <h2 className="text-6xl font-black tracking-tighter">${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h2>
                             </div>

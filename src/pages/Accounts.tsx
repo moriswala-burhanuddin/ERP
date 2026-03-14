@@ -43,13 +43,13 @@ export default function Accounts() {
               <ArrowLeft className="w-5 h-5 text-slate-400" />
             </button>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Treasury Matrix</h1>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Liquid Assets • Fiscal Nodes</p>
+              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Accounts</h1>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Your Money Accounts</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <Badge className="bg-emerald-50 text-emerald-600 px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest border-emerald-100">
-              System Solvency: OPTIMAL
+              All Accounts Active
             </Badge>
           </div>
         </div>
@@ -66,7 +66,7 @@ export default function Accounts() {
                   <Landmark className="w-8 h-8" />
                 </div>
                 <div>
-                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">AGGREGATE SYSTEM LIQUIDITY</h4>
+                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">TOTAL BALANCE</h4>
                   <div className="flex items-baseline gap-3">
                     <span className="text-5xl font-black tracking-tighter">
                       ${totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
@@ -77,11 +77,11 @@ export default function Accounts() {
               </div>
               <div className="flex flex-wrap gap-3">
                 <Badge className="bg-white/5 text-slate-400 border-white/10 px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest">
-                  {accounts.length} ACTIVE FISCAL NODES
+                  {accounts.length} ACCOUNTS
                 </Badge>
                 <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  REAL-TIME RECONCILIATION
+                  UP TO DATE
                 </Badge>
               </div>
             </div>
@@ -107,7 +107,7 @@ export default function Accounts() {
                       </div>
                       <div>
                         <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">{account.name}</h3>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">{account.type}_NODE</p>
+                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">{account.type}</p>
                       </div>
                     </div>
                     <button className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all">
@@ -116,7 +116,7 @@ export default function Accounts() {
                   </div>
 
                   <div className="mb-10">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">AVAILABLE MAGNITUDE</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">BALANCE</span>
                     <p className="text-3xl font-black text-slate-900 tracking-tighter">
                       ${account.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
                     </p>
@@ -124,21 +124,21 @@ export default function Accounts() {
 
                   <div className="grid grid-cols-3 gap-4 pt-8 border-t border-slate-50">
                     <div className="flex flex-col">
-                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">SALES_IN</span>
+                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">SALES</span>
                       <div className="flex items-center gap-1.5 text-emerald-600">
                         <TrendingUp className="w-3 h-3" />
                         <span className="text-[10px] font-black tracking-tight">${activity.salesTotal.toFixed(0)}</span>
                       </div>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">AUTH_IN</span>
+                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">MONEY IN</span>
                       <div className="flex items-center gap-1.5 text-indigo-600">
                         <TrendingUp className="w-3 h-3" />
                         <span className="text-[10px] font-black tracking-tight">${activity.cashIn.toFixed(0)}</span>
                       </div>
                     </div>
                     <div className="flex flex-col">
-                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">TRANSFER_OUT</span>
+                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">MONEY OUT</span>
                       <div className="flex items-center gap-1.5 text-rose-600">
                         <TrendingDown className="w-3 h-3" />
                         <span className="text-[10px] font-black tracking-tight">${activity.cashOut.toFixed(0)}</span>
@@ -147,7 +147,7 @@ export default function Accounts() {
                   </div>
 
                   <button className="w-full mt-8 h-14 bg-slate-50 hover:bg-black hover:text-white rounded-2xl flex items-center justify-center gap-3 transition-all group/btn">
-                    <span className="text-[10px] font-black uppercase tracking-widest">Entry Detail</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest">View Details</span>
                     <ArrowUpRight className="w-4 h-4 opacity-40 group-hover/btn:opacity-100 transition-opacity" />
                   </button>
                 </div>

@@ -53,8 +53,12 @@ export default function QuotationDetails() {
     const handleConvert = () => {
         if (!accountId) return;
         convertQuotationToSale(quotation.id, {
+            status: 'completed',
             type: saleType,
             items: quotation.items,
+            subtotal: quotation.totalAmount,
+            discountAmount: 0,
+            taxAmount: 0,
             totalAmount: quotation.totalAmount,
             profit: 0,
             paymentMode,
@@ -70,7 +74,7 @@ export default function QuotationDetails() {
 
     const getStatusConfig = (status: string) => {
         switch (status) {
-            case 'pending': return { color: 'text-amber-500 bg-amber-50', icon: <Clock className="w-5 h-5" />, label: 'Draft Estimate' };
+            case 'active': return { color: 'text-amber-500 bg-amber-50', icon: <Clock className="w-5 h-5" />, label: 'Draft Estimate' };
             case 'converted': return { color: 'text-emerald-500 bg-emerald-50', icon: <CheckCircle2 className="w-5 h-5" />, label: 'Sale Committed' };
             case 'expired': return { color: 'text-red-500 bg-red-50', icon: <XCircle className="w-5 h-5" />, label: 'Validity Expired' };
             default: return { color: 'text-slate-400 bg-slate-50', icon: <XCircle className="w-5 h-5" />, label: 'Unknown' };
@@ -95,7 +99,7 @@ export default function QuotationDetails() {
                                     {quotation.status}
                                 </span>
                             </div>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Draft Estimate Protocol • Identity Verified</p>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none">Quotation Details • Verified</p>
                         </div>
                     </div>
 
@@ -155,7 +159,7 @@ export default function QuotationDetails() {
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{quotation.customerPhone || 'Identity Masked'}</p>
                     </div>
 
-                    <div className={cn("rounded-[2rem] p-8 shadow-xl border overflow-hidden relative", quotation.status === 'pending' ? "bg-amber-500 text-white border-amber-400" : "bg-black text-white border-black")}>
+                    <div className={cn("rounded-[2rem] p-8 shadow-xl border overflow-hidden relative", quotation.status === 'active' ? "bg-amber-500 text-white border-amber-400" : "bg-black text-white border-black")}>
                         <div className="relative z-10">
                             <div className="flex justify-between items-start mb-6">
                                 <div className="p-4 bg-white/20 rounded-2xl">
@@ -223,7 +227,7 @@ export default function QuotationDetails() {
 
                     <div className="space-y-6 sticky top-28">
                         {/* conversion widget */}
-                        {quotation.status === 'pending' && (
+                        {quotation.status === 'active' && (
                             <div className="bg-black rounded-[2.5rem] p-10 shadow-2xl shadow-black/20 text-white relative overflow-hidden group">
                                 <Zap className="absolute -right-10 -top-10 w-40 h-40 text-white/5 rotate-12 group-hover:rotate-45 transition-transform duration-1000" />
                                 <div>
@@ -241,7 +245,7 @@ export default function QuotationDetails() {
                                             <Drawer.Content className="fixed bottom-0 left-0 right-0 z-[110] bg-white rounded-t-[3rem] outline-none flex flex-col p-12 max-h-[85vh] shadow-2xl">
                                                 <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-slate-100 mb-12" />
                                                 <div className="max-w-2xl mx-auto w-full">
-                                                    <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight mb-2 text-center">Protocol Conversion</h2>
+                                                    <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight mb-2 text-center">Convert to Sale</h2>
                                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-12 text-center">Settlement parameters and inventory deduction audit</p>
 
                                                     <div className="space-y-10">
@@ -249,7 +253,7 @@ export default function QuotationDetails() {
                                                             <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Instrument Category</Label>
                                                             <div className="grid grid-cols-3 gap-3 p-1.5 bg-slate-50 rounded-2xl">
                                                                 {['cash', 'credit', 'retail'].map(t => (
-                                                                    <button key={t} onClick={() => setSaleType(t as any)} className={cn("py-4 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all", saleType === t ? "bg-black text-white shadow-xl" : "text-slate-400 hover:text-slate-600")}>{t}</button>
+                                                                    <button key={t} onClick={() => setSaleType(t as 'cash' | 'credit' | 'retail')} className={cn("py-4 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all", saleType === t ? "bg-black text-white shadow-xl" : "text-slate-400 hover:text-slate-600")}>{t}</button>
                                                                 ))}
                                                             </div>
                                                         </div>
@@ -258,7 +262,7 @@ export default function QuotationDetails() {
                                                             <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Settlement Method</Label>
                                                             <div className="grid grid-cols-3 gap-3 p-1.5 bg-slate-50 rounded-2xl">
                                                                 {['cash', 'card', 'wallet'].map(m => (
-                                                                    <button key={m} onClick={() => setPaymentMode(m as any)} className={cn("py-4 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all", paymentMode === m ? "bg-indigo-600 text-white shadow-xl" : "text-slate-400 hover:text-slate-600")}>{m}</button>
+                                                                    <button key={m} onClick={() => setPaymentMode(m as 'cash' | 'card' | 'wallet')} className={cn("py-4 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all", paymentMode === m ? "bg-indigo-600 text-white shadow-xl" : "text-slate-400 hover:text-slate-600")}>{m}</button>
                                                                 ))}
                                                             </div>
                                                         </div>
@@ -315,7 +319,7 @@ export default function QuotationDetails() {
     );
 }
 
-function ReceiptText(props: any) {
+function ReceiptText(props: React.SVGProps<SVGSVGElement>) {
     return (
         <svg
             {...props}

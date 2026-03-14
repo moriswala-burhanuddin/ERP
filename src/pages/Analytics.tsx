@@ -14,10 +14,10 @@ export default function Analytics() {
     const totalCustomers = customers.length;
 
     const stats = [
-        { label: 'GROSS REVENUE', value: `$${totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-indigo-600', bg: 'bg-indigo-50', sub: '+12.5% vs Last Period' },
-        { label: 'TRANSACTION VOLUME', value: totalSalesCount, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50', sub: 'High Velocity Active' },
-        { label: 'INVENTORY LIQUIDITY', value: `$${totalInventoryValue.toLocaleString()}`, icon: Package, color: 'text-amber-600', bg: 'bg-amber-50', sub: 'Stock Optimization Required' },
-        { label: 'ENTITY FOOTPRINT', value: totalCustomers, icon: Users, color: 'text-rose-600', bg: 'bg-rose-50', sub: 'Active Reach Expanding' },
+        { label: 'TOTAL REVENUE', value: `$${totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-indigo-600', bg: 'bg-indigo-50', sub: '+12.5% vs Last Period' },
+        { label: 'TOTAL SALES', value: totalSalesCount, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50', sub: 'Sales are active' },
+        { label: 'STOCK VALUE', value: `$${totalInventoryValue.toLocaleString()}`, icon: Package, color: 'text-amber-600', bg: 'bg-amber-50', sub: 'Check stock levels' },
+        { label: 'CUSTOMERS', value: totalCustomers, icon: Users, color: 'text-rose-600', bg: 'bg-rose-50', sub: 'Customer base growing' },
     ];
 
     return (
@@ -30,14 +30,14 @@ export default function Analytics() {
                             <ArrowLeft className="w-5 h-5 text-slate-400" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Operational Intelligence</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Real-time Metrics • Performance Flux</p>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Analytics</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Your Business at a Glance</p>
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="flex items-center gap-2 bg-emerald-50 px-4 py-2 rounded-xl text-emerald-600 border border-emerald-100">
                             <Activity className="w-3.5 h-3.5 animate-pulse" />
-                            <span className="text-[10px] font-black uppercase tracking-widest leading-none">Live Data Stream</span>
+                            <span className="text-[10px] font-black uppercase tracking-widest leading-none">Live</span>
                         </div>
                     </div>
                 </div>
@@ -86,8 +86,8 @@ export default function Analytics() {
                                     <TrendingUp className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Revenue Trajectory</h3>
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Temporal distribution of fiscal gains</p>
+                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Revenue Over Time</h3>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">How much you earned each month</p>
                                 </div>
                             </div>
                             <button className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all">
@@ -128,8 +128,8 @@ export default function Analytics() {
                                 <Layers className="w-6 h-6" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Sector Health</h3>
-                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Category-wise Margin Efficiency</p>
+                                <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Category Performance</h3>
+                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sales by category</p>
                             </div>
                         </div>
 
@@ -144,7 +144,7 @@ export default function Analytics() {
                                     <div className="flex justify-between items-end mb-3">
                                         <div className="flex flex-col">
                                             <span className="text-[10px] font-black text-slate-900 uppercase tracking-tight">{cat.name}</span>
-                                            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">FISCAL_HEALTH_INDEX</span>
+                                            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">PERFORMANCE</span>
                                         </div>
                                         <span className="text-sm font-black text-slate-900">{cat.value}%</span>
                                     </div>
@@ -159,7 +159,7 @@ export default function Analytics() {
                         </div>
 
                         <button className="w-full mt-12 bg-slate-900 text-white h-16 rounded-[1.8rem] font-black uppercase tracking-[0.2em] text-[9px] shadow-xl shadow-black/10 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3">
-                            Expansion Protocol
+                            View More
                             <ArrowUpRight className="w-4 h-4" />
                         </button>
                     </div>

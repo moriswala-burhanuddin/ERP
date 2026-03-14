@@ -221,6 +221,7 @@ export const dbAdapter = {
     getSupplierLedger: (supplierId: string): Promise<SupplierTransaction[] | null> => isElectron() ? window.electronAPI.getSupplierLedger(supplierId) : Promise.resolve(null),
     getPurchaseOrders: (storeId: string): Promise<PurchaseOrder[] | null> => isElectron() ? window.electronAPI.getPurchaseOrders(storeId) : Promise.resolve(null),
     addPurchaseOrder: (po: PurchaseOrder) => isElectron() ? window.electronAPI.addPurchaseOrder(po) : Promise.resolve(null),
+    updatePurchaseOrder: (id: string, updates: Partial<PurchaseOrder>) => isElectron() ? window.electronAPI.updatePurchaseOrder(id, updates) : Promise.resolve(null),
     getExpenseCategories: (): Promise<ExpenseCategory[] | null> => isElectron() ? window.electronAPI.getExpenseCategories() : Promise.resolve(null),
     addExpenseCategory: (cat: ExpenseCategory) => isElectron() ? window.electronAPI.addExpenseCategory(cat) : Promise.resolve(null),
     getTaxSlabs: (): Promise<TaxSlab[] | null> => isElectron() ? window.electronAPI.getTaxSlabs() : Promise.resolve(null),

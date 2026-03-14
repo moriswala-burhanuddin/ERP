@@ -61,7 +61,7 @@ export default function ReceivingDetails() {
             <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center">
                 <div className="text-center">
                     <div className="w-12 h-12 border-4 border-slate-100 border-t-black rounded-full animate-spin mx-auto mb-6" />
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Hydrating Acquisition Node...</p>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Loading Receiving...</p>
                 </div>
             </div>
         );
@@ -72,7 +72,7 @@ export default function ReceivingDetails() {
             <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center p-6 text-center">
                 <div className="bg-white rounded-[3rem] p-12 shadow-xl max-w-md w-full border border-white">
                     <AlertCircle className="w-16 h-16 text-slate-100 mx-auto mb-6" />
-                    <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Protocol Null</h2>
+                    <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Receiving Not Found</h2>
                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">The requested delivery record does not exist in the current sector.</p>
                     <Button onClick={() => navigate('/receivings')} className="w-full bg-black text-white rounded-2xl h-14 font-black uppercase text-[10px] tracking-widest">
                         Return to Hub
@@ -86,9 +86,9 @@ export default function ReceivingDetails() {
     const account = accounts.find(a => a.id === receiving.accountId);
 
     const handleDelete = async () => {
-        if (window.confirm("TERMINATION AUDIT: Are you sure you want to purge this receiving record?")) {
+        if (window.confirm("Are you sure you want to delete this receiving record?")) {
             await deleteReceiving(receiving.id);
-            toast.success('Acquisition Record Purged');
+            toast.success('Receiving Record Deleted');
             navigate('/receivings');
         }
     };
@@ -141,7 +141,7 @@ export default function ReceivingDetails() {
                                     <ShieldCheck className="w-6 h-6" />
                                 </div>
                                 <div>
-                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Acquisition Profile</h3>
+                                    <h3 className="text-xl font-black text-slate-900 uppercase tracking-tight">Receiving Summary</h3>
                                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Payload verification and settlement index</p>
                                 </div>
                             </div>
@@ -161,7 +161,7 @@ export default function ReceivingDetails() {
                             </div>
                             <div className="space-y-1">
                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1 flex items-center gap-2">
-                                    <History className="w-3.5 h-3.5" /> Procurement Link
+                                    <History className="w-3.5 h-3.5" /> Purchase Order
                                 </p>
                                 <p className="text-base font-black text-slate-900">{receiving.purchaseOrderId || 'DIRECT_ACQUISITION'}</p>
                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Hashed Reference ID</p>
@@ -229,7 +229,7 @@ export default function ReceivingDetails() {
                                 </div>
                                 <hr className="border-white/10" />
                                 <div className="flex justify-between items-end">
-                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest pb-1">Final Magnitude</p>
+                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest pb-1">Total Amount</p>
                                     <h3 className="text-4xl font-black tracking-tighter">{fmt(receiving.totalAmount)}</h3>
                                 </div>
                             </div>

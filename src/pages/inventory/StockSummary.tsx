@@ -20,11 +20,11 @@ export default function StockSummary() {
         <div className="p-6 space-y-6 min-h-screen bg-slate-50/50">
             <div className="flex justify-between items-end">
                 <div>
-                    <h1 className="text-3xl font-black tracking-tight text-slate-900">Stock Summary</h1>
-                    <p className="text-muted-foreground font-medium">Inventory Valuation & Profitability</p>
+                    <h1 className="text-3xl font-black tracking-tight text-slate-900">Stock Report</h1>
+                    <p className="text-muted-foreground font-medium">Check your current items and levels.</p>
                 </div>
                 <div className="text-right">
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Total Valuation (Cost)</p>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Total Stock Value</p>
                     <p className="text-3xl font-black text-slate-900">
                         {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(totalValue)}
                     </p>
@@ -34,13 +34,13 @@ export default function StockSummary() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <Card className="bg-white border-slate-200">
                     <CardContent className="p-4">
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Total Stock Items</p>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Total Items</p>
                         <p className="text-2xl font-black text-slate-900">{filteredProducts.length}</p>
                     </CardContent>
                 </Card>
                 <Card className="bg-white border-slate-200">
                     <CardContent className="p-4">
-                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Potential Sales Value</p>
+                        <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Expected Sales Money</p>
                         <p className="text-2xl font-black text-slate-900">
                             {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(potentialValue)}
                         </p>
@@ -48,7 +48,7 @@ export default function StockSummary() {
                 </Card>
                 <Card className="bg-emerald-50 border-emerald-100">
                     <CardContent className="p-4">
-                        <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Projected Margin</p>
+                        <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Expected Profit</p>
                         <p className="text-2xl font-black text-emerald-900">
                             {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(totalMargin)}
                         </p>
@@ -61,7 +61,7 @@ export default function StockSummary() {
                     <div className="relative flex-1 max-w-sm">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
-                            placeholder="Search inventory..."
+                            placeholder="Search stock..."
                             className="pl-9 pr-4 py-2 w-full text-sm border rounded-md focus:outline-none focus:ring-2 focus:ring-slate-400"
                             value={searchQuery}
                             onChange={e => setSearchQuery(e.target.value)}
@@ -73,12 +73,12 @@ export default function StockSummary() {
                     <table className="w-full text-sm">
                         <thead className="bg-slate-50 border-b">
                             <tr>
-                                <th className="h-10 px-4 text-left align-middle font-medium text-slate-500">Item Name</th>
-                                <th className="h-10 px-4 text-left align-middle font-medium text-slate-500">Category</th>
-                                <th className="h-10 px-4 text-right align-middle font-medium text-slate-500 bg-slate-100/50">Quantity</th>
-                                <th className="h-10 px-4 text-right align-middle font-medium text-slate-500 bg-slate-100/50">Rate (Cost)</th>
-                                <th className="h-10 px-4 text-right align-middle font-medium text-slate-500 bg-slate-100">Value</th>
-                                <th className="h-10 px-4 text-right align-middle font-medium text-slate-500">Margin/Unit</th>
+                                <th className="h-10 px-4 text-left align-middle font-medium text-slate-500">Item</th>
+                                <th className="h-10 px-4 text-left align-middle font-medium text-slate-500">Type</th>
+                                <th className="h-10 px-4 text-right align-middle font-medium text-slate-500 bg-slate-100/50">Amount</th>
+                                <th className="h-10 px-4 text-right align-middle font-medium text-slate-500 bg-slate-100/50">Buying Price</th>
+                                <th className="h-10 px-4 text-right align-middle font-medium text-slate-500 bg-slate-100">Total Value</th>
+                                <th className="h-10 px-4 text-right align-middle font-medium text-slate-500">Profit per Item</th>
                             </tr>
                         </thead>
                         <tbody>

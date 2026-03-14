@@ -64,8 +64,8 @@ const HRDashboard = ({ isEmployeeView = false }: HRDashboardProps) => {
                             <Briefcase className="w-6 h-6" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{isEmployeeView ? `Welcome, ${currentUser?.name || 'User'}` : 'HR Management'}</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">{isEmployeeView ? 'Employee Dashboard' : 'HR Overview'}</p>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">{isEmployeeView ? `Welcome, ${currentUser?.name || 'User'}` : 'HR'}</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">{isEmployeeView ? 'Your Dashboard' : 'Staff Overview'}</p>
                         </div>
                     </div>
 
@@ -168,8 +168,8 @@ const HRDashboard = ({ isEmployeeView = false }: HRDashboardProps) => {
                                 </div>
                                 <div className="h-[300px] flex flex-col items-center justify-center bg-slate-50/50 border-2 border-dashed border-slate-100 rounded-[2.5rem] p-12 text-center">
                                     <Gauge className="w-16 h-16 text-slate-100 mb-6" />
-                                    <h4 className="text-xl font-black text-slate-300 uppercase tracking-tight">System Logs</h4>
-                                    <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-2">Activity tracking active.</p>
+                                    <h4 className="text-xl font-black text-slate-300 uppercase tracking-tight">Activity Log</h4>
+                                    <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mt-2">Recent actions will show here.</p>
                                 </div>
                             </div>
                         </div>

@@ -76,7 +76,7 @@ export default function CustomFields() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!window.confirm('TERMINATION AUDIT: Purge this attribute node? Data associated with it will be decoupled.')) return;
+        if (!window.confirm('Are you sure you want to delete this custom field? All related data will be removed.')) return;
         try {
             await deleteCustomField(id);
             toast.info('Attribute Node Dissolved from Schema.');
@@ -147,7 +147,7 @@ export default function CustomFields() {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Initial Magnitude (Optional)</Label>
+                                        <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Default Value (Optional)</Label>
                                         <input
                                             value={defaultValue}
                                             onChange={e => setDefaultValue(e.target.value)}

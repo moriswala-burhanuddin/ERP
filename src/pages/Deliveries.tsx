@@ -40,9 +40,9 @@ export default function Deliveries() {
             case 'pending': return { icon: <Clock className="w-3.5 h-3.5" />, class: 'bg-amber-50 text-amber-600 border-amber-100', label: 'PENDING' };
             case 'processing': return { icon: <Zap className="w-3.5 h-3.5" />, class: 'bg-blue-50 text-blue-600 border-blue-100', label: 'PROCESSING' };
             case 'shipped': return { icon: <Truck className="w-3.5 h-3.5" />, class: 'bg-indigo-50 text-indigo-600 border-indigo-100', label: 'SHIPPED' };
-            case 'out_for_delivery': return { icon: <Navigation className="w-3.5 h-3.5" />, class: 'bg-purple-50 text-purple-600 border-purple-100', label: 'OUT_FOR_DELIVERY' };
-            case 'delivered': return { icon: <CheckCircle2 className="w-3.5 h-3.5" />, class: 'bg-emerald-50 text-emerald-600 border-emerald-100', label: 'FULFILLED' };
-            case 'cancelled': return { icon: <XCircle className="w-3.5 h-3.5" />, class: 'bg-rose-50 text-rose-600 border-rose-100', label: 'ABORTED' };
+            case 'out_for_delivery': return { icon: <Navigation className="w-3.5 h-3.5" />, class: 'bg-purple-50 text-purple-600 border-purple-100', label: 'OUT FOR DELIVERY' };
+            case 'delivered': return { icon: <CheckCircle2 className="w-3.5 h-3.5" />, class: 'bg-emerald-50 text-emerald-600 border-emerald-100', label: 'DELIVERED' };
+            case 'cancelled': return { icon: <XCircle className="w-3.5 h-3.5" />, class: 'bg-rose-50 text-rose-600 border-rose-100', label: 'CANCELLED' };
             case 'failed': return { icon: <AlertCircle className="w-3.5 h-3.5" />, class: 'bg-red-50 text-red-600 border-red-100', label: 'FAILED' };
             default: return { icon: <AlertCircle className="w-3.5 h-3.5" />, class: 'bg-slate-50 text-slate-500 border-slate-100', label: (status as string).toUpperCase() };
         }
@@ -57,7 +57,7 @@ export default function Deliveries() {
     };
 
     const handleExport = () => {
-        toast.info("Generating Dispatch Manifest...");
+        toast.info("Exporting deliveries...");
         const csvContent = "data:text/csv;charset=utf-8,"
             + "ID,Invoice,Status,Address,Assigned To,Date\n"
             + filteredDeliveries.map(d => {
@@ -91,7 +91,7 @@ export default function Deliveries() {
                     <div className="flex items-center gap-3">
                         <Button variant="ghost" className="h-12 rounded-2xl bg-slate-50 font-black uppercase text-[10px] tracking-widest text-slate-400 px-6 gap-2" onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}>
                             {viewMode === 'list' ? <CalendarIcon className="w-4 h-4" /> : <List className="w-4 h-4" />}
-                            {viewMode === 'list' ? 'Calendar Hub' : 'List Matrix'}
+                            {viewMode === 'list' ? 'Calendar' : 'List'}
                         </Button>
                         <Button onClick={handleExport} variant="ghost" className="h-12 w-12 p-0 bg-slate-50 text-slate-400 rounded-2xl hover:bg-slate-100 border border-slate-50">
                             <Download className="w-5 h-5" />
@@ -107,8 +107,8 @@ export default function Deliveries() {
                         <div className="p-4 bg-amber-50 rounded-2xl w-fit mb-8 text-amber-500">
                             <Clock className="w-6 h-6" />
                         </div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Awaiting Dispatch</p>
-                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{pendingCount} Nodes</h3>
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Pending</p>
+                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{pendingCount}</h3>
                         <div className="absolute -right-4 -bottom-4 w-20 h-20 bg-amber-50/50 rounded-full blur-2xl group-hover:scale-150 transition-transform" />
                     </div>
                     <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white relative overflow-hidden group">
@@ -130,10 +130,10 @@ export default function Deliveries() {
                     <div className="bg-black rounded-[2.5rem] p-10 text-white shadow-2xl shadow-black/20 flex flex-col justify-center relative overflow-hidden group">
                         <Zap className="absolute -right-4 -top-4 w-24 h-24 text-white/5 rotate-12 group-hover:rotate-45 transition-transform duration-700" />
                         <div className="relative z-10">
-                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2">Fleet Status</p>
+                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2">Status</p>
                             <div className="flex items-center gap-3">
                                 <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                                <span className="text-[11px] font-black uppercase tracking-widest text-emerald-300">Network Operational</span>
+                                <span className="text-[11px] font-black uppercase tracking-widest text-emerald-300">All Good</span>
                             </div>
                         </div>
                     </div>
@@ -153,7 +153,7 @@ export default function Deliveries() {
                                         : 'bg-slate-50 text-slate-400 hover:bg-slate-100 hover:text-slate-900'
                                 )}
                             >
-                                {status === 'all' ? 'Entire Stream' : status}
+                                {status === 'all' ? 'All' : status.replace(/_/g, ' ')}
                             </button>
                         ))}
                     </div>
@@ -175,8 +175,8 @@ export default function Deliveries() {
                         <div className="w-32 h-32 bg-slate-50 rounded-full flex items-center justify-center mb-10">
                             <CalendarIcon className="w-16 h-16 text-slate-200" />
                         </div>
-                        <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Temporal Matrix Offline</h3>
-                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4 px-20 max-w-2xl leading-loose">Visual scheduling and route optimization protocols are undergoing integration into the core logistics engine.</p>
+                        <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Calendar View Coming Soon</h3>
+                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4 px-20 max-w-2xl leading-loose">The calendar view is being built. Please use the list view for now.</p>
                     </div>
                 ) : (
                     <div className="space-y-8">
@@ -196,7 +196,7 @@ export default function Deliveries() {
                                                     ['shipped', 'out_for_delivery'].includes(d.status) ? "bg-indigo-50 text-indigo-600" : "bg-slate-50 text-slate-400"
                                             )}>
                                                 <Box className="w-8 h-8 group-hover:rotate-12 transition-transform" />
-                                                <span className="text-[10px] font-black uppercase tracking-tighter mt-2 opacity-50">NODE_{sale?.invoiceNumber.slice(-3) || 'N/A'}</span>
+                                                <span className="text-[10px] font-black uppercase tracking-tighter mt-2 opacity-50">#{sale?.invoiceNumber.slice(-3) || 'N/A'}</span>
                                             </div>
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex items-center gap-4 mb-4 flex-wrap">
@@ -210,13 +210,13 @@ export default function Deliveries() {
                                                         </Badge>
                                                     )}
                                                 </div>
-                                                <h4 className="text-2xl font-black text-slate-900 uppercase tracking-tight truncate group-hover:text-indigo-600 transition-colors mb-4">{customer?.name || 'GUEST_NODE'}</h4>
+                                                <h4 className="text-2xl font-black text-slate-900 uppercase tracking-tight truncate group-hover:text-indigo-600 transition-colors mb-4">{customer?.name || 'Walk-in Guest'}</h4>
                                                 <div className="flex flex-wrap gap-x-10 gap-y-3">
                                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-3">
-                                                        <MapPin className="w-4 h-4 text-indigo-500" /> {d.address || customer?.area || 'LOC_NOT_DEFINED'}
+                                                        <MapPin className="w-4 h-4 text-indigo-500" /> {d.address || customer?.area || 'Address not set'}
                                                     </p>
                                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-3">
-                                                        <User className="w-4 h-4 text-indigo-500" /> {d.assignedTo || 'UNASSIGNED_COURIER'}
+                                                        <User className="w-4 h-4 text-indigo-500" /> {d.assignedTo || 'Not assigned'}
                                                     </p>
                                                     {d.deliveryDate && <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-3">
                                                         <CalendarIcon className="w-4 h-4 text-indigo-500" /> {d.deliveryDate}
@@ -253,10 +253,10 @@ export default function Deliveries() {
                                                                 value={d.assignedTo || ''}
                                                                 onChange={(e) => {
                                                                     updateDelivery(d.id, { assignedTo: e.target.value });
-                                                                    toast.success(`Courier Assigned: Node linked to ${e.target.value}.`);
+                                                                    toast.success(`Assigned to ${e.target.value}.`);
                                                                 }}
                                                             >
-                                                                <option value="">SELECT_EMPLOYEE...</option>
+                                                                <option value="">SELECT EMPLOYEE...</option>
                                                                 {users.filter(u => u.storeId === activeStoreId).map(u => (
                                                                     <option key={u.id} value={u.name}>{u.name.toUpperCase()}</option>
                                                                 ))}
@@ -286,7 +286,7 @@ export default function Deliveries() {
                                                 <Button
                                                     onClick={() => {
                                                         updateDelivery(d.id, { status: nextStatus });
-                                                        toast.info(`Protocol Advance: Dispatch node shifted to ${nextStatus.toUpperCase()}.`);
+                                                        toast.info(`Status updated to ${nextStatus.replace(/_/g, ' ')}.`);
                                                     }}
                                                     className="h-14 px-10 rounded-2xl bg-black text-white font-black uppercase text-[10px] tracking-widest shadow-2xl shadow-black/20 flex items-center gap-3 hover:scale-[1.05] active:scale-[0.95] transition-all"
                                                 >
@@ -297,9 +297,9 @@ export default function Deliveries() {
                                             {d.status === 'pending' && (
                                                 <button
                                                     onClick={() => {
-                                                        if (confirm('TERMINATION_AUDIT: Abort this dispatch mission? Node erasure is immutable.')) {
+                                                        if (confirm('Are you sure you want to cancel this delivery?')) {
                                                             updateDelivery(d.id, { status: 'cancelled' });
-                                                            toast.error("Dispatch Aborted: Payload node terminated.");
+                                                            toast.error("Delivery cancelled.");
                                                         }
                                                     }}
                                                     className="p-4 bg-slate-50 text-slate-300 hover:bg-rose-50 hover:text-rose-500 rounded-2xl transition-all border border-slate-50"
@@ -310,7 +310,7 @@ export default function Deliveries() {
                                             {d.status === 'delivered' && (
                                                 <div className="px-10 py-4 rounded-[1.5rem] bg-emerald-50 text-emerald-600 border-2 border-emerald-100 font-black text-[10px] uppercase tracking-widest flex items-center gap-3 shadow-sm shadow-emerald-100">
                                                     <ShieldCheck className="w-4 h-4" />
-                                                    MISSION_SUCCESS
+                                                    DELIVERED
                                                 </div>
                                             )}
                                             <button className="p-4 bg-slate-50 hover:bg-slate-100 rounded-2xl transition-all text-slate-300 hover:text-black border border-slate-50 opacity-0 group-hover:opacity-100">
@@ -325,8 +325,8 @@ export default function Deliveries() {
                                 <div className="w-32 h-32 bg-slate-50 rounded-full flex items-center justify-center mb-10">
                                     <Truck className="w-16 h-16 text-slate-100" />
                                 </div>
-                                <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Stream Latency</h3>
-                                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4 px-20 max-w-2xl leading-loose">No dispatch nodes detected in the current stream parameters. Initialize sales protocol to generate delivery payloads.</p>
+                                <h3 className="text-3xl font-black text-slate-900 uppercase tracking-tight">No Deliveries Found</h3>
+                                <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] mt-4 px-20 max-w-2xl leading-loose">No deliveries match your search. Create a sale with delivery to get started.</p>
                             </div>
                         )}
                     </div>

@@ -61,7 +61,7 @@ const HiringKanban = () => {
             }));
             toast.success(`Resume Analyzed: Match Score ${result.score}/100`);
         } catch (e) {
-            toast.error("AI Synthesis Failed: Protocol mismatch.");
+            toast.error("AI suggestion failed.");
         } finally {
             setParsing(false);
         }
@@ -87,7 +87,7 @@ const HiringKanban = () => {
     const moveCandidate = async (id: string, newStatus: string) => {
         try {
             await window.electronAPI?.updateCandidateStatus(id, newStatus);
-            setCandidates(prev => prev.map(c => c.id === id ? { ...c, status: newStatus as any } : c));
+            setCandidates(prev => prev.map(c => c.id === id ? { ...c, status: newStatus as Candidate['status'] } : c));
         } catch (e) { console.error(e); }
     };
 
@@ -101,48 +101,48 @@ const HiringKanban = () => {
                             <ArrowLeft className="w-5 h-5" />
                         </button>
                         <div>
-                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Talent Pipeline Matrix</h1>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Recruitment Command • {candidates.length} Candidate Nodes</p>
+                            <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Hiring Board</h1>
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">Job Applications • {candidates.length} Candidates</p>
                         </div>
                     </div>
                     <Dialog open={isAddOpen} onOpenChange={setIsAddOpen}>
                         <DialogTrigger asChild>
                             <Button className="bg-black text-white rounded-[1.2rem] h-14 px-10 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all gap-3">
                                 <Plus className="w-4 h-4 text-indigo-400" />
-                                INTRODUCE NODE
+                                ADD CANDIDATE
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="max-w-3xl rounded-[3rem] p-12 border-none shadow-2xl">
                             <DialogHeader>
-                                <DialogTitle className="text-2xl font-black uppercase tracking-tight">Profile Construction</DialogTitle>
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Register a new candidate node in the talent pipeline.</p>
+                                <DialogTitle className="text-2xl font-black uppercase tracking-tight">Add New Candidate</DialogTitle>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Add a job applicant to the hiring board.</p>
                             </DialogHeader>
                             <div className="grid grid-cols-2 gap-10 py-8">
                                 <div className="space-y-6">
                                     <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 flex items-center gap-2">
-                                        <Zap className="w-3.5 h-3.5 text-indigo-500" /> Resume Analysis (AI Parser)
+                                        <Zap className="w-3.5 h-3.5 text-indigo-500" /> Paste Resume (AI will read it)
                                     </Label>
                                     <Textarea
                                         className="h-[200px] text-xs font-mono bg-slate-50 border-none rounded-2xl p-6 resize-none"
-                                        placeholder="Paste resume content for AI synthesis..."
+                                        placeholder="Paste resume text here for AI to fill details automatically..."
                                         value={resumeText}
                                         onChange={e => setResumeText(e.target.value)}
                                     />
                                     <Button onClick={handleParseResume} disabled={parsing || !resumeText} className="w-full h-14 rounded-2xl bg-indigo-600 text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-200 gap-3">
                                         {parsing ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
-                                        {parsing ? "Synthesizing..." : "Analyze with AI"}
+                                        {parsing ? "Reading..." : "Read Resume with AI"}
                                     </Button>
                                 </div>
                                 <div className="space-y-6">
                                     {[
-                                        { label: 'Entity Name', field: 'name', placeholder: 'FULL_NAME' },
-                                        { label: 'Electronic Nexus (Email)', field: 'email', placeholder: 'EMAIL@DOMAIN' },
-                                        { label: 'Target Role', field: 'role', placeholder: 'SALES_ASSOCIATE' },
+                                        { label: 'Full Name', field: 'name', placeholder: 'Full Name' },
+                                        { label: 'Email', field: 'email', placeholder: 'Email address' },
+                                        { label: 'Job Role', field: 'role', placeholder: 'e.g. Sales Associate' },
                                     ].map(item => (
                                         <div key={item.field} className="space-y-3">
                                             <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{item.label}</Label>
                                             <Input
-                                                value={(newCandidate as any)[item.field] || ''}
+                                                value={(newCandidate as Partial<Candidate>)[item.field as keyof Candidate] as string || ''}
                                                 onChange={e => setNewCandidate({ ...newCandidate, [item.field]: e.target.value })}
                                                 placeholder={item.placeholder}
                                                 className="h-14 bg-slate-50 border-none rounded-2xl px-6 text-[11px] font-black uppercase focus:ring-2 focus:ring-black"
@@ -163,9 +163,9 @@ const HiringKanban = () => {
                                 </div>
                             </div>
                             <DialogFooter className="gap-4">
-                                <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400">Abort</Button>
+                                <Button variant="ghost" onClick={() => setIsAddOpen(false)} className="h-14 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400">Cancel</Button>
                                 <Button onClick={handleAddCandidate} className="h-14 rounded-2xl bg-black text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 px-12">
-                                    Materialize Profile
+                                    Save Candidate
                                 </Button>
                             </DialogFooter>
                         </DialogContent>
@@ -221,7 +221,7 @@ const HiringKanban = () => {
                                     {colCandidates.length === 0 && (
                                         <div className="py-20 text-center opacity-20 flex flex-col items-center">
                                             <Users2 className="w-12 h-12 text-slate-300 mb-4" />
-                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Queue Empty</p>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">No Candidates</p>
                                         </div>
                                     )}
                                 </div>
