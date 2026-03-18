@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Search, FileText, User as UserIcon, Briefcase, Building2, Calendar, CreditCard, ShieldCheck, ArrowLeft, MoreVertical, Ghost, Mail, Eye, EyeOff, Trash2, Lock, ArrowRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency, CURRENCY_SYMBOL } from "@/lib/utils";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
@@ -91,7 +91,7 @@ const Employees = () => {
                 name: formData.name,
                 email: formData.email,
                 password: formData.password,
-                role: formData.role,
+                role: formData.role as any,
                 department: formData.department,
                 designation: formData.designation,
                 salary: parseFloat(formData.salary) || 0,
@@ -268,7 +268,7 @@ const Employees = () => {
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Monthly Salary (PKR)</Label>
+                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Monthly Salary ({CURRENCY_SYMBOL})</Label>
                                                 <Input
                                                     type="number"
                                                     value={formData.salary}
@@ -359,7 +359,7 @@ const Employees = () => {
                                                     </p>
                                                     {emp.salary > 0 && (
                                                         <p className="text-[10px] font-medium text-slate-400 flex items-center gap-1.5">
-                                                            <CreditCard className="w-3 h-3 text-slate-300" /> PKR {Number(emp.salary).toLocaleString()}/mo
+                                                            <CreditCard className="w-3 h-3 text-slate-300" /> {formatCurrency(emp.salary)}/mo
                                                         </p>
                                                     )}
                                                 </div>

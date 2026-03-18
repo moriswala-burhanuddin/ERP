@@ -11,7 +11,7 @@ import {
     FileText, Calculator, Landmark, History,
     TrendingUp, TrendingDown, Star, Printer, Download
 } from "lucide-react";
-import { cn, toWords } from "@/lib/utils";
+import { cn, toWords, formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 import { useRef } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -46,7 +46,7 @@ export default function EmployeeDetails() {
         basicSalary: 0,
         allowances: 0,
         deductions: 0,
-        status: 'draft' as 'draft' | 'paid'
+        status: 'draft' as 'draft' | 'paid' | 'pending' | 'processed'
     });
 
     useEffect(() => {
@@ -109,7 +109,7 @@ export default function EmployeeDetails() {
                 allowances: payrollData.allowances,
                 deductions: payrollData.deductions,
                 netSalary: payrollData.basicSalary + payrollData.allowances - payrollData.deductions,
-                status: payrollData.status,
+                status: payrollData.status as any,
             });
             toast.success("Payroll record added successfully.");
             setPayrollOpen(false);
@@ -201,9 +201,9 @@ export default function EmployeeDetails() {
                                     <div className="bg-slate-900 rounded-2xl p-6 text-white flex justify-between items-center">
                                         <div>
                                             <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Net Disbursement</p>
-                                            <p className="text-xl font-black tracking-tight">PKR {(payrollData.basicSalary + payrollData.allowances - payrollData.deductions).toLocaleString()}</p>
+                                            <p className="text-xl font-black tracking-tight">{formatCurrency(payrollData.basicSalary + payrollData.allowances - payrollData.deductions)}</p>
                                         </div>
-                                        <Select value={payrollData.status} onValueChange={(v: 'draft' | 'paid' | 'processed') => setPayrollData(p => ({ ...p, status: v }))}>
+                                        <Select value={payrollData.status} onValueChange={(v: 'draft' | 'paid' | 'pending' | 'processed') => setPayrollData(p => ({ ...p, status: v as any }))}>
                                             <SelectTrigger className="w-28 h-10 bg-white/10 border-none text-[10px] font-black uppercase text-white">
                                                 <SelectValue />
                                             </SelectTrigger>
@@ -251,7 +251,7 @@ export default function EmployeeDetails() {
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <CreditCard className="w-4 h-4 text-slate-300" />
-                                    <span className="text-[11px] font-bold text-slate-600">PKR {employee.salary.toLocaleString()}/mo</span>
+                                    <span className="text-[11px] font-bold text-slate-600">{formatCurrency(employee.salary)}/mo</span>
                                 </div>
                             </div>
                         </div>
@@ -419,7 +419,7 @@ export default function EmployeeDetails() {
                                                     <div className="flex items-center gap-6">
                                                         <div className="text-right">
                                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Net Salary</p>
-                                                            <p className="text-xl font-black text-slate-900 tracking-tighter">PKR {p.netSalary.toLocaleString()}</p>
+                                                            <p className="text-xl font-black text-slate-900 tracking-tighter">{formatCurrency(p.netSalary)}</p>
                                                         </div>
                                                         <Button
                                                             onClick={() => {
@@ -511,7 +511,7 @@ export default function EmployeeDetails() {
                             </div>
                             <div className="flex flex-col items-end justify-center">
                                 <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Salary Paid</p>
-                                <p className="text-4xl font-black text-slate-900 tracking-tighter">PKR {selectedPayroll?.netSalary.toLocaleString()}</p>
+                                <p className="text-4xl font-black text-slate-900 tracking-tighter">{formatCurrency(selectedPayroll?.netSalary || 0)}</p>
                                 <p className="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-widest">Paid on: {new Date().toLocaleDateString()}</p>
                             </div>
                         </div>
@@ -523,15 +523,15 @@ export default function EmployeeDetails() {
                                 <div className="space-y-3">
                                     <div className="flex justify-between text-[13px]">
                                         <span className="font-bold text-slate-400">Basic Salary</span>
-                                        <span className="font-black">PKR {selectedPayroll?.basicSalary.toLocaleString()}</span>
+                                        <span className="font-black">{formatCurrency(selectedPayroll?.basicSalary || 0)}</span>
                                     </div>
                                     <div className="flex justify-between text-[13px]">
                                         <span className="font-bold text-slate-400">Allowances</span>
-                                        <span className="font-black">PKR {selectedPayroll?.allowances.toLocaleString()}</span>
+                                        <span className="font-black">{formatCurrency(selectedPayroll?.allowances || 0)}</span>
                                     </div>
                                     <div className="pt-4 mt-4 border-t-2 border-slate-900 flex justify-between">
                                         <span className="text-[11px] font-black uppercase tracking-widest">Total Income</span>
-                                        <span className="text-lg font-black tracking-tight">PKR {((selectedPayroll?.basicSalary || 0) + (selectedPayroll?.allowances || 0)).toLocaleString()}</span>
+                                        <span className="text-lg font-black tracking-tight">{formatCurrency(((selectedPayroll?.basicSalary || 0) + (selectedPayroll?.allowances || 0)))}</span>
                                     </div>
                                 </div>
                             </div>
@@ -541,11 +541,11 @@ export default function EmployeeDetails() {
                                 <div className="space-y-3">
                                     <div className="flex justify-between text-[13px]">
                                         <span className="font-bold text-slate-400">Other Deductions</span>
-                                        <span className="font-black">PKR {selectedPayroll?.deductions.toLocaleString()}</span>
+                                        <span className="font-black">{formatCurrency(selectedPayroll?.deductions || 0)}</span>
                                     </div>
                                     <div className="pt-4 mt-4 border-t-2 border-slate-900 flex justify-between">
                                         <span className="text-[11px] font-black uppercase tracking-widest">Total Cut</span>
-                                        <span className="text-lg font-black tracking-tight">PKR {selectedPayroll?.deductions.toLocaleString()}</span>
+                                        <span className="text-lg font-black tracking-tight">{formatCurrency(selectedPayroll?.deductions || 0)}</span>
                                     </div>
                                 </div>
                             </div>

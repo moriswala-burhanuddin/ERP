@@ -1,9 +1,9 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { ArrowLeft, BarChart2 } from "lucide-react";
+import { useLicense } from "@/contexts/LicenseContext";
+import { ArrowLeft, BarChart2, Lock } from "lucide-react";
 
 const Performance = () => {
+    const { hasFeature } = useLicense();
+
     return (
         <div className="min-h-screen bg-[#F2F2F7] pb-32">
             {/* Header */}

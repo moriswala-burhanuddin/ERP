@@ -3,7 +3,7 @@ import { ShoppingBag, RefreshCw, AlertCircle, Search, Truck, CheckCircle, Clock 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { API_URL } from '@/lib/config';
 import { useERPStore } from '@/lib/store-data';
 import {
@@ -230,7 +230,7 @@ const EcommerceOrders = () => {
                                             <TableCell className="py-6 text-[10px] font-black text-slate-600 uppercase">
                                                 {o.created_at ? new Date(o.created_at).toLocaleDateString() : "N/A"}
                                             </TableCell>
-                                            <TableCell className="py-6 font-black text-slate-900">₹{(o.amount || 0).toLocaleString()}</TableCell>
+                                            <TableCell className="py-6 font-black text-slate-900">{formatCurrency(o.amount || 0)}</TableCell>
                                             <TableCell className="py-6">
                                                 <div className={cn(
                                                     "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-wider",

@@ -34,6 +34,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // Accounts
     getAccounts: (storeId) => ipcRenderer.invoke('db:getAccounts', storeId),
+    addAccount: (account) => ipcRenderer.invoke('db:addAccount', account),
+    updateAccount: (id, updates) => ipcRenderer.invoke('db:updateAccount', id, updates),
+    deleteAccount: (id) => ipcRenderer.invoke('db:deleteAccount', id),
 
     // Stores & Users
     getStores: () => ipcRenderer.invoke('db:getStores'),
@@ -77,6 +80,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Log for debugging
     log: (message) => ipcRenderer.send('db:log', message),
     manualBackup: () => ipcRenderer.invoke('system:manualBackup'),
+    clearLocalData: (storeId) => ipcRenderer.invoke('db:clearLocalData', storeId),
     askAI: (query, contextData) => ipcRenderer.invoke('ai:ask', query, contextData),
     getInventoryForecast: (products, sales) => ipcRenderer.invoke('ai:getForecast', products, sales),
     suggestCategory: (productName) => ipcRenderer.invoke('ai:suggestCategory', productName),

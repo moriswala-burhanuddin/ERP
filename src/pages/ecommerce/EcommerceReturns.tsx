@@ -3,7 +3,7 @@ import { RefreshCw, AlertCircle, Search, Undo2, CheckCircle, Clock, XCircle } fr
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { API_URL } from '@/lib/config';
 import { useERPStore } from '@/lib/store-data';
 import {
@@ -190,7 +190,7 @@ const EcommerceReturns = () => {
                                             <TableCell className="py-6 text-[10px] font-black text-slate-600 uppercase">
                                                 {new Date(r.created_at).toLocaleDateString()}
                                             </TableCell>
-                                            <TableCell className="py-6 font-black text-slate-900">₹{(r.refund_amount || 0).toLocaleString()}</TableCell>
+                                            <TableCell className="py-6 font-black text-slate-900">{formatCurrency(r.refund_amount || 0)}</TableCell>
                                             <TableCell className="py-6">
                                                 <div className={cn(
                                                     "inline-flex items-center gap-2 px-3 py-1.5 rounded-lg border text-[10px] font-black uppercase tracking-wider",
@@ -246,7 +246,7 @@ const EcommerceReturns = () => {
                                                                 <div className="p-6 border-2 border-dashed border-slate-100 rounded-2xl">
                                                                     <div className="flex justify-between items-center">
                                                                         <span className="text-[10px] font-black uppercase text-slate-400">Refund Amount</span>
-                                                                        <span className="text-xl font-black text-slate-900">₹{(r.refund_amount || 0).toLocaleString()}</span>
+                                                                        <span className="text-xl font-black text-slate-900">{formatCurrency(r.refund_amount || 0)}</span>
                                                                     </div>
                                                                 </div>
                                                             </div>

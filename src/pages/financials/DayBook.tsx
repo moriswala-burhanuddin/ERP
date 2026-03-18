@@ -6,7 +6,7 @@ import { Calendar as CalendarIcon, Search, Filter, ArrowLeft, ArrowRight, Trendi
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 
 const DayBook = () => {
     const { sales, customers, getStorePurchases, transactions } = useERPStore();
@@ -168,20 +168,20 @@ const DayBook = () => {
                             <TrendingUp className="w-5 h-5" />
                         </div>
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Velocity (Credit)</p>
-                        <h3 className="text-2xl font-black text-emerald-600 tracking-tighter">₹{totalCredit.toLocaleString()}</h3>
+                        <h3 className="text-2xl font-black text-emerald-600 tracking-tighter">{formatCurrency(totalCredit)}</h3>
                     </div>
                     <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-white">
                         <div className="p-3 bg-rose-50 rounded-xl w-fit mb-6 text-rose-500">
                             <TrendingDown className="w-5 h-5" />
                         </div>
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Drain (Debit)</p>
-                        <h3 className="text-2xl font-black text-rose-600 tracking-tighter">₹{totalDebit.toLocaleString()}</h3>
+                        <h3 className="text-2xl font-black text-rose-600 tracking-tighter">{formatCurrency(totalDebit)}</h3>
                     </div>
                     <div className="bg-black rounded-[2.5rem] p-8 text-white shadow-xl shadow-black/10 overflow-hidden group">
                         <PieChart className="absolute -right-6 -top-6 w-24 h-24 text-white/5 rotate-12 group-hover:rotate-45 transition-transform duration-700" />
                         <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2">Net Variance</p>
                         <h3 className={cn("text-2xl font-black tracking-tighter", (totalCredit - totalDebit) >= 0 ? "text-emerald-400" : "text-rose-400")}>
-                            ₹{(totalCredit - totalDebit).toLocaleString()}
+                            {formatCurrency(totalCredit - totalDebit)}
                         </h3>
                     </div>
                 </div>
@@ -233,13 +233,13 @@ const DayBook = () => {
                                                     {entry.debit > 0 && (
                                                         <div className="text-rose-600 font-black tracking-tight flex flex-col items-end">
                                                             <span className="text-[10px] font-black uppercase tracking-widest text-rose-300">Debit</span>
-                                                            <span className="text-lg">₹{entry.debit.toLocaleString()}</span>
+                                                            <span className="text-lg">{formatCurrency(entry.debit)}</span>
                                                         </div>
                                                     )}
                                                     {entry.credit > 0 && (
                                                         <div className="text-emerald-600 font-black tracking-tight flex flex-col items-end">
                                                             <span className="text-[10px] font-black uppercase tracking-widest text-emerald-300">Credit</span>
-                                                            <span className="text-lg">₹{entry.credit.toLocaleString()}</span>
+                                                            <span className="text-lg">{formatCurrency(entry.credit)}</span>
                                                         </div>
                                                     )}
                                                 </div>
@@ -256,11 +256,11 @@ const DayBook = () => {
                                     <div className="flex gap-12">
                                         <div className="text-right">
                                             <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Debit</p>
-                                            <p className="text-2xl font-black tracking-tighter">₹{totalDebit.toLocaleString()}</p>
+                                            <p className="text-2xl font-black tracking-tighter">{formatCurrency(totalDebit)}</p>
                                         </div>
                                         <div className="text-right">
                                             <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Total Credit</p>
-                                            <p className="text-2xl font-black tracking-tighter">₹{totalCredit.toLocaleString()}</p>
+                                            <p className="text-2xl font-black tracking-tighter">{formatCurrency(totalCredit)}</p>
                                         </div>
                                     </div>
                                 </div>

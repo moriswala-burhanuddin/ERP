@@ -23,7 +23,8 @@ import {
   PieChart,
   ClipboardList,
   ArrowRightLeft,
-  Percent
+  Percent,
+  Shield
 } from 'lucide-react';
 import { useERPStore } from '@/lib/store-data';
 import { useStoreConfig } from '@/lib/store-config';
@@ -35,7 +36,7 @@ export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { currentUser, logout, getActiveStore } = useERPStore();
-  const { ecommerceEnabled } = useStoreConfig();
+  const { ecommerceEnabled, disabledModules } = useStoreConfig();
   const activeStore = getActiveStore();
 
   const handleLogout = () => {
@@ -50,7 +51,7 @@ export function Sidebar() {
   useEffect(() => {
     const fetchVersion = async () => {
       console.log('[Sidebar] Fetching app version...');
-      const api = (window as any).electronAPI;
+      const api = window.electronAPI;
       if (api?.getVersion) {
         const v = await api.getVersion();
         console.log('[Sidebar] Main process reported version:', v);
@@ -69,6 +70,12 @@ export function Sidebar() {
     navItems = navItems.filter(item => item.href !== '/ecommerce');
   }
 
+  // Filter menu items based on disabled modules
+  const filteredMenuItems = navItems.filter(item => {
+    const moduleKey = item.moduleKey || item.title.toLowerCase().replace(/\s+(.)/g, (match, group1) => group1.toUpperCase());
+    return !disabledModules.includes(moduleKey);
+  });
+
   return (
     <aside className="hidden lg:flex flex-col w-64 h-screen bg-white text-slate-600 border-r border-slate-200 sticky top-0">
       {/* Clean Header */}
@@ -86,7 +93,7 @@ export function Sidebar() {
               <button
                 onClick={async () => {
                   alert('Checking for updates...');
-                  const api = (window as any).electronAPI;
+                  const api = window.electronAPI;
                   if (api?.checkForUpdates) {
                     console.log('[Sidebar] Manual update check started...');
                     const res = await api.checkForUpdates();
@@ -108,7 +115,7 @@ export function Sidebar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1 scrollbar-none">
-        {navItems.map((item) => {
+        {filteredMenuItems.map((item) => {
           try {
             const isActive = item.href === '/'
               ? location.pathname === '/'

@@ -1,9 +1,9 @@
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useERPStore } from '@/lib/store-data';
-import { Search, Plus, FileText, Send, CheckCircle2, Clock, XCircle, ChevronRight, Filter, Calendar, DollarSign, ArrowRight, User } from 'lucide-react';
+import { Search, Plus, FileText, Send, CheckCircle2, Clock, XCircle, ChevronRight, Filter, Calendar, Wallet, ArrowRight, User } from 'lucide-react';
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 export default function Quotations() {
@@ -69,12 +69,12 @@ export default function Quotations() {
                     <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
                         <div className="flex justify-between items-start mb-6">
                             <div className="p-4 bg-emerald-50 rounded-2xl text-emerald-600">
-                                <DollarSign className="w-6 h-6" />
+                                <Wallet className="w-6 h-6" />
                             </div>
                             <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Pipeline Value</span>
                         </div>
                         <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">
-                            ${quotations.filter(q => q.status === 'active').reduce((sum, q) => sum + q.totalAmount, 0).toLocaleString()}
+                            {formatCurrency(quotations.filter(q => q.status === 'active').reduce((sum, q) => sum + q.totalAmount, 0))}
                         </h2>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Awaiting Commitment</p>
                     </div>
@@ -162,7 +162,7 @@ export default function Quotations() {
 
                                 <div className="text-right flex items-center gap-10">
                                     <div>
-                                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter mb-1">${q.totalAmount.toLocaleString()}</h3>
+                                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter mb-1">{formatCurrency(q.totalAmount)}</h3>
                                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Provisioned Value</p>
                                     </div>
 

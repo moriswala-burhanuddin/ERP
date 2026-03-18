@@ -5,9 +5,11 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Calendar, Clock, Plus, Sparkles, Ghost, ArrowLeft, Zap, Users2 } from "lucide-react";
+import { useLicense } from "@/contexts/LicenseContext";
+import { Calendar, Clock, Plus, Sparkles, Ghost, ArrowLeft, Zap, Users2, Lock } from "lucide-react";
 
 const ShiftScheduler = () => {
+    const { hasFeature } = useLicense();
     const [shifts, setShifts] = useState<any[]>([]);
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
@@ -104,10 +106,17 @@ const ShiftScheduler = () => {
                         </div>
                     </div>
                     <div className="flex items-center gap-3">
+                    {hasFeature('HR & Performance AI') ? (
                         <Button onClick={handleSmartSchedule} disabled={analyzing} className="h-14 px-8 rounded-2xl bg-indigo-600 text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-200 hover:scale-[1.02] active:scale-[0.98] transition-all gap-3">
                             <Sparkles className={cn("w-4 h-4", analyzing && "animate-pulse")} />
                             {analyzing ? "Setting up..." : "Smart Schedule"}
                         </Button>
+                    ) : (
+                        <Button disabled className="h-14 px-8 rounded-2xl bg-slate-100 text-slate-400 font-black uppercase text-[10px] tracking-widest border-none cursor-not-allowed gap-3">
+                            <Lock className="w-4 h-4 opacity-30" />
+                            Smart Schedule Locked
+                        </Button>
+                    )}
                         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                             <DialogTrigger asChild>
                                 <Button className="bg-black text-white rounded-[1.2rem] h-14 px-10 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all gap-3">

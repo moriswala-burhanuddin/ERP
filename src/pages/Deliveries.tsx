@@ -3,11 +3,8 @@ import { useERPStore, Delivery } from '@/lib/store-data';
 import { Search, Truck, CheckCircle2, AlertCircle, MapPin, User, ArrowRight, XCircle, Download, Calendar as CalendarIcon, List, Zap, TrendingUp, Clock, PackageCheck, MoreHorizontal, Filter, ShieldCheck, Box, Navigation, CreditCard, ChevronRight, ArrowLeft } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
-
-const fmt = (amount: number) =>
-    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
 
 export default function Deliveries() {
     const { sales, deliveries, users, updateDelivery, getStoreCustomers, activeStoreId } = useERPStore();
@@ -206,7 +203,7 @@ export default function Deliveries() {
                                                     </Badge>
                                                     {d.isCod && (
                                                         <Badge className="bg-amber-50 text-amber-600 border-amber-100 px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest flex items-center gap-2 shadow-sm">
-                                                            <CreditCard className="w-3.5 h-3.5" /> COD: {fmt(d.deliveryCharge || 0)}
+                                                            <CreditCard className="w-3.5 h-3.5" /> COD: {formatCurrency(d.deliveryCharge || 0)}
                                                         </Badge>
                                                     )}
                                                 </div>

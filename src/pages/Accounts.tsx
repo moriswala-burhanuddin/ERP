@@ -1,15 +1,42 @@
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useERPStore } from '@/lib/store-data';
-import { Wallet, CreditCard, Smartphone, TrendingUp, TrendingDown, ArrowLeft, Landmark, Activity, MoreHorizontal, ArrowUpRight, DollarSign } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Wallet, CreditCard, Smartphone, TrendingUp, TrendingDown, ArrowLeft, Landmark, Activity, MoreHorizontal, ArrowUpRight, DollarSign, Plus, X } from 'lucide-react';
+import { cn, formatCurrency, CURRENCY_SYMBOL } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { useState } from 'react';
+import { toast } from 'sonner';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 
 export default function Accounts() {
-  const { getStoreAccounts, getStoreTransactions, getStoreSales } = useERPStore();
+  const { getStoreAccounts, getStoreTransactions, getStoreSales, addAccount, activeStoreId } = useERPStore();
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newAccount, setNewAccount] = useState({ name: '', type: 'cash' as 'cash' | 'card' | 'wallet', balance: 0 });
 
   const accounts = getStoreAccounts();
   const transactions = getStoreTransactions();
   const sales = getStoreSales();
+
+  const handleAddAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newAccount.name) {
+      toast.error('Account name is required');
+      return;
+    }
+
+    try {
+      await addAccount({
+        ...newAccount,
+        id: '', // Will be generated
+        storeId: activeStoreId,
+      });
+      setIsAddModalOpen(false);
+      setNewAccount({ name: '', type: 'cash', balance: 0 });
+      toast.success('Account added successfully');
+    } catch (error) {
+      toast.error('Failed to add account');
+    }
+  };
 
   const totalBalance = accounts.reduce((sum, a) => sum + a.balance, 0);
 
@@ -48,6 +75,13 @@ export default function Accounts() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Button
+              onClick={() => setIsAddModalOpen(true)}
+              className="bg-black hover:bg-slate-800 text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 shadow-2xl shadow-black/10 h-14"
+            >
+              <Plus className="w-4 h-4" />
+              Add Account
+            </Button>
             <Badge className="bg-emerald-50 text-emerald-600 px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest border-emerald-100">
               All Accounts Active
             </Badge>
@@ -69,9 +103,9 @@ export default function Accounts() {
                   <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">TOTAL BALANCE</h4>
                   <div className="flex items-baseline gap-3">
                     <span className="text-5xl font-black tracking-tighter">
-                      ${totalBalance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      {formatCurrency(totalBalance)}
                     </span>
-                    <span className="text-xl font-bold text-slate-500 uppercase">USD</span>
+                    <span className="text-xl font-bold text-slate-500 uppercase">{CURRENCY_SYMBOL}</span>
                   </div>
                 </div>
               </div>
@@ -118,7 +152,7 @@ export default function Accounts() {
                   <div className="mb-10">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">BALANCE</span>
                     <p className="text-3xl font-black text-slate-900 tracking-tighter">
-                      ${account.balance.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                      {formatCurrency(account.balance)}
                     </p>
                   </div>
 
@@ -127,21 +161,21 @@ export default function Accounts() {
                       <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">SALES</span>
                       <div className="flex items-center gap-1.5 text-emerald-600">
                         <TrendingUp className="w-3 h-3" />
-                        <span className="text-[10px] font-black tracking-tight">${activity.salesTotal.toFixed(0)}</span>
+                        <span className="text-[10px] font-black tracking-tight">{formatCurrency(activity.salesTotal)}</span>
                       </div>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">MONEY IN</span>
                       <div className="flex items-center gap-1.5 text-indigo-600">
                         <TrendingUp className="w-3 h-3" />
-                        <span className="text-[10px] font-black tracking-tight">${activity.cashIn.toFixed(0)}</span>
+                        <span className="text-[10px] font-black tracking-tight">{formatCurrency(activity.cashIn)}</span>
                       </div>
                     </div>
                     <div className="flex flex-col">
                       <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">MONEY OUT</span>
                       <div className="flex items-center gap-1.5 text-rose-600">
                         <TrendingDown className="w-3 h-3" />
-                        <span className="text-[10px] font-black tracking-tight">${activity.cashOut.toFixed(0)}</span>
+                        <span className="text-[10px] font-black tracking-tight">{formatCurrency(activity.cashOut)}</span>
                       </div>
                     </div>
                   </div>
@@ -156,6 +190,97 @@ export default function Accounts() {
           })}
         </div>
       </main>
+
+      {/* Add Account Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md transition-all duration-500 animate-in fade-in">
+          <div className="bg-white w-full max-w-lg rounded-[3.5rem] p-12 shadow-2xl shadow-black/30 relative animate-in zoom-in-95 duration-300">
+            <button
+              onClick={() => setIsAddModalOpen(false)}
+              className="absolute top-8 right-8 p-3 hover:bg-slate-50 rounded-2xl transition-all"
+            >
+              <X className="w-5 h-5 text-slate-400" />
+            </button>
+
+            <div className="mb-10">
+              <h2 className="text-3xl font-black text-slate-900 tracking-tight uppercase">New Account</h2>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Create a financial sub-ledger</p>
+            </div>
+
+            <form onSubmit={handleAddAccount} className="space-y-8">
+              <div className="space-y-6">
+                <div>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 block">Account Name</label>
+                  <Input
+                    placeholder="e.g. Stanbic Business"
+                    value={newAccount.name}
+                    onChange={e => setNewAccount(prev => ({ ...prev, name: e.target.value }))}
+                    className="h-16 rounded-2xl bg-slate-50 border-transparent focus:border-black focus:ring-0 transition-all font-bold text-slate-900"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 block text-center">Account Type</label>
+                  <div className="grid grid-cols-3 gap-4">
+                    {(['cash', 'card', 'wallet'] as const).map(type => (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => setNewAccount(prev => ({ ...prev, type }))}
+                        className={cn(
+                          "flex flex-col items-center justify-center gap-4 p-6 rounded-3xl border-2 transition-all duration-300 group",
+                          newAccount.type === type
+                            ? "bg-black border-black text-white shadow-xl shadow-black/20"
+                            : "bg-white border-slate-100 text-slate-400 hover:border-slate-200"
+                        )}
+                      >
+                        <div className={cn(
+                          "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+                          newAccount.type === type ? "bg-white/10" : "bg-slate-50 group-hover:bg-slate-100"
+                        )}>
+                          {getAccountIcon(type)}
+                        </div>
+                        <span className="text-[9px] font-black uppercase tracking-widest">{type}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 block">Opening Balance</label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="0.00"
+                      value={newAccount.balance || ''}
+                      onChange={e => setNewAccount(prev => ({ ...prev, balance: Number(e.target.value) }))}
+                      className="h-16 pl-14 rounded-2xl bg-slate-50 border-transparent focus:border-black focus:ring-0 transition-all font-bold text-slate-900"
+                    />
+                    <DollarSign className="w-5 h-5 text-slate-300 absolute left-6 top-1/2 -translate-y-1/2" />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <Button
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  variant="outline"
+                  className="flex-1 h-16 rounded-2xl font-black text-[10px] uppercase tracking-widest border-slate-200 hover:bg-slate-50"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  className="flex-1 h-16 bg-black hover:bg-slate-800 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl shadow-black/10"
+                >
+                  Create Account
+                </Button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

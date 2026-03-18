@@ -2,10 +2,12 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { useERPStore } from '@/lib/store-data';
 import { BarChart3, TrendingUp, Package, Users, DollarSign, ArrowLeft, ArrowUpRight, Gauge, Activity, Target, Layers, MoreHorizontal } from 'lucide-react';
 import { InventoryForecast } from '@/components/ai/InventoryForecast';
-import { cn } from '@/lib/utils';
+import { useLicense } from '@/contexts/LicenseContext';
+import { cn, formatCurrency } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
 export default function Analytics() {
+    const { hasFeature } = useLicense();
     const { products, customers, sales } = useERPStore();
 
     const totalSalesCount = sales.length;
@@ -14,9 +16,9 @@ export default function Analytics() {
     const totalCustomers = customers.length;
 
     const stats = [
-        { label: 'TOTAL REVENUE', value: `$${totalRevenue.toLocaleString()}`, icon: DollarSign, color: 'text-indigo-600', bg: 'bg-indigo-50', sub: '+12.5% vs Last Period' },
+        { label: 'TOTAL REVENUE', value: formatCurrency(totalRevenue), icon: DollarSign, color: 'text-indigo-600', bg: 'bg-indigo-50', sub: '+12.5% vs Last Period' },
         { label: 'TOTAL SALES', value: totalSalesCount, icon: TrendingUp, color: 'text-emerald-600', bg: 'bg-emerald-50', sub: 'Sales are active' },
-        { label: 'STOCK VALUE', value: `$${totalInventoryValue.toLocaleString()}`, icon: Package, color: 'text-amber-600', bg: 'bg-amber-50', sub: 'Check stock levels' },
+        { label: 'STOCK VALUE', value: formatCurrency(totalInventoryValue), icon: Package, color: 'text-amber-600', bg: 'bg-amber-50', sub: 'Check stock levels' },
         { label: 'CUSTOMERS', value: totalCustomers, icon: Users, color: 'text-rose-600', bg: 'bg-rose-50', sub: 'Customer base growing' },
     ];
 
@@ -69,12 +71,14 @@ export default function Analytics() {
                 </div>
 
                 {/* AI Forecasting Integration */}
-                <div className="bg-slate-900 rounded-[3.5rem] p-4 shadow-2xl shadow-black/20 overflow-hidden relative">
-                    <div className="absolute top-0 right-0 p-20 opacity-[0.03] pointer-events-none">
-                        <Target className="w-96 h-96 text-white" />
+                {hasFeature('Inventory Forecast') && (
+                    <div className="bg-slate-900 rounded-[3.5rem] p-4 shadow-2xl shadow-black/20 overflow-hidden relative">
+                        <div className="absolute top-0 right-0 p-20 opacity-[0.03] pointer-events-none">
+                            <Target className="w-96 h-96 text-white" />
+                        </div>
+                        <InventoryForecast />
                     </div>
-                    <InventoryForecast />
-                </div>
+                )}
 
                 {/* Visualization Matrix */}
                 <div className="grid lg:grid-cols-12 gap-8">
@@ -106,7 +110,7 @@ export default function Analytics() {
                                     style={{ height: `${h}%` }}
                                 >
                                     <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-black text-white px-2 py-1 rounded-lg text-[8px] font-black opacity-0 group-hover/bar:opacity-100 transition-opacity z-10">
-                                        ${(h * 100).toLocaleString()}
+                                        {formatCurrency(h * 100)}
                                     </div>
                                 </div>
                             ))}

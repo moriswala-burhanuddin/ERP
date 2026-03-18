@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { formatCurrency } from '@/lib/utils';
 import { ShoppingBag, Users, Package, TrendingUp, ExternalLink, Star, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
@@ -14,7 +15,7 @@ const EcommerceDashboard = () => {
         const totalRevenue = onlineSales.reduce((acc: number, s: { totalAmount?: number; total?: number }) => acc + (s.totalAmount ?? s.total ?? 0), 0);
 
         return {
-            total_revenue: `₹${totalRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`,
+            total_revenue: formatCurrency(totalRevenue),
             total_orders: onlineSales.length.toString(),
             total_products: (products || []).length.toString(),
             total_customers: (customers || []).length.toString(),

@@ -3,7 +3,7 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { useERPStore } from '@/lib/store-data';
 import { FileText, ArrowLeft, ShieldCheck, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 
 export default function TransactionDetails() {
     const { id } = useParams();
@@ -27,7 +27,6 @@ export default function TransactionDetails() {
     }
 
     const account = accounts.find(a => a.id === transaction.accountId);
-    const fmt = (amount: number) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
 
     return (
         <div className="min-h-screen bg-[#F2F2F7] pb-32">
@@ -56,7 +55,7 @@ export default function TransactionDetails() {
                                 "text-4xl font-black tracking-tighter",
                                 transaction.type === 'cash_in' ? "text-emerald-600" : "text-rose-600"
                             )}>
-                                {transaction.type === 'cash_in' ? '+' : '-'}{fmt(transaction.amount)}
+                                {transaction.type === 'cash_in' ? '+' : '-'}{formatCurrency(transaction.amount)}
                             </p>
                         </div>
                     </div>

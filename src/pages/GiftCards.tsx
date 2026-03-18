@@ -10,7 +10,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export default function GiftCards() {
@@ -127,11 +127,11 @@ export default function GiftCards() {
                                         <div className="grid grid-cols-2 gap-8 mt-10">
                                             <div>
                                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Live Balance</p>
-                                                <p className="text-3xl font-black text-slate-900 leading-none">₹{gc.balance.toLocaleString()}</p>
+                                                <p className="text-3xl font-black text-slate-900 leading-none">{formatCurrency(gc.balance)}</p>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2 opacity-50">Base Value</p>
-                                                <p className="text-xl font-black text-slate-300 leading-none italic">₹{gc.value.toLocaleString()}</p>
+                                                <p className="text-xl font-black text-slate-300 leading-none italic">{formatCurrency(gc.value)}</p>
                                             </div>
                                         </div>
                                     </div>

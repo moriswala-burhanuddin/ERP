@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 
 interface CartItem {
@@ -300,7 +300,7 @@ export default function NewQuotation() {
                                                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">SKU: {product.sku} • {product.quantity} AVAILABLE</p>
                                                     </div>
                                                     <div className="text-right flex items-center gap-6">
-                                                        <p className="text-lg font-black text-slate-900 tracking-tighter">${product.sellingPrice.toLocaleString()}</p>
+                                                        <p className="text-lg font-black text-slate-900 tracking-tighter">{formatCurrency(product.sellingPrice)}</p>
                                                         <div className="p-3 bg-white rounded-xl shadow-sm group-hover:bg-black group-hover:text-white transition-all">
                                                             <Plus className="w-4 h-4" />
                                                         </div>
@@ -323,7 +323,7 @@ export default function NewQuotation() {
                                     </div>
                                     <div className="min-w-0">
                                         <h4 className="font-black text-lg text-slate-900 uppercase truncate mb-1">{item.productName}</h4>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">${item.price.toLocaleString()} per unit</p>
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{formatCurrency(item.price)} per unit</p>
                                     </div>
                                 </div>
 
@@ -347,7 +347,7 @@ export default function NewQuotation() {
                                     </div>
 
                                     <div className="w-32 text-right">
-                                        <h3 className="text-xl font-black text-slate-900 tracking-tighter">${(item.price * item.quantity).toLocaleString()}</h3>
+                                        <h3 className="text-xl font-black text-slate-900 tracking-tighter">{formatCurrency(item.price * item.quantity)}</h3>
                                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Total</p>
                                     </div>
 
@@ -384,7 +384,7 @@ export default function NewQuotation() {
                         <div className="text-center md:text-right">
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] block mb-2">Total Amount</span>
                             <div className="flex items-center gap-4">
-                                <h2 className="text-6xl font-black tracking-tighter">${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h2>
+                                <h2 className="text-6xl font-black tracking-tighter">{formatCurrency(totalAmount)}</h2>
                             </div>
                         </div>
                     </div>

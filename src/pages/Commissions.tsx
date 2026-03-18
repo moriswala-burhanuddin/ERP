@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useERPStore, Commission, User } from '@/lib/store-data';
 import { Award, TrendingUp, CheckCircle2, Clock, Search, ChevronRight, ArrowLeft, Filter, DollarSign, Wallet, MoreHorizontal, Ghost } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
 export default function Commissions() {
@@ -73,7 +73,7 @@ export default function Commissions() {
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-1">Total Unpaid Magnitude</p>
-                                    <h2 className="text-4xl font-black tracking-tighter">${totalPending.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h2>
+                                    <h2 className="text-4xl font-black tracking-tighter">{formatCurrency(totalPending)}</h2>
                                 </div>
                             </div>
                             <div className="flex items-center gap-3">
@@ -169,7 +169,7 @@ export default function Commissions() {
                                                 <span className="text-xs font-black text-slate-900">{comm.percentage}%</span>
                                             </td>
                                             <td className="bg-slate-50 py-8 px-8 text-right group-hover:bg-slate-100 transition-all duration-300">
-                                                <span className="text-lg font-black text-slate-900 tracking-tighter">${comm.amount.toFixed(2)}</span>
+                                                <span className="text-lg font-black text-slate-900 tracking-tighter">{formatCurrency(comm.amount)}</span>
                                             </td>
                                             <td className="bg-slate-50 py-8 px-8 rounded-r-[2rem] text-center group-hover:bg-slate-100 transition-all duration-300">
                                                 <div className={cn("inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border",

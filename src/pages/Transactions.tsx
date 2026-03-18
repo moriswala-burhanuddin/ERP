@@ -3,11 +3,10 @@ import { useERPStore } from '@/lib/store-data';
 import { Plus, ArrowUpCircle, ArrowDownCircle, Receipt, RotateCcw, Search, Filter, Download as DownloadIcon, ChevronRight, Zap, ArrowLeft, MoreHorizontal, ShieldCheck, Wallet, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
-const fmt = (amount: number) =>
-  new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(amount);
+const fmt = (amount: number) => formatCurrency(amount);
 
 export default function Transactions() {
   const navigate = useNavigate();

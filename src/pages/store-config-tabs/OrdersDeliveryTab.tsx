@@ -125,7 +125,7 @@ export function OrdersDeliveryTab() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Delivery Fee (₹)</Label>
+                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Delivery Fee (UGX)</Label>
                                         <Input
                                             type="number"
                                             value={provider.fee}
@@ -236,7 +236,7 @@ export function OrdersDeliveryTab() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Fee (₹)</Label>
+                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Fee (UGX)</Label>
                                         <Input
                                             type="number"
                                             value={zone.fee}

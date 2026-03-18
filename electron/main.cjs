@@ -1,4 +1,7 @@
-const { app, BrowserWindow, ipcMain, dialog } = require('electron')
+const { app, BrowserWindow, ipcMain, Menu, shell, Notification, dialog } = require('electron')
+const path = require('path')
+const fs = require('fs')
+const { markAllDirty } = require('./migration-utils.cjs')
 const { autoUpdater } = require('electron-updater')
 const log = require('electron-log')
 const bwipjs = require('bwip-js')
@@ -38,8 +41,7 @@ log.info('[MAIN] Forced App Name to:', app.name);
 log.info('[MAIN] Current UserData:', app.getPath('userData'));
 log.info('[MAIN] App Version:', app.getVersion());
 
-const path = require('path')
-const fs = require('fs')
+
 const { db, dbHelpers, deviceId: dbDeviceId } = require('./db.cjs')
 const { askAI, getInventoryForecast, suggestProductCategory, processInvoiceOCR, optimizeReorderPoints } = require('./ai-service.cjs')
 
@@ -79,6 +81,22 @@ try {
 }
 
 function createWindow() {
+    // Persistence for sync automation
+    const userDataPath = app.getPath('userData');
+    const migrationLockPath = path.join(userDataPath, 'vps_migration_v1.lock');
+
+    if (!fs.existsSync(migrationLockPath)) {
+        console.log('[MAIN] performing one-time VPS migration (marking all data as dirty)...');
+        try {
+            const { db } = require('./db.cjs');
+            markAllDirty(db);
+            fs.writeFileSync(migrationLockPath, 'Migration to VPS initiated at ' + new Date().toISOString());
+            console.log('[MAIN] Migration lock created.');
+        } catch (err) {
+            console.error('[MAIN] Migration failed:', err.message);
+        }
+    }
+
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
@@ -98,7 +116,21 @@ function createWindow() {
         mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
         // mainWindow.webContents.openDevTools() // Disable auto-open for production
     }
+
+    // Trigger initial sync after window is ready
+    mainWindow.webContents.on('did-finish-load', () => {
+        console.log('[MAIN] Triggering initial sync...');
+        mainWindow.webContents.send('sync:trigger');
+    });
 }
+
+// Set up periodic sync (every 5 minutes)
+setInterval(() => {
+    if (mainWindow) {
+        console.log('[MAIN] Triggering periodic sync...');
+        mainWindow.webContents.send('sync:trigger');
+    }
+}, 5 * 60 * 1000);
 
 // IPC Handlers for Database Operations
 
@@ -305,6 +337,30 @@ ipcMain.handle('db:addTransaction', async (event, transaction) => {
 // Accounts
 ipcMain.handle('db:getAccounts', async (event, storeId) => {
     return dbHelpers.getAllAccounts(storeId)
+})
+
+ipcMain.handle('db:addAccount', async (event, account) => {
+    const result = dbHelpers.addAccount(account)
+    if (mainWindow) mainWindow.webContents.send('sync:trigger')
+    return result
+})
+
+ipcMain.handle('db:updateAccount', async (event, id, updates) => {
+    const result = dbHelpers.updateAccount(id, updates)
+    if (mainWindow) mainWindow.webContents.send('sync:trigger')
+    return result
+})
+
+ipcMain.handle('db:deleteAccount', async (event, id) => {
+    const result = dbHelpers.deleteAccount(id)
+    if (mainWindow) mainWindow.webContents.send('sync:trigger')
+    return result
+})
+
+ipcMain.handle('db:clearLocalData', async (event, storeId) => {
+    const result = dbHelpers.clearLocalData(storeId)
+    if (mainWindow) mainWindow.webContents.send('sync:trigger')
+    return result
 })
 
 // Stores & Users

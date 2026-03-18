@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { useERPStore } from "@/lib/store-data";
 import { Search } from "lucide-react";
+import { formatCurrency } from "@/lib/utils";
 
 export default function StockSummary() {
     const { products } = useERPStore();
@@ -26,7 +27,7 @@ export default function StockSummary() {
                 <div className="text-right">
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Total Stock Value</p>
                     <p className="text-3xl font-black text-slate-900">
-                        {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(totalValue)}
+                        {formatCurrency(totalValue)}
                     </p>
                 </div>
             </div>
@@ -42,7 +43,7 @@ export default function StockSummary() {
                     <CardContent className="p-4">
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Expected Sales Money</p>
                         <p className="text-2xl font-black text-slate-900">
-                            {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(potentialValue)}
+                            {formatCurrency(potentialValue)}
                         </p>
                     </CardContent>
                 </Card>
@@ -50,7 +51,7 @@ export default function StockSummary() {
                     <CardContent className="p-4">
                         <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Expected Profit</p>
                         <p className="text-2xl font-black text-emerald-900">
-                            {new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(totalMargin)}
+                            {formatCurrency(totalMargin)}
                         </p>
                     </CardContent>
                 </Card>
@@ -94,20 +95,20 @@ export default function StockSummary() {
                                                 <div className="text-[10px] font-normal text-slate-400 font-mono mt-0.5">{p.sku}</div>
                                             </td>
                                             <td className="p-4 text-slate-500 text-xs uppercase tracking-wide">
-                                                {p.category}
+                                                {p.categoryId}
                                             </td>
                                             <td className="p-4 text-right font-mono font-bold text-slate-700 bg-slate-50/30">
                                                 {p.quantity} <span className="text-xs font-normal text-slate-400">{p.unit}</span>
                                             </td>
                                             <td className="p-4 text-right font-mono font-medium text-slate-700 bg-slate-50/30">
-                                                {p.purchasePrice.toFixed(2)}
+                                                {formatCurrency(p.purchasePrice)}
                                             </td>
                                             <td className="p-4 text-right font-mono font-black text-slate-900 bg-slate-50/50">
-                                                {(p.quantity * p.purchasePrice).toFixed(2)}
+                                                {formatCurrency(p.quantity * p.purchasePrice)}
                                             </td>
                                             <td className="p-4 text-right font-mono font-medium">
                                                 <span className={margin > 0 ? 'text-emerald-600' : 'text-red-500'}>
-                                                    {margin.toFixed(2)} ({Math.round(marginPercent)}%)
+                                                    {formatCurrency(margin)} ({Math.round(marginPercent)}%)
                                                 </span>
                                             </td>
                                         </tr>

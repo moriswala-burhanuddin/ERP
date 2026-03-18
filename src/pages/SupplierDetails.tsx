@@ -13,11 +13,9 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 
-// ── helpers ────────────────────────────────────────
-const fmt = (amount: number, currency = 'USD') =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+// Removed local fmt function in favor of global formatCurrency
 
 const TX_COLORS: Record<string, string> = {
     purchase: 'bg-red-50 text-red-600 border-red-100',
@@ -235,19 +233,19 @@ export default function SupplierDetails() {
                                         <TrendingUp className="w-5 h-5" />
                                     </div>
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Purchased</p>
-                                    <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{fmt(totalPurchased, supplier.currency)}</h3>
+                                    <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{formatCurrency(totalPurchased)}</h3>
                                 </div>
                                 <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
                                     <div className="p-3 bg-emerald-50 rounded-xl w-fit mb-6 text-emerald-500">
                                         <TrendingDown className="w-5 h-5" />
                                     </div>
                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Paid</p>
-                                    <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{fmt(totalPaid, supplier.currency)}</h3>
+                                    <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{formatCurrency(totalPaid)}</h3>
                                 </div>
                                 <div className={cn("rounded-[2rem] p-8 shadow-xl border relative overflow-hidden", isOverLimit ? 'bg-rose-900 border-rose-800 text-white shadow-rose-200' : 'bg-black border-black text-white')}>
                                     <div className="relative z-10">
                                         <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">Balance Due</p>
-                                        <h3 className="text-2xl font-black tracking-tighter mb-4">{fmt(supplier.currentBalance, supplier.currency)}</h3>
+                                        <h3 className="text-2xl font-black tracking-tighter mb-4">{formatCurrency(supplier.currentBalance)}</h3>
 
                                         {supplier.creditLimit > 0 && (
                                             <div className="space-y-2">
@@ -285,7 +283,7 @@ export default function SupplierDetails() {
                                 <div className="space-y-6">
                                     <div className="flex items-center justify-between">
                                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Credit Limit</span>
-                                        <span className="text-xs font-black text-slate-900 font-mono">{fmt(supplier.creditLimit, supplier.currency)}</span>
+                                        <span className="text-xs font-black text-slate-900 font-mono">{formatCurrency(supplier.creditLimit)}</span>
                                     </div>
                                     <div className="flex items-center justify-between">
                                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Settlement Days</span>
@@ -377,12 +375,12 @@ export default function SupplierDetails() {
                                         <div className="flex items-center gap-12 text-right">
                                             <div>
                                                 <p className={cn("text-xl font-black tracking-tighter mb-1", row.type === 'payment' ? 'text-emerald-600' : 'text-rose-600')}>
-                                                    {row.type === 'payment' ? '-' : '+'}{fmt(row.amount, supplier.currency)}
+                                                    {row.type === 'payment' ? '-' : '+'}{formatCurrency(row.amount)}
                                                 </p>
                                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{row.type === 'payment' ? 'Payment' : 'Purchase'}</p>
                                             </div>
                                             <div className="w-24 px-6 border-l border-slate-100">
-                                                <p className="text-xl font-black text-slate-900 tracking-tighter mb-1">{fmt(row.balanceAfter, supplier.currency)}</p>
+                                                <p className="text-xl font-black text-slate-900 tracking-tighter mb-1">{formatCurrency(row.balanceAfter)}</p>
                                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Balance</p>
                                             </div>
                                         </div>
@@ -427,7 +425,7 @@ export default function SupplierDetails() {
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-xl font-black text-slate-900 tracking-tighter mb-1">{fmt(p.totalAmount, supplier.currency)}</p>
+                                            <p className="text-xl font-black text-slate-900 tracking-tighter mb-1">{formatCurrency(p.totalAmount)}</p>
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Amount Due</p>
                                         </div>
                                     </div>

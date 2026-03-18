@@ -151,6 +151,27 @@ export const dbAdapter = {
         return null
     },
 
+    async addAccount(account: Account) {
+        if (isElectron()) {
+            return await window.electronAPI.addAccount(account)
+        }
+        return null
+    },
+
+    async updateAccount(id: string, updates: Updates<Account>) {
+        if (isElectron()) {
+            return await window.electronAPI.updateAccount(id, updates)
+        }
+        return null
+    },
+
+    async deleteAccount(id: string) {
+        if (isElectron()) {
+            return await window.electronAPI.deleteAccount(id)
+        }
+        return null
+    },
+
     async getStores(): Promise<Store[] | null> {
         if (isElectron()) {
             return await window.electronAPI.getStores()
@@ -345,6 +366,7 @@ export const dbAdapter = {
     addCheque: (cheque: Cheque) => isElectron() ? window.electronAPI.addCheque(cheque) : Promise.resolve(null),
     updateCheque: (id: string, updates: Updates<Cheque>) => isElectron() ? window.electronAPI.updateCheque(id, updates) : Promise.resolve(null),
     deleteCheque: (id: string) => isElectron() ? window.electronAPI.deleteCheque(id) : Promise.resolve(null),
+    clearLocalData: (storeId: string) => isElectron() ? window.electronAPI.clearLocalData(storeId) : Promise.resolve(false),
 
     // Reports
     getReport: (type: string, storeId: string, dateFrom?: string, dateTo?: string) =>

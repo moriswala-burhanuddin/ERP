@@ -11,7 +11,7 @@ import {
     DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -265,7 +265,7 @@ export default function ItemKits() {
                             <TrendingUp className="w-6 h-6" />
                         </div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Value</p>
-                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">₹{itemKits.reduce((sum, k) => sum + (k.sellingPrice || 0), 0).toLocaleString()}</h3>
+                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{formatCurrency(itemKits.reduce((sum, k) => sum + (k.sellingPrice || 0), 0))}</h3>
                     </div>
 
                     <div className="bg-black rounded-[2.5rem] p-10 text-white shadow-2xl shadow-black/20 flex flex-col justify-center relative overflow-hidden group">
@@ -335,7 +335,7 @@ export default function ItemKits() {
                                 <div className="pt-8 border-t border-slate-50 flex items-end justify-between">
                                     <div>
                                         <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1 opacity-50">Bundle Price</p>
-                                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter leading-none">₹{kit.sellingPrice?.toLocaleString()}</h3>
+                                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{formatCurrency(kit.sellingPrice || 0)}</h3>
                                     </div>
                                     <div className="p-4 bg-slate-50 rounded-2xl group-hover:bg-black group-hover:text-white transition-all">
                                         <ArrowRight className="w-5 h-5 text-slate-300 group-hover:text-white" />

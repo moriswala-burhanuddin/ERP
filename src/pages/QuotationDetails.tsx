@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { useState } from 'react';
 import { Drawer } from 'vaul';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export default function QuotationDetails() {
@@ -43,8 +43,8 @@ export default function QuotationDetails() {
 
     const handleWhatsAppShare = () => {
         const phone = quotation.customerPhone || '';
-        const itemsList = quotation.items.map(item => `- ${item.productName} (x${item.quantity}): $${(item.price * item.quantity).toFixed(0)}`).join('\n');
-        const message = `Proposal ${quotation.quotationNumber}\n---\n${itemsList}\n---\nTotal: $${quotation.totalAmount.toLocaleString()}\nValid Until: ${new Date(quotation.expiryDate).toLocaleDateString()}`;
+        const itemsList = quotation.items.map(item => `- ${item.productName} (x${item.quantity}): ${formatCurrency(item.price * item.quantity)}`).join('\n');
+        const message = `Proposal ${quotation.quotationNumber}\n---\n${itemsList}\n---\nTotal: ${formatCurrency(quotation.totalAmount)}\nValid Until: ${new Date(quotation.expiryDate).toLocaleDateString()}`;
         const encodedMessage = encodeURIComponent(message);
         window.open(`https://wa.me/${phone.replace(/\D/g, '')}?text=${encodedMessage}`, '_blank');
         toast.info("WhatsApp Dispatch Layer Initialized");
@@ -133,7 +133,7 @@ export default function QuotationDetails() {
                             </div>
                             <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Provision</span>
                         </div>
-                        <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">${quotation.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h2>
+                        <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">{formatCurrency(quotation.totalAmount)}</h2>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Estimated Value</p>
                     </div>
 
@@ -199,12 +199,12 @@ export default function QuotationDetails() {
                                                 <div className="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                                     <span>Qty: {item.quantity}</span>
                                                     <div className="w-1 h-1 bg-slate-200 rounded-full" />
-                                                    <span>Draft Rate: ${item.price.toLocaleString()}</span>
+                                                    <span>Draft Rate: {formatCurrency(item.price)}</span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <div className="text-xl font-black tracking-tighter">${(item.quantity * item.price).toLocaleString()}</div>
+                                            <div className="text-xl font-black tracking-tighter">{formatCurrency(item.quantity * item.price)}</div>
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Draft Value</p>
                                         </div>
                                     </div>
@@ -270,12 +270,12 @@ export default function QuotationDetails() {
                                                         <div className="space-y-4">
                                                             <Label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Escrow Sink Account</Label>
                                                             <select value={accountId} onChange={(e) => setAccountId(e.target.value)} className="w-full h-16 bg-slate-50 border-none rounded-2xl px-6 text-[11px] font-bold uppercase focus:ring-2 focus:ring-black appearance-none">
-                                                                {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} (${acc.balance.toLocaleString()})</option>)}
+                                                                {accounts.map(acc => <option key={acc.id} value={acc.id}>{acc.name} ({formatCurrency(acc.balance)})</option>)}
                                                             </select>
                                                         </div>
 
                                                         <Button onClick={handleConvert} className="w-full bg-black text-white h-20 rounded-[1.5rem] font-black uppercase text-[12px] tracking-[0.3em] shadow-2xl shadow-black/20 hover:scale-[1.02] transition-all">
-                                                            EXECUTE SETTLEMENT • ${quotation.totalAmount.toLocaleString()}
+                                                            EXECUTE SETTLEMENT • {formatCurrency(quotation.totalAmount)}
                                                         </Button>
                                                     </div>
                                                 </div>
@@ -295,11 +295,11 @@ export default function QuotationDetails() {
                             <div className="space-y-6">
                                 <div className="flex justify-between items-center">
                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Estimate Sub</span>
-                                    <span className="text-sm font-black text-slate-900">${quotation.totalAmount.toLocaleString()}</span>
+                                    <span className="text-sm font-black text-slate-900">{formatCurrency(quotation.totalAmount)}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Tax Provision</span>
-                                    <span className="text-sm font-black text-slate-900">$0.00</span>
+                                    <span className="text-sm font-black text-slate-900">{formatCurrency(0)}</span>
                                 </div>
 
                                 <div className="h-px bg-slate-100 my-6" />
@@ -307,7 +307,7 @@ export default function QuotationDetails() {
                                 <div className="bg-slate-50 rounded-[2rem] p-8">
                                     <div className="flex justify-between items-center">
                                         <p className="text-[10px] font-black text-indigo-900 uppercase tracking-[0.2em]">Grand Net</p>
-                                        <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">${quotation.totalAmount.toLocaleString()}</p>
+                                        <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{formatCurrency(quotation.totalAmount)}</p>
                                     </div>
                                 </div>
                             </div>

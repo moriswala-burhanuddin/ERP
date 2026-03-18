@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useERPStore } from '@/lib/store-data';
 import {
-  DollarSign,
+  Wallet,
   TrendingUp,
   Package,
   Users,
@@ -31,7 +31,7 @@ import {
 import { dbAdapter } from '@/lib/db-adapter';
 import { eleganceApi } from '@/lib/elegance-api';
 import { DashboardMetrics } from '@/lib/store-data';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -53,7 +53,7 @@ export default function Dashboard() {
     {
       label: 'POS Revenue',
       value: metrics?.posRevenue || 0,
-      icon: DollarSign,
+      icon: Wallet,
       color: 'bg-indigo-600',
       trend: 'Physical',
       isCurrency: true
@@ -147,7 +147,7 @@ export default function Dashboard() {
 
               <div className="relative z-10">
                 <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">
-                  {stat.isCurrency ? `$${(stat.value || 0).toLocaleString()}` : (stat.value || 0).toLocaleString()}
+                  {stat.isCurrency ? formatCurrency(stat.value || 0) : (stat.value || 0).toLocaleString()}
                 </h2>
                 <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Latest Update</p>
               </div>
@@ -200,7 +200,7 @@ export default function Dashboard() {
                     axisLine={false}
                     tickLine={false}
                     tick={{ fill: '#94a3b8', fontSize: 10, fontWeight: 800 }}
-                    tickFormatter={(val) => `$${val / 1000}k`}
+                    tickFormatter={(val) => formatCurrency(val)}
                   />
                   <Tooltip
                     contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'black', textTransform: 'uppercase', fontSize: '10px' }}
@@ -220,7 +220,7 @@ export default function Dashboard() {
               <div className="relative">
                 <div className="flex justify-between items-end mb-4">
                   <span className="text-4xl font-black">78%</span>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">$42k / $55k</span>
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{formatCurrency(42000)} / {formatCurrency(55000)}</span>
                 </div>
                 <div className="h-3 w-full bg-white/10 rounded-full overflow-hidden">
                   <div className="h-full bg-white w-[78%] rounded-full shadow-[0_0_20px_rgba(255,255,255,0.4)]" />
@@ -235,7 +235,7 @@ export default function Dashboard() {
               </h4>
               <div className="space-y-6">
                 {[
-                  { title: 'New Sale #4912', time: '2m ago', icon: DollarSign, color: 'text-indigo-600' },
+                  { title: 'New Sale #4912', time: '2m ago', icon: Wallet, color: 'text-indigo-600' },
                   { title: 'Restocked Item', time: '1h ago', icon: Package, color: 'text-amber-500' },
                   { title: 'New Customer', time: '3h ago', icon: Users, color: 'text-slate-900' },
                 ].map((item, i) => (
@@ -344,7 +344,7 @@ export default function Dashboard() {
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-lg font-black text-indigo-600 leading-none">${(c.creditBalance || 0).toLocaleString()}</div>
+                    <div className="text-lg font-black text-indigo-600 leading-none">{formatCurrency(c.creditBalance || 0)}</div>
                     <div className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Owed</div>
                   </div>
                 </div>

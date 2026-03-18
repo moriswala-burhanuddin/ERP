@@ -48,12 +48,39 @@ export function SyncStatus() {
         }
 
         try {
-            await syncData();
-            toast({
-                title: "Sync Success",
-                description: "Two-way synchronization completed.",
-                variant: "default"
-            });
+            const result = await syncData();
+            
+            if (result === 'success') {
+                toast({
+                    title: "Sync Success",
+                    description: "Two-way synchronization completed.",
+                    variant: "default"
+                });
+            } else if (result === 'already_syncing') {
+                toast({
+                    title: "Sync In Progress",
+                    description: "A background synchronization is already running. Please Wait...",
+                    variant: "default"
+                });
+            } else if (result === 'bypass_mode' || result === 'no_token') {
+                toast({
+                    title: "Sync Skipped",
+                    description: "Cloud sync is disabled for local/bypass sessions. Please login with a Django account.",
+                    variant: "default"
+                });
+            } else if (result === 'not_electron') {
+                toast({
+                    title: "Sync Not Available",
+                    description: "Cloud sync is only available in the Desktop App.",
+                    variant: "destructive"
+                });
+            } else {
+                toast({
+                    title: "Sync Failed",
+                    description: "The synchronization encountered an error. Check console for details.",
+                    variant: "destructive"
+                });
+            }
         } catch (error) {
             console.error('Manual sync failed:', error);
             const isNetworkError = error instanceof TypeError || ((error as Error)?.message?.includes('fetch'));

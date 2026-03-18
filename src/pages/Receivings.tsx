@@ -4,10 +4,7 @@ import { useERPStore } from '@/lib/store-data';
 import { Plus, Search, Truck, Calendar, ChevronRight, PackageCheck, PackageSearch, ArrowLeft, MoreHorizontal, Filter, Download, Zap, Clock, AlertCircle, CheckCircle2, PackageX } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-
-const fmt = (amount: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+import { cn, formatCurrency } from '@/lib/utils';
 
 export default function Receivings() {
     const navigate = useNavigate();
@@ -77,14 +74,14 @@ export default function Receivings() {
                             <PackageCheck className="w-5 h-5" />
                         </div>
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Settled Value</p>
-                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{fmt(totalReceived)}</h3>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{formatCurrency(totalReceived)}</h3>
                     </div>
                     <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
                         <div className="p-3 bg-rose-50 rounded-xl w-fit mb-6 text-rose-500">
                             <AlertCircle className="w-5 h-5" />
                         </div>
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Exposure Payable</p>
-                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{fmt(amountDue)}</h3>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{formatCurrency(amountDue)}</h3>
                     </div>
                     <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
                         <div className="p-3 bg-indigo-50 rounded-xl w-fit mb-6 text-indigo-500">
@@ -153,11 +150,11 @@ export default function Receivings() {
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-2xl font-black text-slate-900 tracking-tighter mb-1">{fmt(r.totalAmount)}</p>
+                                                <p className="text-2xl font-black text-slate-900 tracking-tighter mb-1">{formatCurrency(r.totalAmount)}</p>
                                                 <div className="flex items-center justify-end gap-2">
                                                     <div className={cn("w-1.5 h-1.5 rounded-full", r.amountDue > 0 ? "bg-rose-500" : "bg-emerald-500")} />
                                                     <span className={cn("text-[9px] font-black uppercase tracking-widest", r.amountDue > 0 ? "text-rose-500" : "text-emerald-500")}>
-                                                        {r.amountDue > 0 ? `Payable: ${fmt(r.amountDue)}` : 'Node Settled'}
+                                                        {r.amountDue > 0 ? `Payable: ${formatCurrency(r.amountDue)}` : 'Node Settled'}
                                                     </span>
                                                 </div>
                                             </div>

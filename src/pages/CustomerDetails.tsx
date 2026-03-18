@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 
 interface LedgerEntry {
     date: string;
@@ -118,7 +118,7 @@ export default function CustomerDetails() {
                             <span className="text-[8px] font-black text-red-500/40 uppercase tracking-[0.2em]">{customer.creditBalance > 0 ? 'Dues Active' : 'Cleared'}</span>
                         </div>
                         <h2 className={cn("text-3xl font-black leading-none mb-1", customer.creditBalance > 0 ? 'text-red-900' : 'text-emerald-900')}>
-                            ${customer.creditBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {formatCurrency(customer.creditBalance)}
                         </h2>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Amount Owed</p>
                     </div>
@@ -130,7 +130,7 @@ export default function CustomerDetails() {
                             </div>
                             <span className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em]">Total</span>
                         </div>
-                        <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">${(customer.totalPurchases || 0).toLocaleString()}</h2>
+                        <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">{formatCurrency(customer.totalPurchases || 0)}</h2>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Spent</p>
                     </div>
 
@@ -273,18 +273,18 @@ export default function CustomerDetails() {
                                             <div className="flex items-center gap-12 text-right">
                                                 {row.debit > 0 && (
                                                     <div>
-                                                        <p className="text-xl font-black text-red-600 tracking-tighter mb-1">+${row.debit.toLocaleString()}</p>
+                                                    <p className="text-xl font-black text-red-600 tracking-tighter mb-1">+{formatCurrency(row.debit)}</p>
                                                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Added</p>
                                                     </div>
                                                 )}
                                                 {row.credit > 0 && (
                                                     <div>
-                                                        <p className="text-xl font-black text-emerald-600 tracking-tighter mb-1">-${row.credit.toLocaleString()}</p>
+                                                    <p className="text-xl font-black text-emerald-600 tracking-tighter mb-1">-{formatCurrency(row.credit)}</p>
                                                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Paid</p>
                                                     </div>
                                                 )}
                                                 <div className="w-24 px-6 border-l border-slate-100">
-                                                    <p className="text-xl font-black text-slate-900 tracking-tighter mb-1">${row.cumulative_balance.toLocaleString()}</p>
+                                                    <p className="text-xl font-black text-slate-900 tracking-tighter mb-1">{formatCurrency(row.cumulative_balance)}</p>
                                                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Balance</p>
                                                 </div>
                                             </div>

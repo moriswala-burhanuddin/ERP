@@ -3,11 +3,8 @@ import { PageHeader } from '@/components/layout/PageHeader';
 import { useERPStore } from '@/lib/store-data';
 import { Printer, Download, ShoppingBag, Calendar, User, ArrowLeft, Trash2, Zap, ShieldCheck, Box, MoreHorizontal, History, Activity, TrendingUp, CreditCard, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
-
-const fmt = (amount: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
 
 export default function PurchaseDetails() {
     const { id } = useParams();
@@ -139,11 +136,11 @@ export default function PurchaseDetails() {
                                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Quantity</p>
                                             </div>
                                             <div>
-                                                <p className="text-lg font-black text-slate-400 tracking-tighter mb-1 font-mono">{fmt(item.price)}</p>
+                                                <p className="text-lg font-black text-slate-400 tracking-tighter mb-1 font-mono">{formatCurrency(item.price)}</p>
                                                 <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest">Price</p>
                                             </div>
                                             <div className="w-28 pl-12 border-l border-slate-100">
-                                                <p className="text-xl font-black text-slate-900 tracking-tighter mb-1 font-mono">{fmt(item.price * item.quantity)}</p>
+                                                <p className="text-xl font-black text-slate-900 tracking-tighter mb-1 font-mono">{formatCurrency(item.price * item.quantity)}</p>
                                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Line Total</p>
                                             </div>
                                         </div>
@@ -164,16 +161,16 @@ export default function PurchaseDetails() {
                             <div className="space-y-6">
                                 <div className="flex justify-between items-center text-slate-400 text-xs">
                                     <span className="uppercase tracking-widest">Subtotal</span>
-                                    <span>{fmt(purchase.totalAmount)}</span>
+                                    <span>{formatCurrency(purchase.totalAmount)}</span>
                                 </div>
                                 <div className="flex justify-between items-center text-slate-400 text-xs">
                                     <span className="uppercase tracking-widest">Tax (0%)</span>
-                                    <span>$0.00</span>
+                                    <span>{formatCurrency(0)}</span>
                                 </div>
                                 <hr className="border-white/10" />
                                 <div className="flex justify-between items-end">
                                     <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest pb-1">Total Amount</p>
-                                    <h3 className="text-4xl font-black tracking-tighter">{fmt(purchase.totalAmount)}</h3>
+                                    <h3 className="text-4xl font-black tracking-tighter">{formatCurrency(purchase.totalAmount)}</h3>
                                 </div>
                             </div>
                         </div>

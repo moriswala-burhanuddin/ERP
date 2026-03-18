@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useERPStore } from '@/lib/store-data';
 import { Package, TrendingUp, DollarSign, History, AlertTriangle, Sparkles, Loader2, ArrowLeft, Trash2, Edit3, Tag, Layers, Activity, Calendar, ShieldCheck } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -120,7 +120,7 @@ export default function ProductDetails() {
                             </div>
                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Selling Value</span>
                         </div>
-                        <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">${product.sellingPrice.toLocaleString()}</h2>
+                        <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">{formatCurrency(product.sellingPrice)}</h2>
                         <div className="flex items-center gap-1.5 text-emerald-500 font-black text-[10px] uppercase">
                             <TrendingUp className="w-3 h-3" />
                             {margin.toFixed(1)}% Margin
@@ -134,7 +134,7 @@ export default function ProductDetails() {
                             </div>
                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Stock Value</span>
                         </div>
-                        <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">${stockValue.toLocaleString()}</h2>
+                        <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">{formatCurrency(stockValue)}</h2>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">At Purchase Price</p>
                     </div>
 
@@ -167,8 +167,8 @@ export default function ProductDetails() {
                                 {[
                                     { label: 'Category', value: product.categoryName || product.categoryId || 'Uncategorized' },
                                     { label: 'Brand', value: product.brand || 'No Brand' },
-                                    { label: 'Cost Price', value: `$${product.purchasePrice.toLocaleString()}`, highlight: true },
-                                    { label: 'Selling Price', value: `$${product.sellingPrice.toLocaleString()}`, highlight: true },
+                                    { label: 'Cost Price', value: formatCurrency(product.purchasePrice), highlight: true },
+                                    { label: 'Selling Price', value: formatCurrency(product.sellingPrice), highlight: true },
                                     { label: 'Unit', value: product.unit || 'Standard' },
                                     { label: 'Last Updated', value: new Date(product.updatedAt).toLocaleDateString() },
                                 ].map((row, i) => (
@@ -247,7 +247,7 @@ export default function ProductDetails() {
                                             </div>
                                             <div className="text-right">
                                                 <div className="text-lg font-black text-red-600 group-hover:text-red-400 transition-colors">-{item?.quantity}</div>
-                                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">${((item?.quantity || 0) * (item?.price || 0)).toLocaleString()}</div>
+                                                <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{formatCurrency((item?.quantity || 0) * (item?.price || 0))}</div>
                                             </div>
                                         </div>
                                     );

@@ -13,10 +13,12 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useERPStore } from "@/lib/store-data";
+import { useLicense } from "@/contexts/LicenseContext";
 
 const HRLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
+    const { hasFeature } = useLicense();
     const logout = useERPStore(state => state.logout);
     const currentUser = useERPStore(state => state.currentUser);
 
@@ -27,7 +29,7 @@ const HRLayout = () => {
         { icon: FileText, label: "Leaves", path: "/hr/leaves" },
         { icon: CreditCard, label: "Payroll", path: "/hr/payroll" },
         { icon: BarChart2, label: "Performance", path: "/hr/performance" },
-        { icon: MessageSquare, label: "HR Assistant", path: "/hr/chat" },
+        ...(hasFeature('HR Assistant') ? [{ icon: MessageSquare, label: "HR Assistant", path: "/hr/chat" }] : []),
     ];
 
     const handleLogout = () => {

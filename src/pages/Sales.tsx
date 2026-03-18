@@ -5,7 +5,7 @@ import { useERPStore } from '@/lib/store-data';
 import { Plus, Search, Filter, Download, ChevronRight, Upload, Trash2, Calendar, CreditCard, DollarSign, Wallet, ArrowUpRight, CheckCircle2, Clock, TrendingUp, Activity, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Papa from 'papaparse';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -233,7 +233,7 @@ export default function Sales() {
               <Wallet className="w-6 h-6 text-slate-500" />
               <span className="text-[8px] font-black uppercase tracking-widest text-slate-500">Gross Sales</span>
             </div>
-            <h3 className="text-3xl font-black mb-1">${totalSales.toLocaleString()}</h3>
+            <h3 className="text-3xl font-black mb-1">{formatCurrency(totalSales)}</h3>
             <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Total Transaction Value</p>
           </div>
 
@@ -242,7 +242,7 @@ export default function Sales() {
               <TrendingUp className="w-6 h-6 text-emerald-500" />
               <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Net Profit</span>
             </div>
-            <h3 className="text-3xl font-black mb-1 text-slate-900">${totalProfit.toLocaleString()}</h3>
+            <h3 className="text-3xl font-black mb-1 text-slate-900">{formatCurrency(totalProfit)}</h3>
             <p className="text-[9px] font-bold text-emerald-500 uppercase tracking-widest">Profit (Filtered)</p>
           </div>
 
@@ -251,7 +251,7 @@ export default function Sales() {
               <Activity className="w-6 h-6 text-indigo-600" />
               <span className="text-[8px] font-black uppercase tracking-widest text-slate-400">Avg Sale</span>
             </div>
-            <h3 className="text-3xl font-black mb-1 text-slate-900">{(totalSales / (filteredSales.length || 1)).toLocaleString()}</h3>
+            <h3 className="text-3xl font-black mb-1 text-slate-900">{formatCurrency(totalSales / (filteredSales.length || 1))}</h3>
             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Avg Ticket Size</p>
           </div>
 
@@ -310,10 +310,10 @@ export default function Sales() {
 
                 <div className="text-right flex items-center gap-8">
                   <div>
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tighter mb-1">${sale.totalAmount.toLocaleString()}</h3>
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tighter mb-1">{formatCurrency(sale.totalAmount)}</h3>
                     <div className="flex justify-end items-center gap-1 text-[9px] font-black text-emerald-500 uppercase tracking-widest">
                       <TrendingUp className="w-3 h-3" />
-                      Profit ${sale.profit.toLocaleString()}
+                      Profit {formatCurrency(sale.profit)}
                     </div>
                   </div>
 

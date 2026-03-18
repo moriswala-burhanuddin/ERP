@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
 export default function Invoices() {
@@ -121,7 +121,7 @@ export default function Invoices() {
                             <BarChart3 className="w-6 h-6" />
                         </div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Amount</p>
-                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">₹{totalAmount.toLocaleString()}</h3>
+                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{formatCurrency(totalAmount)}</h3>
                         <Zap className="absolute -right-4 -bottom-4 w-24 h-24 text-slate-50 opacity-0 group-hover:opacity-100 transition-all rotate-12" />
                     </div>
 
@@ -130,7 +130,7 @@ export default function Invoices() {
                             <AlertTriangle className="w-6 h-6" />
                         </div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 text-rose-600">Exposure / Due</p>
-                        <h3 className="text-3xl font-black text-rose-600 tracking-tighter">₹{totalDue.toLocaleString()}</h3>
+                        <h3 className="text-3xl font-black text-rose-600 tracking-tighter">{formatCurrency(totalDue)}</h3>
                     </div>
 
                     <div className="bg-black rounded-[2.5rem] p-10 text-white shadow-2xl shadow-black/20 flex flex-col justify-center relative overflow-hidden">
@@ -229,11 +229,11 @@ export default function Invoices() {
                                     <div className="flex items-center gap-10 self-end lg:self-center">
                                         <div className="text-right">
                                             <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest leading-none mb-2 opacity-50">Total</p>
-                                            <p className="text-3xl font-black text-slate-900 leading-none mb-3">₹{inv.totalAmount.toLocaleString()}</p>
+                                            <p className="text-3xl font-black text-slate-900 leading-none mb-3">{formatCurrency(inv.totalAmount)}</p>
                                             <div className={cn("flex items-center gap-2 justify-end text-[10px] font-black px-3 py-1 rounded-lg uppercase tracking-widest w-fit ml-auto",
                                                 inv.amountDue > 0 ? "bg-rose-50 text-rose-600" : "bg-emerald-50 text-emerald-600"
                                             )}>
-                                                {inv.amountDue > 0 ? `DUE: ₹${inv.amountDue.toLocaleString()}` : 'PAID'}
+                                                {inv.amountDue > 0 ? `DUE: ${formatCurrency(inv.amountDue)}` : 'PAID'}
                                             </div>
                                         </div>
 

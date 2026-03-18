@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useERPStore } from "@/lib/store-data";
 import { Search, FileText, Users2, TrendingUp, TrendingDown, ArrowLeft, Ghost, ChevronRight } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 
 export default function PartyLedger() {
     const { customers, sales, transactions } = useERPStore();
@@ -93,7 +93,7 @@ export default function PartyLedger() {
                                     </div>
                                     <div className="text-right">
                                         <p className={cn("text-xs font-black font-mono tracking-tighter", selectedPartyId === party.id ? "text-indigo-300" : "text-slate-900")}>
-                                            ₹{party.creditBalance?.toFixed(0) || '0'}
+                                            {formatCurrency(party.creditBalance || 0)}
                                         </p>
                                         <span className={cn("text-[8px] font-black uppercase", selectedPartyId === party.id ? "text-rose-300" : "text-rose-500")}>Dr</span>
                                     </div>
@@ -125,7 +125,7 @@ export default function PartyLedger() {
                                     <div className="text-right">
                                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Closing Balance</p>
                                         <h3 className={cn("text-3xl font-black tracking-tighter", closingBalance >= 0 ? "text-rose-600" : "text-emerald-600")}>
-                                            ₹{Math.abs(closingBalance).toFixed(2)}
+                                            {formatCurrency(Math.abs(closingBalance))}
                                         </h3>
                                         <span className={cn("text-[10px] font-black uppercase tracking-widest", closingBalance >= 0 ? "text-rose-400" : "text-emerald-400")}>
                                             {closingBalance >= 0 ? "Dr (Receivable)" : "Cr (Payable)"}
@@ -135,11 +135,11 @@ export default function PartyLedger() {
                                 <div className="grid grid-cols-2 gap-6 mt-8">
                                     <div className="bg-rose-50 rounded-2xl p-6">
                                         <p className="text-[9px] font-black text-rose-400 uppercase tracking-widest mb-1">Total Debit</p>
-                                        <h4 className="text-2xl font-black text-rose-600 tracking-tighter">₹{totalDebit.toLocaleString()}</h4>
+                                        <h4 className="text-2xl font-black text-rose-600 tracking-tighter">{formatCurrency(totalDebit)}</h4>
                                     </div>
                                     <div className="bg-emerald-50 rounded-2xl p-6">
                                         <p className="text-[9px] font-black text-emerald-400 uppercase tracking-widest mb-1">Total Credit</p>
-                                        <h4 className="text-2xl font-black text-emerald-600 tracking-tighter">₹{totalCredit.toLocaleString()}</h4>
+                                        <h4 className="text-2xl font-black text-emerald-600 tracking-tighter">{formatCurrency(totalCredit)}</h4>
                                     </div>
                                 </div>
                             </div>
@@ -165,13 +165,13 @@ export default function PartyLedger() {
                                             <div className="px-4 text-[10px] font-black text-slate-400 uppercase">{entry.type}</div>
                                             <div className="px-4 text-[10px] font-black text-slate-300 font-mono tracking-widest">{entry.voucherNo}</div>
                                             <div className="px-4 text-right text-[11px] font-black text-rose-600 font-mono">
-                                                {entry.debit > 0 ? `₹${entry.debit.toFixed(2)}` : '—'}
+                                                {entry.debit > 0 ? formatCurrency(entry.debit) : '—'}
                                             </div>
                                             <div className="px-4 text-right text-[11px] font-black text-emerald-600 font-mono">
-                                                {entry.credit > 0 ? `₹${entry.credit.toFixed(2)}` : '—'}
+                                                {entry.credit > 0 ? formatCurrency(entry.credit) : '—'}
                                             </div>
                                             <div className={cn("px-4 text-right text-[11px] font-black font-mono", entry.balance >= 0 ? "text-rose-600" : "text-emerald-600")}>
-                                                ₹{Math.abs(entry.balance).toFixed(2)} {entry.balance >= 0 ? 'Dr' : 'Cr'}
+                                                {formatCurrency(Math.abs(entry.balance))} {entry.balance >= 0 ? 'Dr' : 'Cr'}
                                             </div>
                                         </div>
                                     ))}

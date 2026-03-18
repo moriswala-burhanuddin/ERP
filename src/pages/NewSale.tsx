@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency, CURRENCY_SYMBOL } from "@/lib/utils";
 import { generateId } from '@/lib/utils';
 
 interface CartItem {
@@ -235,7 +235,7 @@ export default function NewSale() {
       if (finalPayments.length === 0) {
         finalPayments = [{ mode: 'cash', amount: totalAmount, accountId: accountId }];
       } else if (remainingBalance > 0.01) {
-        toast.error(`Payment Shortfall: $${remainingBalance.toFixed(2)}`);
+        toast.error(`Payment Shortfall: ${formatCurrency(remainingBalance)}`);
         return;
       }
     }
@@ -298,7 +298,7 @@ export default function NewSale() {
 
     setCart(prev => prev.map(item => {
       if (item.productId === overrideItem) {
-        addActivityLog({ action: 'PRICE_OVERRIDE', details: `Item: ${item.productName}, Orig: $${item.price}, New: $${price}` });
+        addActivityLog({ action: 'PRICE_OVERRIDE', details: `Item: ${item.productName}, Orig: ${formatCurrency(item.price)}, New: ${formatCurrency(price)}` });
         return { ...item, price };
       }
       return item;
@@ -357,7 +357,7 @@ export default function NewSale() {
                         <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{item.sku} • {item.type === 'KIT' ? 'COMBO' : `${item.quantity} IN STOCK`}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-black text-slate-900">${item.sellingPrice.toLocaleString()}</p>
+                        <p className="font-black text-slate-900">{formatCurrency(item.sellingPrice)}</p>
                         <Plus className="w-4 h-4 text-indigo-600 inline ml-2" />
                       </div>
                     </button>
@@ -390,7 +390,7 @@ export default function NewSale() {
             <div className="h-10 w-px bg-slate-100 mx-2" />
             <div className="bg-black text-white px-6 py-2 rounded-2xl flex flex-col items-center justify-center min-w-[100px]">
               <span className="text-[8px] font-black opacity-40 uppercase tracking-widest mb-0.5 leading-none">Gross Total</span>
-              <span className="text-lg font-black tracking-tight leading-none">${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+              <span className="text-lg font-black tracking-tight leading-none">{formatCurrency(totalAmount)}</span>
             </div>
           </div>
         </div>
@@ -430,7 +430,7 @@ export default function NewSale() {
                       onChange={(e) => setAccountId(e.target.value)}
                       className="w-full h-14 bg-slate-50 border-none rounded-2xl px-6 text-[11px] font-bold uppercase focus:ring-2 focus:ring-black appearance-none"
                     >
-                      {accounts.map(a => <option key={a.id} value={a.id}>{a.name} (${a.balance.toLocaleString()})</option>)}
+                      {accounts.map(a => <option key={a.id} value={a.id}>{a.name} ({formatCurrency(a.balance)})</option>)}
                     </select>
                   </div>
                 </div>
@@ -573,7 +573,7 @@ export default function NewSale() {
                           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{item.sku} • {item.type === 'KIT' ? 'COMBO' : `${(item as Product & { type: 'PRODUCT' }).quantity} IN STOCK`}</p>
                         </div>
                         <div className="text-right">
-                          <p className="font-black text-slate-900">${item.sellingPrice.toLocaleString()}</p>
+                          <p className="font-black text-slate-900">{formatCurrency(item.sellingPrice)}</p>
                           <Plus className="w-4 h-4 text-indigo-600 inline ml-2" />
                         </div>
                       </button>
@@ -597,7 +597,7 @@ export default function NewSale() {
                             onClick={() => { setOverrideItem(item.productId); setOverrideValue(item.price.toString()); setShowOverrideDialog(true); }}
                             className="text-[10px] font-black text-indigo-500 uppercase tracking-widest hover:text-indigo-700 underline underline-offset-4 decoration-indigo-200"
                           >
-                            ${item.price.toLocaleString()} / Unit (Override)
+                            {formatCurrency(item.price)} / Unit (Override)
                           </button>
                         </div>
                       </div>
@@ -622,7 +622,7 @@ export default function NewSale() {
                         </div>
 
                         <div className="w-32 text-right">
-                          <h5 className="text-xl font-black text-slate-900 tracking-tighter">${((item.price - item.discount) * item.quantity).toLocaleString()}</h5>
+                          <h5 className="text-xl font-black text-slate-900 tracking-tighter">{formatCurrency((item.price - item.discount) * item.quantity)}</h5>
                           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Total</p>
                         </div>
 
@@ -704,7 +704,7 @@ export default function NewSale() {
                         className="flex-1 bg-white border-none rounded-xl h-10 px-4 text-[9px] font-black uppercase focus:ring-1 focus:ring-black"
                       >
                         <option value="">SCAN OR SELECT VOUCHER</option>
-                        {giftCards.filter(gc => gc.isActive).map(gc => <option key={gc.id} value={gc.id}>{gc.cardNumber} (Bal: ${gc.balance})</option>)}
+                        {giftCards.filter(gc => gc.isActive).map(gc => <option key={gc.id} value={gc.id}>{gc.cardNumber} (Bal: {formatCurrency(gc.balance)})</option>)}
                       </select>
                     ) : (
                       <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
@@ -730,13 +730,13 @@ export default function NewSale() {
             <div className="space-y-6 pt-10 border-t border-slate-50">
               <div className="flex justify-between items-center group">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Cart Subtotal</span>
-                <span className="text-sm font-black text-slate-900">${subtotal.toLocaleString()}</span>
+                <span className="text-sm font-black text-slate-900">{formatCurrency(subtotal)}</span>
               </div>
 
               <div className="flex justify-between items-center">
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Discount</span>
                 <div className="relative">
-                  <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-3 h-3 text-slate-400" />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[8px] text-slate-400 font-black">{CURRENCY_SYMBOL}</span>
                   <input
                     type="number"
                     value={billDiscount}
@@ -762,7 +762,7 @@ export default function NewSale() {
                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Projected Margin</span>
                 <div className="flex items-center gap-2 text-emerald-500 font-black text-[10px]">
                   <TrendingUp className="w-4 h-4" />
-                  +${cart.reduce((sum, item) => sum + (((item.price - item.discount) - item.purchasePrice) * item.quantity), 0) - billDiscount}
+                  +{formatCurrency(cart.reduce((sum, item) => sum + (((item.price - item.discount) - item.purchasePrice) * item.quantity), 0) - billDiscount)}
                 </div>
               </div>
 
@@ -771,12 +771,12 @@ export default function NewSale() {
               <div className="bg-slate-50 rounded-[2rem] p-8 space-y-6">
                 <div className="flex justify-between items-center">
                   <p className="text-[10px] font-black text-indigo-900 uppercase tracking-[0.3em]">Payable Amount</p>
-                  <p className="text-3xl font-black text-slate-900 tracking-tighter">${totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}</p>
+                  <p className="text-3xl font-black text-slate-900 tracking-tighter">{formatCurrency(totalAmount)}</p>
                 </div>
                 <div className="flex justify-between items-center">
                   <p className="text-[10px] font-black text-slate-400 uppercase">Remaining Balance</p>
                   <p className={cn("text-lg font-black tracking-tight", remainingBalance > 0.01 ? "text-red-600" : "text-emerald-500")}>
-                    ${Math.abs(remainingBalance).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    {formatCurrency(Math.abs(remainingBalance))}
                     {remainingBalance < 0 && ' (CHANGE)'}
                   </p>
                 </div>

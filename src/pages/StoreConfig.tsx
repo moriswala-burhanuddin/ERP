@@ -51,16 +51,9 @@ const StoreConfig = () => {
     };
 
     const tabs = [
-        { id: 'company', label: 'Identity', icon: <Building2 className="w-4 h-4" /> },
-        { id: 'tax', label: 'Tax Settings', icon: <Calculator className="w-4 h-4" /> },
-        { id: 'currency', label: 'Monetary Units', icon: <Coins className="w-4 h-4" /> },
-        { id: 'payments', label: 'Settlement', icon: <CreditCard className="w-4 h-4" /> },
-        { id: 'delivery', label: 'Logistics', icon: <Truck className="w-4 h-4" /> },
-        { id: 'returns', label: 'Reversal', icon: <RefreshCcw className="w-4 h-4" /> },
-        { id: 'sales', label: 'Transaction POS', icon: <ShoppingBag className="w-4 h-4" /> },
-        { id: 'suspended', label: 'Queue Buffer', icon: <PauseCircle className="w-4 h-4" /> },
-        { id: 'integrations', label: 'Nexus Link', icon: <Link2 className="w-4 h-4" /> },
-        { id: 'advanced', label: 'Core Modules', icon: <Settings2 className="w-4 h-4" /> },
+        { id: 'company', label: 'Store Identity', icon: <Building2 className="w-4 h-4" /> },
+        { id: 'integrations', label: 'Online Store', icon: <Globe className="w-4 h-4" /> },
+        { id: 'advanced', label: 'Advanced', icon: <Settings2 className="w-4 h-4" /> },
     ];
 
     return (

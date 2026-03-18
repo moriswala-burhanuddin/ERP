@@ -20,7 +20,8 @@ import {
     ClipboardList,
     BookOpen,
     Undo2,
-    Bell
+    Bell,
+    Shield
 } from "lucide-react";
 
 export type Role = 'admin' | 'staff' | 'user' | 'hr_manager' | 'super_admin' | 'sales_manager' | 'inventory_manager' | 'accountant' | 'employee';
@@ -30,6 +31,7 @@ export interface NavItem {
     href: string;
     icon: LucideIcon;
     variant?: "default" | "ghost";
+    moduleKey?: string;
 }
 
 export const ROLE_SIDEBARS: Record<Role, NavItem[]> = {
@@ -44,16 +46,19 @@ export const ROLE_SIDEBARS: Record<Role, NavItem[]> = {
         { title: "Suppliers", href: "/suppliers", icon: Truck },
         { title: "Purchases", href: "/purchases", icon: ShoppingBag },
         { title: "Goods Receiving", href: "/receivings", icon: Package },
-        { title: "HR Department", href: "/hr", icon: Users },
-        { title: "Accounts", href: "/accounts", icon: BookOpen },
+        { title: "HR Department", href: "/hr", icon: Users, moduleKey: 'employeeManagement' },
+        { title: "Accounts", href: "/accounts", icon: BookOpen, moduleKey: 'storeAccount' },
         { title: "Cheques", href: "/finance/cheques", icon: CreditCard },
         { title: "Invoices", href: "/invoices", icon: FileText },
+        { title: "Quotations", href: "/quotations", icon: FileText, moduleKey: 'quotations' },
+        { title: "Day Book", href: "/day-book", icon: BookOpen, moduleKey: 'dayBook' },
+        { title: "Party Ledger", href: "/party-ledger", icon: BookOpen, moduleKey: 'partyLedger' },
+        { title: "Price Check", href: "/price-check", icon: Calculator, moduleKey: 'priceCheck' },
         { title: "Settings", href: "/more", icon: Settings },
         { title: "P & L", href: "/profit-loss", icon: PieChart },
         { title: "Reports", href: "/reports", icon: FileText },
         { title: "Stores", href: "/stores", icon: BookOpen },
         { title: "Online Store", href: "/ecommerce", icon: ShoppingBag },
-        { title: "Returns", href: "/ecommerce/returns", icon: Undo2 },
         { title: "Notifications", href: "/notifications", icon: Bell },
         { title: "Users", href: "/users", icon: Users },
         { title: "Store Config", href: "/store-config", icon: Settings },

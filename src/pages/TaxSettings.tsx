@@ -60,7 +60,7 @@ export default function TaxSettings() {
                                 <Input
                                     value={newSlab.name}
                                     onChange={e => setNewSlab({ ...newSlab, name: e.target.value })}
-                                    placeholder="E.G. GST_OUTPUT_18"
+                                    placeholder="E.G. VAT_OUTPUT_15"
                                     className="h-14 bg-slate-50 border-none rounded-2xl px-6 text-[11px] font-black uppercase focus:ring-2 focus:ring-black"
                                 />
                             </div>

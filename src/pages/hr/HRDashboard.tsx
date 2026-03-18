@@ -3,7 +3,7 @@ import { useERPStore } from "@/lib/store-data";
 import { Button } from "@/components/ui/button";
 import { Users, Clock, CalendarCheck, UserX, CreditCard, FileText, Zap, TrendingUp, ShieldCheck, Activity, Target, Briefcase, Plus, Search, ChevronRight, Bell, Gauge } from "lucide-react";
 import { HRAttendance } from "@/lib/store-data";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 
 interface HRDashboardProps {
     isEmployeeView?: boolean;

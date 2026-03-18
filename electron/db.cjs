@@ -2738,7 +2738,111 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     return db.prepare('DELETE FROM users WHERE id = ?').run(id);
   },
 
+  clearLocalData: (storeId) => {
+    const db = getDb();
+    const transaction = db.transaction(() => {
+      // 1. Keep 3 Products
+      const recentProducts = db.prepare('SELECT id FROM products WHERE store_id = ? ORDER BY updated_at DESC LIMIT 3').all(storeId);
+      const productIds = recentProducts.map(p => p.id);
+      
+      const placeholders = productIds.map(() => '?').join(',');
+      if (productIds.length > 0) {
+        db.prepare(`DELETE FROM products WHERE store_id = ? AND id NOT IN (${placeholders})`).run(storeId, ...productIds);
+      } else {
+        db.prepare('DELETE FROM products WHERE store_id = ?').run(storeId);
+      }
+
+      // 2. Keep 3 Sales
+      const recentSales = db.prepare('SELECT id FROM sales WHERE store_id = ? ORDER BY date DESC LIMIT 3').all(storeId);
+      const saleIds = recentSales.map(s => s.id);
+      
+      const salePlaceholders = saleIds.map(() => '?').join(',');
+      if (saleIds.length > 0) {
+        db.prepare(`DELETE FROM sales WHERE store_id = ? AND id NOT IN (${salePlaceholders})`).run(storeId, ...saleIds);
+        // Clear sale items for deleted sales
+        db.prepare(`DELETE FROM sale_items WHERE sale_id NOT IN (SELECT id FROM sales)`).run();
+        db.prepare(`DELETE FROM sale_payments WHERE sale_id NOT IN (SELECT id FROM sales)`).run();
+      } else {
+        db.prepare('DELETE FROM sales WHERE store_id = ?').run(storeId);
+        db.prepare('DELETE FROM sale_items').run();
+        db.prepare('DELETE FROM sale_payments').run();
+      }
+
+      // 3. Clear other tables completely
+      const tablesToClear = [
+        'customers', 'suppliers', 'purchases', 'transactions', 
+        'quotations', 'receivings', 'receiving_items', 'invoices', 
+        'invoice_items', 'cheques', 'item_kits', 'stock_transfers',
+        'attendance', 'leaves', 'payroll', 'gift_cards', 'work_orders'
+      ];
+
+      for (const table of tablesToClear) {
+        db.prepare(`DELETE FROM ${table} WHERE store_id = ?`).run(storeId);
+      }
+      
+      return true;
+    });
+
+    try {
+      return transaction();
+    } catch (error) {
+      console.error('Local data reset failed:', error);
+      throw error;
+    }
+  },
+
   getAllAccounts: (storeId) => db.prepare('SELECT * FROM accounts WHERE store_id = ?').all(storeId).map(toCamelCase),
+
+  addAccount: (account) => {
+    const stmt = db.prepare(`
+      INSERT INTO accounts (id, name, type, balance, store_id, device_id, updated_at, sync_status)
+      VALUES (?, ?, ?, ?, ?, ?, datetime('now'), 0)
+    `)
+    stmt.run(
+      account.id, account.name, account.type, account.balance || 0,
+      account.storeId, deviceId
+    )
+    return toCamelCase(db.prepare('SELECT * FROM accounts WHERE id = ?').get(account.id))
+  },
+
+  updateAccount: (id, updates) => {
+    const fields = []
+    const values = []
+    const fieldMap = {
+      name: 'name',
+      type: 'type',
+      balance: 'balance'
+    }
+
+    Object.keys(updates).forEach(key => {
+      if (fieldMap[key]) {
+        fields.push(`${fieldMap[key]} = ?`)
+        values.push(updates[key])
+      }
+    })
+
+    if (fields.length === 0) return null
+
+    fields.push(`updated_at = datetime('now')`)
+    fields.push(`sync_status = 0`)
+    values.push(id)
+
+    const stmt = db.prepare(`UPDATE accounts SET ${fields.join(', ')} WHERE id = ?`)
+    stmt.run(...values)
+    return toCamelCase(db.prepare('SELECT * FROM accounts WHERE id = ?').get(id))
+  },
+
+  deleteAccount: (id) => {
+    // Check if account has transactions or sales linked to it
+    const txCount = db.prepare('SELECT COUNT(*) as count FROM transactions WHERE account_id = ?').get(id).count
+    const saleCount = db.prepare('SELECT COUNT(*) as count FROM sales WHERE account_id = ?').get(id).count
+    
+    if (txCount > 0 || saleCount > 0) {
+      throw new Error('Cannot delete account with existing transactions or sales.')
+    }
+
+    return db.prepare('DELETE FROM accounts WHERE id = ?').run(id)
+  },
   getAllQuotations: (storeId) => {
     const quotations = db.prepare('SELECT * FROM quotations WHERE store_id = ? ORDER BY date DESC').all(storeId)
     return quotations.map(q => {

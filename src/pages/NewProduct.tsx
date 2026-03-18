@@ -4,7 +4,7 @@ import { useERPStore } from '@/lib/store-data';
 import { Package, Save, X, Sparkles, Loader2, ArrowLeft, Barcode, DollarSign, Info, ShieldCheck, Tag } from 'lucide-react';
 import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency, CURRENCY_SYMBOL } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useLicense } from '@/contexts/LicenseContext';
 
@@ -252,7 +252,7 @@ export default function NewProduct() {
               <div className="space-y-3">
                 <div className="flex justify-between items-center">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Product Name *</label>
-                  {hasFeature('ai_features') && (
+                  {hasFeature('Reorder Optimization') && (
                     <button
                       type="button"
                       onClick={handleAiSuggest}
@@ -354,14 +354,14 @@ export default function NewProduct() {
               <div className="space-y-3">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Purchase Price *</label>
                 <div className="relative group">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 font-black">$</span>
+                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 font-black">{CURRENCY_SYMBOL}</span>
                   <input name="purchasePrice" type="number" step="0.01" value={formData.purchasePrice} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-5 font-black text-slate-900 focus:ring-2 focus:ring-black" />
                 </div>
               </div>
               <div className="space-y-3">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Selling Price *</label>
                 <div className="relative group">
-                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 font-black">$</span>
+                  <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 font-black">{CURRENCY_SYMBOL}</span>
                   <input name="sellingPrice" type="number" step="0.01" value={formData.sellingPrice} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-5 font-black text-slate-900 focus:ring-2 focus:ring-black" />
                 </div>
               </div>

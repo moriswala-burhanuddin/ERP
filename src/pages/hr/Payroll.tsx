@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useERPStore } from "@/lib/store-data";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { toast } from "sonner";
 import { ArrowLeft, Download, Calculator, DollarSign, TrendingDown, TrendingUp, ShieldCheck, Ghost, CreditCard, CheckCircle2, Clock } from "lucide-react";
 
@@ -57,14 +57,14 @@ const Payroll = ({ isEmployeeView = false }: PayrollProps) => {
                             <DollarSign className="w-6 h-6" />
                         </div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Pay (Net)</p>
-                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">₹{totalNet.toLocaleString()}</h3>
+                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{formatCurrency(totalNet)}</h3>
                     </div>
                     <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white">
                         <div className="p-4 bg-indigo-50 rounded-2xl w-fit mb-8 text-indigo-500">
                             <TrendingUp className="w-6 h-6" />
                         </div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Allowances</p>
-                        <h3 className="text-3xl font-black text-emerald-600 tracking-tighter">+₹{totalAllowances.toLocaleString()}</h3>
+                        <h3 className="text-3xl font-black text-emerald-600 tracking-tighter">+{formatCurrency(totalAllowances)}</h3>
                     </div>
                     <div className="bg-black rounded-[2.5rem] p-10 text-white shadow-2xl shadow-black/20 flex flex-col justify-center">
                         <div className="flex justify-between items-start mb-6">
@@ -73,7 +73,7 @@ const Payroll = ({ isEmployeeView = false }: PayrollProps) => {
                             </div>
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Deductions</span>
                         </div>
-                        <h3 className="text-3xl font-black tracking-tighter">-₹{totalDeductions.toLocaleString()}</h3>
+                        <h3 className="text-3xl font-black tracking-tighter">-{formatCurrency(totalDeductions)}</h3>
                     </div>
                 </div>
 
@@ -113,19 +113,19 @@ const Payroll = ({ isEmployeeView = false }: PayrollProps) => {
                                     <div className="flex items-center gap-8 md:gap-16">
                                         <div className="text-center">
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Basic</p>
-                                            <p className="text-sm font-black text-slate-900">₹{row.basicSalary.toLocaleString()}</p>
+                                            <p className="text-sm font-black text-slate-900">{formatCurrency(row.basicSalary)}</p>
                                         </div>
                                         <div className="text-center">
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Deductions</p>
-                                            <p className="text-sm font-black text-rose-600">-₹{row.deductions.toLocaleString()}</p>
+                                            <p className="text-sm font-black text-rose-600">-{formatCurrency(row.deductions)}</p>
                                         </div>
                                         <div className="text-center">
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Allowances</p>
-                                            <p className="text-sm font-black text-emerald-600">+₹{row.allowances.toLocaleString()}</p>
+                                            <p className="text-sm font-black text-emerald-600">+{formatCurrency(row.allowances)}</p>
                                         </div>
                                         <div className="text-center min-w-[100px]">
                                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Net</p>
-                                            <p className="text-xl font-black text-slate-900 tracking-tighter">₹{row.netSalary.toLocaleString()}</p>
+                                            <p className="text-xl font-black text-slate-900 tracking-tighter">{formatCurrency(row.netSalary)}</p>
                                         </div>
                                         <Button variant="ghost" className="h-14 w-14 rounded-2xl bg-white text-slate-200 hover:text-black border border-slate-100 shadow-sm transition-all">
                                             <Download className="w-5 h-5" />

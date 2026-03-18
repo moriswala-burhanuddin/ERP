@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useERPStore } from "@/lib/store-data";
 import { TrendingUp, TrendingDown, Target, Zap, Activity, PieChart, ArrowUpRight, ArrowDownRight, Scale, Wallet, Briefcase, BarChart3, ChevronRight, Download, Calendar as CalendarIcon, Filter, Search, MoreVertical, Ghost } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 const ProfitAndLoss = () => {
@@ -33,7 +33,7 @@ const ProfitAndLoss = () => {
     }, [sales, purchases, transactions]);
 
     const FormatCurrency = ({ amount, className }: { amount: number, className?: string }) => (
-        <span className={cn("font-black tracking-tighter", className)}>₹{amount.toLocaleString()}</span>
+        <span className={cn("font-black tracking-tighter", className)}>{formatCurrency(amount)}</span>
     );
 
     return (
@@ -72,7 +72,7 @@ const ProfitAndLoss = () => {
                             <TrendingUp className="w-5 h-5" />
                         </div>
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Gross Yield</p>
-                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter">₹{financials.grossProfit.toLocaleString()}</h3>
+                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{formatCurrency(financials.grossProfit)}</h3>
                     </div>
                     <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-white">
                         <div className="p-3 bg-indigo-50 rounded-xl w-fit mb-6 text-indigo-500">
@@ -87,13 +87,13 @@ const ProfitAndLoss = () => {
                             <ArrowDownRight className="w-5 h-5" />
                         </div>
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Friction (Expenses)</p>
-                        <h3 className="text-2xl font-black text-rose-600 tracking-tighter">₹{financials.totalExpenses.toLocaleString()}</h3>
+                        <h3 className="text-2xl font-black text-rose-600 tracking-tighter">{formatCurrency(financials.totalExpenses)}</h3>
                     </div>
                     <div className="bg-black rounded-[2.5rem] p-8 text-white shadow-xl shadow-black/10 overflow-hidden relative group">
                         <Zap className="absolute -right-10 -top-10 w-40 h-40 text-white/5 rotate-12 group-hover:rotate-45 transition-transform duration-1000" />
                         <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2">Net Synthesized Profit</p>
                         <h3 className={cn("text-3xl font-black tracking-tighter mb-2", financials.netProfit >= 0 ? "text-emerald-400" : "text-rose-400")}>
-                            ₹{financials.netProfit.toLocaleString()}
+                            {formatCurrency(financials.netProfit)}
                         </h3>
                         <div className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />

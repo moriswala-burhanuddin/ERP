@@ -10,6 +10,7 @@ import { useState, useEffect } from "react";
 import { generateId, generateInvoice } from './utils';
 
 // Types
+type Updates<T> = Partial<T> & { id?: string };
 export type Role = 'admin' | 'staff' | 'user' | 'hr_manager' | 'super_admin' | 'sales_manager' | 'inventory_manager' | 'accountant' | 'employee';
 
 export interface User {
@@ -800,6 +801,11 @@ interface ERPState {
   deleteDeliveryZone: (id: string) => Promise<void>;
   toggleDriverStatus: (userId: string, isDriver: boolean) => Promise<void>;
 
+  // Account Actions
+  addAccount: (account: Account) => Promise<void>;
+  updateAccount: (id: string, updates: Updates<Account>) => Promise<void>;
+  deleteAccount: (id: string) => Promise<boolean>;
+
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void;
 
   addPurchase: (purchase: Omit<Purchase, 'id' | 'invoiceNumber'>) => void;
@@ -863,7 +869,8 @@ interface ERPState {
 
   // Database sync
   isSyncing: boolean;
-  syncData: () => Promise<void>;
+  syncData: () => Promise<'success' | 'error' | 'already_syncing' | 'no_token' | 'not_electron' | 'bypass_mode'>;
+  resetSyncStatus: () => void;
   loadFromDatabase: () => Promise<void>;
 
   // Supplier Actions
@@ -918,6 +925,7 @@ interface ERPState {
 
   // Security Actions
   addActivityLog: (log: Omit<ActivityLog, 'id' | 'timestamp' | 'userId' | 'userName' | 'storeId'>) => void;
+  clearLocalData: () => Promise<void>;
 }
 
 export const useERPStore = create<ERPState>()(
@@ -1321,6 +1329,40 @@ export const useERPStore = create<ERPState>()(
         if (isElectron()) await dbAdapter.deleteCategory(id);
       },
 
+      // Account Actions
+      addAccount: async (accountData: Account) => {
+        const id = generateId('acc');
+        const newAccount: Account = {
+          ...accountData,
+          id,
+          updatedAt: new Date().toISOString(),
+        } as Account;
+        set(state => ({ accounts: [...state.accounts, newAccount] }));
+        if (isElectron()) await dbAdapter.addAccount(newAccount);
+      },
+
+      updateAccount: async (id: string, updates: Updates<Account>) => {
+        set(state => ({
+          accounts: state.accounts.map(a => a.id === id ? { ...a, ...updates, updatedAt: new Date().toISOString() } : a)
+        }));
+        if (isElectron()) await dbAdapter.updateAccount(id, updates);
+      },
+
+      deleteAccount: async (id: string) => {
+        try {
+          if (isElectron()) {
+            await dbAdapter.deleteAccount(id);
+          }
+          set(state => ({
+            accounts: state.accounts.filter(a => a.id !== id)
+          }));
+          return true;
+        } catch (error) {
+          console.error('Delete account failed:', error);
+          throw error;
+        }
+      },
+
       // Customer Actions
       addCustomer: (customer) => {
         const newCustomer = { ...customer, id: generateId(), updatedAt: new Date().toISOString() };
@@ -1691,17 +1733,18 @@ export const useERPStore = create<ERPState>()(
         });
       },
 
-      addActivityLog: (logData) => {
+      addActivityLog: (log: { action: string; details: string }) => {
         const { currentUser, activeStoreId } = get();
-        const log: ActivityLog = {
-          ...logData,
-          id: generateId(),
+        const newLog: ActivityLog = {
+          id: generateId('log'),
+          userId: currentUser?.id || 'system',
+          userName: currentUser?.name || 'System',
+          action: log.action,
+          details: log.details,
           timestamp: new Date().toISOString(),
-          userId: currentUser?.id || 'unknown',
-          userName: currentUser?.name || 'Unknown User',
-          storeId: activeStoreId
+          storeId: activeStoreId,
         };
-        set(state => ({ activityLogs: [log, ...state.activityLogs] }));
+        set(state => ({ activityLogs: [newLog, ...state.activityLogs] }));
       },
 
       deletePurchase: (id) => {
@@ -1986,14 +2029,33 @@ export const useERPStore = create<ERPState>()(
       getStoreUsers: () => get().users.filter(u => u.storeId === get().activeStoreId),
       getActiveStore: () => get().stores.find(s => s.id === get().activeStoreId),
 
-      // Database sync - Load data from Electron SQLite when available
-      syncData: async () => {
-        const { isSyncing, accessToken, refreshToken, activeStoreId, loadFromDatabase, logout } = get();
-
-        // Skip sync for mock tokens/local sessions to avoid 401 logouts
-        if (isSyncing || !accessToken || !isElectron() || accessToken === 'mock-local-token') return;
-
-        set({ isSyncing: true });
+        // Database sync - Load data from Electron SQLite when available
+        syncData: async () => {
+          const { isSyncing, accessToken, refreshToken, activeStoreId, loadFromDatabase, logout } = get();
+  
+          console.log('[SYNC] Request received. Current state:', { isSyncing, hasToken: !!accessToken, isElectron: isElectron() });
+  
+          // Skip sync for mock tokens/local sessions/bypass accounts to avoid 401 logouts
+          const isMockToken = accessToken === 'mock-local-token' || accessToken === 'bypass-token-offline';
+          
+          if (isSyncing) {
+            console.warn('[SYNC] Already syncing, ignoring request.');
+            return 'already_syncing';
+          }
+          if (!accessToken) {
+            console.warn('[SYNC] No access token found. Please login.');
+            return 'no_token';
+          }
+          if (!isElectron()) {
+            console.warn('[SYNC] Not in electron, skipping sync.');
+            return 'not_electron';
+          }
+          if (isMockToken) {
+            console.log('%c[SYNC] Skipping cloud sync for local/bypass session. Real Django login required for sync.', 'color: orange; font-weight: bold;');
+            return 'bypass_mode';
+          }
+  
+          set({ isSyncing: true });
 
         // Helper to handle API requests with refresh retry
         const authenticatedFetch = async (url: string, options: RequestInit, retry = true): Promise<Response> => {
@@ -2034,61 +2096,52 @@ export const useERPStore = create<ERPState>()(
 
         try {
           console.log('[SYNC] Starting two-way sync...');
+          
           // 1. PUSH
-          const dirtyData = await window.electronAPI.getDirtyData();
-          console.log('[SYNC] Dirty data check complete:', dirtyData ? `${dirtyData.totalCount} records` : '0 records');
-
-          if (dirtyData) {
-            console.log('[SYNC] Push initiated');
-            console.log('[SYNC] Push payload size:', JSON.stringify(dirtyData).length);
-            const response = await authenticatedFetch(`${API_URL}/sync/push`, {
+          const dirtyData = await (window as any).electronAPI.getDirtyData();
+          if (dirtyData && dirtyData.totalCount > 0) {
+            console.log(`[SYNC] Pushing ${dirtyData.totalCount} changes to cloud...`);
+            const pushResponse = await authenticatedFetch(`${API_URL}/sync/push`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(dirtyData),
+              body: JSON.stringify({
+                deviceId: dirtyData.deviceId,
+                payload: dirtyData.payload
+              })
             });
 
-            // If we logged out during fetch, stop
-            if (!get().isAuthenticated) return;
-
-            let pushResult: Record<string, unknown> | null = null;
-            let pushText = '';
-            try {
-              pushText = await response.text();
-              if (response.headers.get('content-type')?.includes('application/json')) {
-                pushResult = JSON.parse(pushText);
+            if (pushResponse.ok) {
+              const pushResult = await pushResponse.json();
+              console.log('%c[SYNC] PUSH RESPONSE:', 'color: green; font-weight: bold; font-size: 14px', pushResult);
+              
+              if (pushResult.sync_version) {
+                console.log(`%c[SYNC] Server Version: ${pushResult.sync_version}`, 'color: blue; font-weight: bold');
+              } else {
+                console.warn('%c[SYNC] WARNING: No sync_version from server. VPS might be OUTDATED!', 'color: red; font-weight: bold');
               }
-            } catch (e) {
-              console.error('[SYNC] Failed to parse push response');
-            }
 
-            if (!response.ok) {
-              console.error('[SYNC] Push failed with status:', response.status);
-              console.error('[SYNC] Push error detail:', pushText || pushResult);
-              // We do NOT return here, we want to try PULLING anyway
+              const totalSynced = Object.values(pushResult.synced_ids || {}).reduce((acc: number, ids: any) => acc + (ids?.length || 0), 0);
+              console.log(`%c[SYNC] Total IDs synced: ${totalSynced}`, 'color: green; font-size: 12px');
+              
+              if (pushResult.synced_ids) {
+                await (window as any).electronAPI.markAsSynced(pushResult.synced_ids);
+                console.log('[SYNC] Local database updated with synced status');
+              }
+              console.log('[SYNC] Push successful');
+            } else {
+              const pushErrorText = await pushResponse.text();
+              console.error(`%c[SYNC] Push failed (400/500). Status: ${pushResponse.status}`, 'color: red; font-weight: bold');
+              console.error(`[SYNC] Error detail: ${pushErrorText}`);
             }
-
-            if (response.ok) {
-              // Build synced_ids from VPS response OR fall back to all records in local payload
-              // This prevents invalid local records (e.g. seed data) from looping as "pending" forever
-              const confirmedIds = ((pushResult as unknown as SyncResponse)?.synced_ids && Object.keys((pushResult as unknown as SyncResponse).synced_ids as object).length > 0)
-                ? ((pushResult as unknown as SyncResponse).synced_ids as Record<string, string[]>)
-                : Object.fromEntries(
-                  Object.entries((dirtyData as { payload: Record<string, { id: string }[]> }).payload || {}).map(([tbl, rows]) => [
-                    tbl, rows.map((r: { id: string }) => r.id)
-                  ])
-                );
-              await window.electronAPI.markAsSynced(confirmedIds);
-              console.log('[SYNC] Push completed & marked');
-            }
+          } else {
+            console.log('[SYNC] No local changes to push.');
           }
 
           // 2. PULL
-          const lastSync = await window.electronAPI.getLastPullTimestamp() || '2000-01-01T00:00:00.000Z';
-          // Use authenticated fetch for pull as well
-          console.log('[SYNC] Pull initiated with:', {
-            store_id: activeStoreId,
-            last_sync: lastSync
-          });
+          console.log('[SYNC] Starting Pull stage...');
+          const lastSync = await (window as any).electronAPI.getLastPullTimestamp() || '2000-01-01T00:00:00.000Z';
+          console.log('[SYNC] Pulling updates since:', lastSync);
+          
           const pullResponse = await authenticatedFetch(`${API_URL}/sync/pull`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2098,46 +2151,38 @@ export const useERPStore = create<ERPState>()(
             }),
           });
 
-          let pullResult: Record<string, unknown> | null = null;
-          let pullText = '';
-          try {
-            pullText = await pullResponse.text();
-            if (pullResponse.headers.get('content-type')?.includes('application/json')) {
-              pullResult = JSON.parse(pullText);
-            }
-          } catch (e) {
-            console.error('[SYNC] Failed to parse pull response');
-          }
-
-          if (!pullResponse.ok) {
-            console.error('[SYNC] Pull failed with status:', pullResponse.status);
-            console.error('[SYNC] Pull error detail:', pullText || pullResult);
-            set({ isSyncing: false });
-            return;
-          }
-
-          // If we logged out during fetch, stop
-          if (!get().isAuthenticated) return;
-
-          if (pullResponse.ok && pullResult) {
-            const result = pullResult as unknown as SyncResponse;
-            if (result.status === 'success' && result.updates) {
-              console.log('[SYNC] Pull received updates for tables:', Object.keys(result.updates));
-              const applyResult = await window.electronAPI.applyCloudUpdates({
-                updates: result.updates,
-                serverTime: result.server_time || ''
+          if (pullResponse.ok) {
+            const pullResult = await pullResponse.json();
+            if (pullResult.status === 'success' && pullResult.updates) {
+              const tableNames = Object.keys(pullResult.updates);
+              console.log(`[SYNC] Pull received updates for ${tableNames.length} tables:`, tableNames);
+              const applyResult = await (window as any).electronAPI.applyCloudUpdates({
+                updates: pullResult.updates,
+                serverTime: pullResult.server_time || ''
               });
               if (applyResult.success) {
-                await loadFromDatabase(); // Refresh local state
+                console.log('[SYNC] Local state refreshing from DB...');
+                await loadFromDatabase(); 
               }
             }
+            console.log('%c[SYNC] TWO-WAY SYNC COMPLETED SUCCESSFULLY', 'color: green; font-weight: bold; font-size: 16px');
+            return 'success';
+          } else {
+            console.error(`[SYNC] Pull stage failed with status: ${pullResponse.status}`);
+            return 'error';
           }
 
         } catch (error) {
-          console.error('Background sync failed:', error);
+          console.error('[SYNC] Synchronisation failed:', error);
+          return 'error';
         } finally {
           set({ isSyncing: false });
         }
+      },
+
+      resetSyncStatus: () => {
+        set({ isSyncing: false });
+        console.log('[SYNC] Sync status manually reset.');
       },
 
       loadFromDatabase: async () => {
@@ -2529,9 +2574,22 @@ export const useERPStore = create<ERPState>()(
         await dbAdapter.deleteCheque(id);
         await get().fetchCheques();
       },
+
+      clearLocalData: async () => {
+        const { activeStoreId, loadFromDatabase } = get();
+        if (isElectron()) {
+          await dbAdapter.clearLocalData(activeStoreId);
+          await loadFromDatabase();
+        }
+      },
     }),
     {
       name: 'erp-store-v1',
+      partialize: (state) => {
+        // Exclude isSyncing from persistence so it resets to false on reload
+        const { isSyncing, ...rest } = state;
+        return rest;
+      },
     }
   )
 );

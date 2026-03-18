@@ -15,8 +15,10 @@ interface LicenseContextType {
 
 const LicenseContext = createContext<LicenseContextType | undefined>(undefined);
 
+import { API_URL as CENTRAL_API_URL } from "@/lib/config";
+
 // Ensure your Django backend URL is set here
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api";
+const API_BASE_URL = CENTRAL_API_URL;
 
 export const LicenseProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLicensed, setIsLicensed] = useState<boolean>(false);
@@ -55,6 +57,10 @@ export const LicenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, []);
 
   const checkLicenseWithServer = async (key: string, devId: string) => {
+    // [DEVELOPMENT BYPASS REMOVED] 
+    // We now rely on the server to tell us which features are enabled for tmr-international
+
+
     try {
       const response = await fetch(`${API_BASE_URL}/license/verify/`, {
         method: 'POST',

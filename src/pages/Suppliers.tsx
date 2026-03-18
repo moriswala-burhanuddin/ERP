@@ -10,7 +10,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 
 export default function Suppliers() {
     const navigate = useNavigate();
@@ -107,7 +107,7 @@ export default function Suppliers() {
                             </div>
                             <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Amount Owed</span>
                         </div>
-                        <h2 className="text-3xl font-black leading-none mb-1">${totalExposure.toLocaleString()}</h2>
+                        <h2 className="text-3xl font-black leading-none mb-1">{formatCurrency(totalExposure)}</h2>
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Outstanding Payables</p>
                     </div>
                 </div>
@@ -198,7 +198,7 @@ export default function Suppliers() {
                                     <div className="flex items-center justify-between text-[11px] font-black text-slate-400 uppercase tracking-widest">
                                         <span className="flex items-center gap-2"><DollarSign className="w-3.5 h-3.5" /> Balance</span>
                                         <span className={cn(s.currentBalance > 0 ? "text-red-500" : "text-emerald-500")}>
-                                            ${(s.currentBalance || 0).toLocaleString()}
+                                            {formatCurrency(s.currentBalance || 0)}
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between text-[11px] font-black text-slate-400 uppercase tracking-widest">

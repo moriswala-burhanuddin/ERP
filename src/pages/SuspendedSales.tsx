@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
 export default function SuspendedSales() {
@@ -80,7 +80,7 @@ export default function SuspendedSales() {
                             <DollarSign className="w-6 h-6" />
                         </div>
                         <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Locked Capital</p>
-                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">₹{suspendedSales.reduce((sum, s) => sum + s.totalAmount, 0).toLocaleString()}</h3>
+                        <h3 className="text-3xl font-black text-slate-900 tracking-tighter">{formatCurrency(suspendedSales.reduce((sum, s) => sum + s.totalAmount, 0))}</h3>
                     </div>
 
                     <div className="bg-black rounded-[2.5rem] p-10 text-white shadow-2xl shadow-black/20 flex flex-col justify-center relative overflow-hidden group">
@@ -157,7 +157,7 @@ export default function SuspendedSales() {
                                         <div className="flex items-end justify-between">
                                             <div>
                                                 <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-1 opacity-50">Halted Value</p>
-                                                <h3 className="text-3xl font-black text-slate-900 tracking-tighter leading-none">₹{sale.totalAmount.toLocaleString()}</h3>
+                                                <h3 className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{formatCurrency(sale.totalAmount)}</h3>
                                             </div>
                                             <button
                                                 onClick={(e) => handleDelete(sale.id, e)}

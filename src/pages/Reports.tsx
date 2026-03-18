@@ -3,11 +3,11 @@ import { useERPStore } from '@/lib/store-data';
 import { dbAdapter } from '@/lib/db-adapter';
 import {
   FileText, Download, Calendar, BarChart2, PieChart, TrendingUp,
-  Package, IndianRupee, Truck, Users, Activity, Filter,
+  Package, Wallet, Truck, Users, Activity, Filter,
   ChevronRight, ArrowRight, Eye, ArrowLeft, MoreHorizontal, Database, Target, Layers, Sparkles, Ghost
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
 type ReportCategory = 'sales' | 'inventory' | 'finance' | 'purchases' | 'hr';
@@ -29,8 +29,8 @@ const REPORT_TYPES: ReportType[] = [
   { id: 'inventory_status', label: 'Stock Status', icon: Package, category: 'inventory', description: 'Current stock levels and valuation.' },
 
   // Finance
-  { id: 'profit_loss', label: 'Profit & Loss', icon: IndianRupee, category: 'finance', description: 'Revenue vs expenses and purchase costs.' },
-  { id: 'tax_report', label: 'GST Tax Report', icon: FileText, category: 'finance', description: 'Sales and estimated tax summary.' },
+  { id: 'profit_loss', label: 'Profit & Loss', icon: Wallet, category: 'finance', description: 'Revenue vs expenses and purchase costs.' },
+  { id: 'tax_report', label: 'VAT Tax Report', icon: FileText, category: 'finance', description: 'Sales and estimated tax summary.' },
   { id: 'cheque_report', label: 'Cheque History', icon: Activity, category: 'finance', description: 'All cheques issued and received.' },
 
   // Purchases
@@ -53,7 +53,7 @@ export default function Reports() {
   const categories: { id: ReportCategory; label: string; icon: ElementType, accent: string }[] = [
     { id: 'sales', label: 'Sales', icon: BarChart2, accent: 'bg-indigo-50 text-indigo-600' },
     { id: 'inventory', label: 'Inventory', icon: Package, accent: 'bg-amber-50 text-amber-600' },
-    { id: 'finance', label: 'Finance', icon: IndianRupee, accent: 'bg-emerald-50 text-emerald-600' },
+    { id: 'finance', label: 'Finance', icon: Wallet, accent: 'bg-emerald-50 text-emerald-600' },
     { id: 'purchases', label: 'Purchases', icon: Truck, accent: 'bg-rose-50 text-rose-600' },
     { id: 'hr', label: 'HR', icon: Users, accent: 'bg-blue-50 text-blue-600' },
   ];
@@ -288,7 +288,7 @@ export default function Reports() {
                       <tr key={i} className="group hover:bg-slate-50 transition-all duration-300">
                         {Object.values(row).map((val: unknown, j) => (
                           <td key={j} className="px-10 py-6 text-[11px] font-bold text-slate-600 group-hover:text-black transition-colors">
-                            {typeof val === 'number' && val > 1000 ? val.toLocaleString() : (String(val ?? '—'))}
+                            {typeof val === 'number' && val > 1000 ? formatCurrency(val) : (String(val ?? '—'))}
                           </td>
                         ))}
                       </tr>

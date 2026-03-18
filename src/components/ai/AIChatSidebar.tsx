@@ -55,7 +55,7 @@ export function AIChatSidebar() {
         }
     };
 
-    if (!hasFeature('ai_features')) {
+    if (!hasFeature('Business Analyst')) {
         return null;
     }
 

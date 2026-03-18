@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useStoreConfig } from '@/lib/store-config';
 import { isElectron } from '@/lib/electron-helper';
+import { formatCurrency } from '@/lib/utils';
 
 export default function InvoiceDetails() {
     const { id } = useParams();
@@ -205,11 +206,14 @@ export default function InvoiceDetails() {
                         </div>
 
                         <div className="text-left md:text-right flex flex-col items-start md:items-end">
-                            <h2 className="font-bold text-lg tracking-tight uppercase text-black">{config.companyName || 'STOREFLOW ERP'}</h2>
-                            <div className="text-[10px] font-semibold text-gray-400 uppercase leading-relaxed max-w-[200px] mt-1">
+                            {config.companyLogo && (
+                                <img src={config.companyLogo} alt="Logo" className="w-24 h-24 object-contain mb-4 bg-white p-2 rounded-xl shadow-sm border border-slate-50" />
+                            )}
+                            <h2 className="font-bold text-xl tracking-tight uppercase text-black">{config.companyName || 'STOREFLOW ERP'}</h2>
+                            <div className="text-[10px] font-semibold text-gray-500 uppercase leading-relaxed max-w-[200px] mt-2">
                                 <p>{config.taxId || 'Corporate Headquarters'}</p>
                                 <p>Web: {config.websiteUrl || 'www.storeflow.erp'}</p>
-                                <p>Email: contact@storeflow.erp</p>
+                                <p>Email: {config.companyEmail || 'contact@storeflow.erp'}</p>
                             </div>
                         </div>
                     </div>
@@ -235,7 +239,7 @@ export default function InvoiceDetails() {
                             <div className="inline-block bg-black text-white p-6 rounded-2xl ml-auto shadow-lg">
                                 <p className="text-[10px] font-bold tracking-wider uppercase mb-1.5 opacity-60">Total Amount Due</p>
                                 <p className="text-3xl font-bold tracking-tight text-white">
-                                    ${invoice.totalAmount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                    {formatCurrency(invoice.totalAmount)}
                                 </p>
                             </div>
                         </div>
@@ -259,9 +263,9 @@ export default function InvoiceDetails() {
                                             <p className="font-bold text-black">{item.productName}</p>
                                             {item.description && <p className="text-[10px] font-medium text-gray-400 uppercase mt-0.5">{item.description}</p>}
                                         </td>
-                                        <td className="text-right font-semibold text-gray-500">${item.unitPrice.toFixed(2)}</td>
+                                        <td className="text-right font-semibold text-gray-500">{formatCurrency(item.unitPrice)}</td>
                                         <td className="text-center font-bold text-black">{item.quantity}</td>
-                                        <td className="text-right font-bold text-black">${item.total.toFixed(2)}</td>
+                                        <td className="text-right font-bold text-black">{formatCurrency(item.total)}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -282,27 +286,27 @@ export default function InvoiceDetails() {
                         <div className="w-full md:w-64 space-y-3">
                             <div className="flex justify-between text-xs">
                                 <span className="font-bold text-gray-400 uppercase tracking-tight">Subtotal</span>
-                                <span className="font-bold text-black">${invoice.subtotal.toFixed(2)}</span>
+                                <span className="font-bold text-black">{formatCurrency(invoice.subtotal)}</span>
                             </div>
                             <div className="flex justify-between text-xs">
                                 <span className="font-bold text-gray-400 uppercase tracking-tight">Discount</span>
-                                <span className="font-bold text-red-500">-${invoice.discountAmount.toFixed(2)}</span>
+                                <span className="font-bold text-red-500">-{formatCurrency(invoice.discountAmount)}</span>
                             </div>
                             <div className="flex justify-between text-xs">
                                 <span className="font-bold text-gray-400 uppercase tracking-tight">Tax</span>
-                                <span className="font-bold text-black">${invoice.taxAmount.toFixed(2)}</span>
+                                <span className="font-bold text-black">{formatCurrency(invoice.taxAmount)}</span>
                             </div>
                             <div className="flex justify-between items-center py-4 border-y border-gray-50">
                                 <span className="text-sm font-bold uppercase tracking-wide text-black">Total</span>
-                                <span className="text-2xl font-bold text-black tracking-tight">${invoice.totalAmount.toFixed(2)}</span>
+                                <span className="text-2xl font-bold text-black tracking-tight">{formatCurrency(invoice.totalAmount)}</span>
                             </div>
                             <div className="flex justify-between text-xs pt-1">
                                 <span className="font-bold text-gray-400 uppercase tracking-tight">Paid</span>
-                                <span className="font-bold text-green-600">${invoice.amountPaid.toFixed(2)}</span>
+                                <span className="font-bold text-green-600">{formatCurrency(invoice.amountPaid)}</span>
                             </div>
                             <div className="flex justify-between font-bold text-sm pt-4 bg-gray-50 rounded-xl p-3 mt-2">
                                 <span className="uppercase tracking-wider text-[10px] text-gray-500">Balance Due</span>
-                                <span className="tracking-tight text-red-500">${invoice.amountDue.toFixed(2)}</span>
+                                <span className="tracking-tight text-red-500">{formatCurrency(invoice.amountDue)}</span>
                             </div>
                         </div>
                     </div>

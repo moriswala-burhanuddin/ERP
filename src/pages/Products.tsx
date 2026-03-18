@@ -9,6 +9,7 @@ import {
 import { StockTransferForm } from '@/components/inventory/StockTransferForm';
 import { useNavigate } from 'react-router-dom';
 import { parseExcelInventory } from '@/lib/inventory-utils';
+import { useLicense } from '@/contexts/LicenseContext';
 import { toast } from 'sonner';
 import {
   Dialog,
@@ -19,10 +20,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 
 export default function Products() {
   const navigate = useNavigate();
+  const { hasFeature } = useLicense();
   const { getStoreProducts, handleBarcodeScan, processExcelUpload, getStoreSales, updateProduct, bulkDeleteProducts, bulkUpdateProducts } = useERPStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
@@ -209,14 +211,14 @@ export default function Products() {
 
   const handlePriceUpdate = async (product: typeof products[0]) => {
     const newPrice = parseFloat(tempPrice);
-    if (!isNaN(newPrice) && newPrice !== product.sellingPrice) {
-      try {
-        await updateProduct(product.id, { sellingPrice: newPrice });
-        toast.success('Price Updated', { description: `${product.name} price set to $${newPrice}` });
-      } catch (error) {
-        toast.error('Update Failed');
+      if (newPrice !== product.sellingPrice) {
+        try {
+          await updateProduct(product.id, { sellingPrice: newPrice });
+          toast.success('Price Updated', { description: `${product.name} price set to ${formatCurrency(newPrice)}` });
+        } catch (error) {
+          toast.error('Update Failed');
+        }
       }
-    }
     setEditingPriceId(null);
   };
 
@@ -234,7 +236,7 @@ export default function Products() {
     <div className="min-h-screen bg-[#F2F2F7] pb-24 lg:pb-10">
       <PageHeader
         title="Inventory"
-        subtitle={`${products.length} Products • $${totalStockValue.toLocaleString()} Value`}
+        subtitle={`${products.length} Products • ${formatCurrency(totalStockValue)} Value`}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
@@ -305,10 +307,12 @@ export default function Products() {
               </DialogContent>
             </Dialog>
 
-            <button onClick={runOptimization} disabled={isOptimizing} className="flex items-center gap-2 bg-indigo-600 text-white border-none shadow-lg shadow-indigo-200 px-5 py-3 rounded-[1.2rem] font-black text-[10px] tracking-widest hover:bg-indigo-700 transition-all active:scale-95 whitespace-nowrap">
-              {isOptimizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              AI OPTIMIZE
-            </button>
+            {hasFeature('Reorder Optimization') && (
+              <button onClick={runOptimization} disabled={isOptimizing} className="flex items-center gap-2 bg-indigo-600 text-white border-none shadow-lg shadow-indigo-200 px-5 py-3 rounded-[1.2rem] font-black text-[10px] tracking-widest hover:bg-indigo-700 transition-all active:scale-95 whitespace-nowrap">
+                {isOptimizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                AI OPTIMIZE
+              </button>
+            )}
 
             <button onClick={() => navigate('/products/new')} className="flex items-center gap-2 bg-black text-white border-none shadow-lg shadow-black/10 px-5 py-3 rounded-[1.2rem] font-black text-[10px] tracking-widest hover:bg-slate-800 transition-all active:scale-95 whitespace-nowrap">
               <Plus className="w-4 h-4" />
@@ -474,7 +478,7 @@ export default function Products() {
                         }}
                         className="text-2xl font-black text-black leading-none group-hover:scale-110 transition-transform origin-right"
                       >
-                        ${product.sellingPrice.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        {formatCurrency(product.sellingPrice)}
                       </div>
                     </div>
                   </div>

@@ -7,7 +7,7 @@ import {
 import { useERPStore, Cheque } from '../../lib/store-data';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 const Cheques = () => {
@@ -91,7 +91,7 @@ const Cheques = () => {
                                 {item.icon}
                             </div>
                             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">{item.label}</p>
-                            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">₹{item.amount.toLocaleString()}</h3>
+                            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{formatCurrency(item.amount)}</h3>
                         </div>
                     ))}
                 </div>
@@ -158,7 +158,7 @@ const Cheques = () => {
                                         </div>
                                         <div className="flex items-center gap-8">
                                             <div className="text-right">
-                                                <p className="text-2xl font-black text-slate-900 tracking-tighter">₹{chq.amount.toLocaleString()}</p>
+                                                <p className="text-2xl font-black text-slate-900 tracking-tighter">{formatCurrency(chq.amount)}</p>
                                                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Instrument Amount</p>
                                             </div>
                                             <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
@@ -230,7 +230,7 @@ const Cheques = () => {
                                         <input type="text" required value={newCheque.bankName} onChange={e => setNewCheque({ ...newCheque, bankName: e.target.value })} placeholder="HDFC_BANK" className="w-full h-14 bg-slate-50 border-none rounded-2xl px-6 text-[11px] font-black uppercase focus:ring-2 focus:ring-black outline-none placeholder:text-slate-200" />
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Face Value (₹)</label>
+                                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Face Value (UGX)</label>
                                         <input type="number" required value={newCheque.amount} onChange={e => setNewCheque({ ...newCheque, amount: Number(e.target.value) })} className="w-full h-14 bg-slate-50 border-none rounded-2xl px-6 text-xl font-black focus:ring-2 focus:ring-black outline-none" />
                                     </div>
                                     <div className="space-y-3 col-span-2">

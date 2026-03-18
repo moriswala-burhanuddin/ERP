@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useERPStore, type Transaction } from '@/lib/store-data';
+import { formatCurrency, CURRENCY_SYMBOL } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 
 export default function NewTransaction() {
@@ -73,7 +74,7 @@ export default function NewTransaction() {
         <div className="erp-card">
           <label className="block text-sm font-medium text-foreground mb-1.5">Amount</label>
           <div className="relative">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">$</span>
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-lg">{CURRENCY_SYMBOL}</span>
             <input
               type="number"
               step="0.01"
@@ -100,7 +101,7 @@ export default function NewTransaction() {
               <option value="">No customer (general)</option>
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name} - ${c.creditBalance.toFixed(2)} credit
+                  {c.name} - {formatCurrency(c.creditBalance)} credit
                 </option>
               ))}
             </select>
@@ -130,7 +131,7 @@ export default function NewTransaction() {
           >
             {accounts.map((a) => (
               <option key={a.id} value={a.id}>
-                {a.name} (${a.balance.toFixed(2)})
+                {a.name} ({formatCurrency(a.balance)})
               </option>
             ))}
           </select>

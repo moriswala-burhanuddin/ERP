@@ -60,6 +60,9 @@ export interface ElectronAPI {
 
     // Accounts
     getAccounts: (storeId: string) => Promise<Account[]>;
+    addAccount: (account: Account) => Promise<Account>;
+    updateAccount: (id: string, updates: Updates<Account>) => Promise<Account>;
+    deleteAccount: (id: string) => Promise<boolean>;
 
     // Stores
     getStores: () => Promise<Store[]>;
@@ -139,6 +142,9 @@ export interface ElectronAPI {
     // Bulk Actions
     bulkDeleteProducts: (ids: string[]) => Promise<{ success: boolean }>;
     bulkUpdateProducts: (ids: string[], updates: Updates<Product>) => Promise<{ success: boolean }>;
+
+    // Data Reset
+    clearLocalData: (storeId: string) => Promise<boolean>;
 
     // Suppliers
     getSuppliers: (storeId: string) => Promise<Supplier[]>;

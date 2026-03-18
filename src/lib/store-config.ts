@@ -7,6 +7,7 @@ export interface StoreConfigState {
     companyName: string;
     taxId: string;
     websiteUrl: string;
+    companyEmail: string;
     etimsApiUrl: string;
     aiHostUrl: string;
     aiSearchUsername: string;
@@ -183,6 +184,7 @@ export const useStoreConfig = create<StoreConfigState>()(
             companyName: '',
             taxId: '',
             websiteUrl: '',
+            companyEmail: '',
             etimsApiUrl: '',
             aiHostUrl: '',
             aiSearchUsername: '',

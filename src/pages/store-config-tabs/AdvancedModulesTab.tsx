@@ -1,9 +1,11 @@
 import { useStoreConfig } from '@/lib/store-config';
+import { useERPStore } from '@/lib/store-data';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Cpu, ShieldCheck, Users, Wallet, Key, Target, Layers, Box, Truck, Receipt, BarChart3, Lock, Zap, MoreHorizontal, LayoutGrid, Ghost } from 'lucide-react';
+import { Cpu, ShieldCheck, Users, Wallet, Key, Target, Layers, Box, Truck, Receipt, BarChart3, Lock, Zap, MoreHorizontal, LayoutGrid, Ghost, FileText, ClipboardList, CreditCard, BookOpen, Calculator, Trash2, AlertTriangle, RefreshCcw } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -16,6 +18,8 @@ export function AdvancedModulesTab() {
         analyticsConfig, securityAuditConfig,
         updateConfig
     } = useStoreConfig();
+    const { clearLocalData: resetData } = useERPStore();
+    const [isResetLoading, setIsResetLoading] = useState(false);
 
     const toggleModule = (moduleName: string, enabled: boolean) => {
         if (enabled) {
@@ -41,6 +45,13 @@ export function AdvancedModulesTab() {
         { key: 'expenseCategories', label: 'Expense Categories', icon: <Receipt className="w-4 h-4" />, value: expenseCategoriesConfig, setter: 'expenseCategoriesConfig' },
         { key: 'salesCommissions', label: 'Sales Commissions', icon: <Zap className="w-4 h-4" />, value: salesCommissionsConfig, setter: 'salesCommissionsConfig' },
         { key: 'analytics', label: 'Analytics', icon: <BarChart3 className="w-4 h-4" />, value: analyticsConfig, setter: 'analyticsConfig' },
+        { key: 'quotations', label: 'Quotations', icon: <FileText className="w-4 h-4" />, value: '', setter: '' },
+        { key: 'workOrders', label: 'Work Orders', icon: <ClipboardList className="w-4 h-4" />, value: '', setter: '' },
+        { key: 'giftCards', label: 'Gift Cards', icon: <CreditCard className="w-4 h-4" />, value: '', setter: '' },
+        { key: 'dayBook', label: 'Day Book', icon: <BookOpen className="w-4 h-4" />, value: '', setter: '' },
+        { key: 'partyLedger', label: 'Party Ledger', icon: <BookOpen className="w-4 h-4" />, value: '', setter: '' },
+        { key: 'stockJournal', label: 'Stock Journal', icon: <ClipboardList className="w-4 h-4" />, value: '', setter: '' },
+        { key: 'priceCheck', label: 'Price Check', icon: <Calculator className="w-4 h-4" />, value: '', setter: '' },
         { key: 'securityAudit', label: 'Security Log', icon: <Lock className="w-4 h-4" />, value: securityAuditConfig, setter: 'securityAuditConfig' },
     ];
 
@@ -80,14 +91,18 @@ export function AdvancedModulesTab() {
                             </div>
 
                             <div className="flex-1 min-w-[200px]">
-                                <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Settings</Label>
-                                <Input
-                                    placeholder={`Enter ${mod.label} settings...`}
-                                    disabled={!isEnabled(mod.key)}
-                                    value={mod.value}
-                                    onChange={(e) => updateConfig({ [mod.setter]: e.target.value })}
-                                    className="h-12 bg-slate-50 border-none rounded-xl px-4 text-[10px] font-mono group-hover:bg-white transition-colors"
-                                />
+                                {mod.setter && (
+                                    <>
+                                        <Label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-2 block">Settings</Label>
+                                        <Input
+                                            placeholder={`Enter ${mod.label} settings...`}
+                                            disabled={!isEnabled(mod.key)}
+                                            value={mod.value}
+                                            onChange={(e) => updateConfig({ [mod.setter!]: e.target.value })}
+                                            className="h-12 bg-slate-50 border-none rounded-xl px-4 text-[10px] font-mono group-hover:bg-white transition-colors"
+                                        />
+                                    </>
+                                )}
                             </div>
 
                             <Switch
@@ -97,6 +112,36 @@ export function AdvancedModulesTab() {
                             />
                         </div>
                     ))}
+                </div>
+            </div>
+
+            <div className="p-10 bg-rose-50 border border-rose-100 rounded-[3rem] text-center">
+                <AlertTriangle className="w-8 h-8 text-rose-500 mx-auto mb-4" />
+                <h4 className="text-[10px] font-black text-rose-900 uppercase tracking-widest mb-2 italic">Danger Zone</h4>
+                <p className="text-[9px] font-bold text-rose-400 uppercase tracking-widest leading-relaxed max-w-sm mx-auto mb-8">
+                    Strict reset will delete all local data except 3 products and 3 sales. This action is irreversible.
+                </p>
+                <div className="flex justify-center">
+                    <button
+                        onClick={async () => {
+                            if (window.confirm("ARE YOU ABSOLUTELY SURE? All transactional data will be purged. This cannot be undone.")) {
+                                setIsResetLoading(true);
+                                try {
+                                    await resetData();
+                                    toast.success("ERP Reset Complete: Data purged.");
+                                } catch (error) {
+                                    toast.error("ERP Reset Failed");
+                                } finally {
+                                    setIsResetLoading(false);
+                                }
+                            }
+                        }}
+                        disabled={isResetLoading}
+                        className="h-14 px-10 rounded-2xl bg-rose-600 hover:bg-rose-700 text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-rose-600/20 active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                        {isResetLoading ? <RefreshCcw className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                        {isResetLoading ? "Resetting Core..." : "Purge All Data"}
+                    </button>
                 </div>
             </div>
 

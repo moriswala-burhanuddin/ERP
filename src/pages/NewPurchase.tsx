@@ -7,8 +7,9 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency, CURRENCY_SYMBOL } from '@/lib/utils';
 import { toast } from 'sonner';
+import { useLicense } from '@/contexts/LicenseContext';
 import { InvoiceReviewModal, ExtractedData } from '@/components/purchase/InvoiceReviewModal';
 
 interface CartItem {
@@ -18,11 +19,11 @@ interface CartItem {
   price: number;
 }
 
-const fmt = (amount: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+
 
 export default function NewPurchase() {
   const navigate = useNavigate();
+  const { hasFeature } = useLicense();
   const { getStoreProducts, getStoreAccounts, addPurchase, activeStoreId } = useERPStore();
 
   const products = getStoreProducts();
@@ -197,14 +198,16 @@ export default function NewPurchase() {
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-mono">Who did you buy from?</p>
                 </div>
               </div>
-              <Button
-                onClick={handleScanReceipt}
-                disabled={isOcrLoading}
-                className="bg-slate-50 hover:bg-slate-100 text-indigo-600 border-none rounded-2xl h-14 px-8 font-black uppercase text-[10px] tracking-widest transition-all"
-              >
-                {isOcrLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Camera className="w-4 h-4 mr-2" />}
-                AI Capture
-              </Button>
+              {hasFeature('Invoice OCR') && (
+                <Button
+                  onClick={handleScanReceipt}
+                  disabled={isOcrLoading}
+                  className="bg-slate-50 hover:bg-slate-100 text-indigo-600 border-none rounded-2xl h-14 px-8 font-black uppercase text-[10px] tracking-widest transition-all"
+                >
+                  {isOcrLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Camera className="w-4 h-4 mr-2" />}
+                  AI Capture
+                </Button>
+              )}
             </div>
 
             <div className="grid md:grid-cols-2 gap-8">
@@ -281,7 +284,7 @@ export default function NewPurchase() {
                         <button onClick={() => updateQuantity(item.productId, 1)} className="w-10 h-10 flex items-center justify-center text-slate-300 hover:text-black transition-colors"><Plus className="w-4 h-4" /></button>
                       </div>
                       <div className="w-32 relative">
-                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-[10px] font-black">$</span>
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-[10px] font-black">{CURRENCY_SYMBOL}</span>
                         <input
                           type="number"
                           value={item.price}
@@ -290,7 +293,7 @@ export default function NewPurchase() {
                         />
                       </div>
                       <div>
-                        <p className="text-xl font-black text-slate-900 tracking-tighter mb-1 font-mono">{fmt(item.price * item.quantity)}</p>
+                        <p className="text-xl font-black text-slate-900 tracking-tighter mb-1 font-mono">{formatCurrency(item.price * item.quantity)}</p>
                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Value</p>
                       </div>
                       <button onClick={() => removeFromCart(item.productId)} className="p-3 bg-white text-slate-200 hover:text-rose-500 rounded-xl transition-all border border-slate-100">
@@ -320,7 +323,7 @@ export default function NewPurchase() {
               <div className="space-y-6">
                 <div className="p-8 bg-white/5 rounded-[2rem] border border-white/5">
                   <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-1">Total Amount</p>
-                  <h3 className="text-4xl font-black tracking-tighter">{fmt(totalAmount)}</h3>
+                  <h3 className="text-4xl font-black tracking-tighter">{formatCurrency(totalAmount)}</h3>
                 </div>
 
                 <div className="space-y-4">
@@ -330,7 +333,7 @@ export default function NewPurchase() {
                     onChange={(e) => setAccountId(e.target.value)}
                     className="w-full h-16 bg-white/10 border-none rounded-2xl px-6 text-xs font-black uppercase text-white focus:ring-2 focus:ring-white/20 appearance-none"
                   >
-                    {accounts.map(a => <option key={a.id} value={a.id} className="bg-slate-900">{a.name.toUpperCase()} ({fmt(a.balance)})</option>)}
+                    {accounts.map(a => <option key={a.id} value={a.id} className="bg-slate-900">{a.name.toUpperCase()} ({formatCurrency(a.balance)})</option>)}
                   </select>
                 </div>
               </div>
@@ -389,7 +392,7 @@ export default function NewPurchase() {
                       <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">{p.sku} • {p.quantity} {p.unit || 'UNITS'} IN STOCK</p>
                     </div>
                   </div>
-                  <p className="text-lg font-black text-slate-900 tracking-tighter">{fmt(p.purchasePrice || 0)}</p>
+                  <p className="text-lg font-black text-slate-900 tracking-tighter">{formatCurrency(p.purchasePrice || 0)}</p>
                 </button>
               ))}
             </div>

@@ -67,8 +67,8 @@ export function CurrencyTab() {
                                 <SelectValue />
                             </SelectTrigger>
                             <SelectContent className="rounded-2xl border-none shadow-2xl">
-                                <SelectItem value="before" className="text-[11px] font-black uppercase">Before Amount ($10)</SelectItem>
-                                <SelectItem value="after" className="text-[11px] font-black uppercase">After Amount (10$)</SelectItem>
+                                <SelectItem value="before" className="text-[11px] font-black uppercase">Before Amount (UGX 10)</SelectItem>
+                                <SelectItem value="after" className="text-[11px] font-black uppercase">After Amount (10 UGX)</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>

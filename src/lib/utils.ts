@@ -5,6 +5,16 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export const CURRENCY_SYMBOL = 'UGX';
+
+export function formatCurrency(amount: number): string {
+  if (amount === undefined || amount === null) return `${CURRENCY_SYMBOL} 0`;
+  return `${CURRENCY_SYMBOL} ${amount.toLocaleString('en-UG', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  })}`;
+}
+
 export const generateId = (prefix: string = 'id') => {
   return `${prefix}-${Math.random().toString(36).substr(2, 9)}`;
 };
@@ -53,5 +63,5 @@ export function toWords(amount: number): string {
     scaleIndex++;
   }
 
-  return words.trim() + ' Only';
+  return words.trim() + ' Uganda Shillings Only';
 }

@@ -4,10 +4,7 @@ import { useERPStore } from '@/lib/store-data';
 import { Plus, Search, ShoppingBag, Calendar, ChevronRight, Filter, Download, Zap, TrendingUp, TrendingDown, Clock, ShieldCheck, Box, CreditCard, MoreHorizontal, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-
-const fmt = (amount: number) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
+import { cn, formatCurrency } from '@/lib/utils';
 
 export default function Purchases() {
   const navigate = useNavigate();
@@ -70,7 +67,7 @@ export default function Purchases() {
               <TrendingUp className="w-5 h-5" />
             </div>
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Purchases</p>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{fmt(totalPurchases)}</h3>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{formatCurrency(totalPurchases)}</h3>
           </div>
           <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
             <div className="p-3 bg-amber-50 rounded-xl w-fit mb-6 text-amber-500">
@@ -84,7 +81,7 @@ export default function Purchases() {
               <Activity className="w-5 h-5" />
             </div>
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Avg Purchase</p>
-            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{fmt(avgPurchaseValue)}</h3>
+            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{formatCurrency(avgPurchaseValue)}</h3>
           </div>
           <div className="bg-indigo-600 rounded-[2rem] p-8 text-white shadow-xl shadow-indigo-200 flex flex-col justify-center relative overflow-hidden group">
             <Zap className="absolute -right-4 -top-4 w-24 h-24 text-white/5 rotate-12 group-hover:rotate-45 transition-transform duration-700" />
@@ -148,7 +145,7 @@ export default function Purchases() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <p className="text-2xl font-black text-slate-900 tracking-tighter mb-1">{fmt(purchase.totalAmount)}</p>
+                        <p className="text-2xl font-black text-slate-900 tracking-tighter mb-1">{formatCurrency(purchase.totalAmount)}</p>
                         <span className="text-[9px] font-black uppercase tracking-widest text-slate-300">
                           {account?.name || 'On Credit'}
                         </span>

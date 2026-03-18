@@ -25,33 +25,48 @@ import {
   Box,
   Cpu,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  CreditCard,
+  ClipboardList,
+  RefreshCcw,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useStoreConfig } from '@/lib/store-config';
 
 const menuItems = [
-  { path: '/purchases', label: 'Purchases', icon: ShoppingBag, description: 'ACQUISITION_LEDGER' },
-  { path: '/item-kits', label: 'Item Kits', icon: Layers, description: 'BUNDLE_MORPHOLOGY' },
-  { path: '/custom-fields', label: 'Custom Fields', icon: Settings2, description: 'ENTITY_EXTENSION' },
-  { path: '/price-check', label: 'Price Check', icon: ScanBarcode, description: 'OPTICAL_VALIDATION' },
-  { path: '/transactions', label: 'Transactions', icon: Receipt, description: 'FISCAL_STREAM' },
-  { path: '/purchase-orders', label: 'Purchase Orders', icon: ReceiptText, description: 'PROCUREMENT_NODES' },
-  { path: '/expense-categories', label: 'Expense Categories', icon: FolderTree, description: 'TAXONOMY_ARCH' },
-  { path: '/commissions', label: 'Sales Commissions', icon: Award, description: 'INCENTIVE_MATRIX' },
-  { path: '/accounts', label: 'Accounts', icon: Wallet, description: 'TREASURY_NODES' },
-  { path: '/tax-settings', label: 'Tax Settings', icon: ShieldCheck, description: 'FISCAL_POLICY' },
-  { path: '/analytics', label: 'Analytics', icon: BarChart3, description: 'INTELLIGENCE_HUB' },
-  { path: '/stores', label: 'Stores', icon: Store, description: 'SITE_TOPOLOGY' },
-  { path: '/users', label: 'Users', icon: UserCog, description: 'PERSONNEL_MATRIX' },
-  { path: '/reports', label: 'Reports', icon: FileText, description: 'DATA_SYNTHESIS' },
-  { path: '/activity-logs', label: 'Security Audit', icon: Shield, description: 'PROTECTION_VAULT' },
+  { path: '/purchases', label: 'Purchases', icon: ShoppingBag, description: 'TRACK_VENDOR_BILLS' },
+  { path: '/item-kits', label: 'Item Kits', icon: Layers, description: 'BUNDLE_PRODUCTS', moduleKey: 'itemKitBundles' },
+  { path: '/custom-fields', label: 'Custom Fields', icon: Settings2, description: 'ADD_EXTRA_DATA', moduleKey: 'customFields' },
+  { path: '/price-check', label: 'Price Check', icon: ScanBarcode, description: 'CHECK_PRODUCT_PRICES', moduleKey: 'priceCheck' },
+  { path: '/transactions', label: 'Transactions', icon: Receipt, description: 'VIEW_ALL_CASH_FLOW' },
+  { path: '/purchase-orders', label: 'Purchase Orders', icon: ReceiptText, description: 'MANAGE_STOCK_ORDERS', moduleKey: 'purchaseOrders' },
+  { path: '/expense-categories', label: 'Expense Categories', icon: FolderTree, description: 'ORGANIZE_SPENDING', moduleKey: 'expenseCategories' },
+  { path: '/commissions', label: 'Sales Commissions', icon: Award, description: 'STAFF_INCENTIVES', moduleKey: 'salesCommissions' },
+  { path: '/accounts', label: 'Accounts', icon: Wallet, description: 'BANK_AND_CASH', moduleKey: 'storeAccount' },
+  { path: '/tax-settings', label: 'Tax Settings', icon: ShieldCheck, description: 'GOVERNMENT_TAX_CONFIG' },
+  { path: '/analytics', label: 'Reports & Analytics', icon: BarChart3, description: 'BUSINESS_INSIGHTS', moduleKey: 'analytics' },
+  { path: '/activity-logs', label: 'Activity History', icon: Shield, description: 'SYSTEM_AUDIT_LOGS', moduleKey: 'securityAudit' },
+  { path: '/gift-cards', label: 'Gift Cards', icon: CreditCard, description: 'MANAGE_STORE_CREDIT', moduleKey: 'giftCards' },
+  { path: '/work-orders', label: 'Work Orders', icon: ClipboardList, description: 'TRACK_TASKS', moduleKey: 'workOrders' },
+  { path: '/stock-journal', label: 'Stock Journal', icon: Layers, description: 'INVENTORY_ADJUSTMENTS', moduleKey: 'stockJournal' },
+  { path: '/ecommerce/returns', label: 'Returns', icon: RefreshCcw, description: 'ONLINE_ORDER_REVERSALS' },
+  { path: '/stores', label: 'Stores', icon: Store, description: 'BRANCH_MANAGEMENT' },
+  { path: '/users', label: 'Users', icon: UserCog, description: 'MANAGE_TEAM_ACCESS' },
+  { path: '/reports', label: 'Detailed Reports', icon: FileText, description: 'DOWNLOAD_DATA' },
 ];
 
 export default function More() {
   const navigate = useNavigate();
   const { logout, currentUser } = useERPStore();
+  const { disabledModules } = useStoreConfig();
+
+  // Filter menu items based on disabled modules
+  const filteredMenuItems = menuItems.filter(item => {
+    const moduleKey = item.label.toLowerCase().replace(/\s+(.)/g, (match, group1) => group1.toUpperCase());
+    return !disabledModules.includes(moduleKey);
+  });
 
   const handleLogout = () => {
     logout();
@@ -61,10 +76,10 @@ export default function More() {
 
   const handleManualBackup = async () => {
     if (window.electronAPI && window.electronAPI.manualBackup) {
-      toast.info('Initiating Neural Snapshot...');
+      toast.info('Initiating Data Backup...');
       const result = await window.electronAPI.manualBackup();
       if (result) {
-        toast.success('State Persistence Confirmed: Backup complete.');
+        toast.success('Data Backup Complete: All system state persisted.');
       }
     }
   };
@@ -76,11 +91,11 @@ export default function More() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-24 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div className="p-4 bg-black rounded-2xl text-white shadow-xl shadow-slate-200">
-              <LayoutGrid className="w-6 h-6" />
+              <Settings2 className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Operational Nexus</h1>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">System Topology • {menuItems.length} Control Nodes</p>
+              <h1 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Tools & Settings</h1>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mt-1">{filteredMenuItems.length} Active Modules Available</p>
             </div>
           </div>
 
@@ -126,14 +141,14 @@ export default function More() {
               className="h-14 px-8 rounded-2xl bg-white text-black font-black uppercase text-[10px] tracking-widest hover:scale-[1.05] active:scale-[0.95] transition-all flex items-center gap-3"
             >
               <Database className="w-4 h-4 text-indigo-500" />
-              NEURAL_SNAPSHOT
+              MANUAL_BACKUP
             </Button>
           </div>
         </div>
 
         {/* Control Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {menuItems.map((item) => (
+          {filteredMenuItems.map((item) => (
             <button
               key={item.path}
               onClick={() => navigate(item.path)}

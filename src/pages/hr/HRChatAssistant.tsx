@@ -58,7 +58,7 @@ const HRChatAssistant = () => {
         }
     };
 
-    if (!hasFeature('ai_features')) {
+    if (!hasFeature('HR Assistant')) {
         return (
             <Card className="h-[600px] flex flex-col items-center justify-center bg-slate-50 border-dashed">
                 <div className="w-16 h-16 bg-slate-200 rounded-full flex items-center justify-center mb-4 text-slate-400">

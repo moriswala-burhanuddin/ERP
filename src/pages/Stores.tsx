@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useERPStore } from '@/lib/store-data';
-import { Store as StoreIcon, ChevronRight, MapPin, Phone, Check, Plus, Edit, Trash2, X, ArrowLeft, Building2, Package, IndianRupee, Globe, Zap, Ghost, MoreHorizontal } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Store as StoreIcon, ChevronRight, MapPin, Phone, Check, Plus, Edit, Trash2, X, ArrowLeft, Building2, Package, Wallet, Globe, Zap, Ghost, MoreHorizontal } from 'lucide-react';
+import { cn, formatCurrency } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -142,11 +142,11 @@ export default function Stores() {
           </div>
           <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
             <div className="p-3 bg-emerald-50 rounded-xl w-fit mb-6 text-emerald-500">
-              <IndianRupee className="w-5 h-5" />
+              <Wallet className="w-5 h-5" />
             </div>
             <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Stock Value</p>
             <h3 className="text-2xl font-black text-slate-900 tracking-tighter">
-              ₹{products.reduce((s, p) => s + (p.purchasePrice * p.quantity), 0).toLocaleString()}
+              {formatCurrency(products.reduce((s, p) => s + (p.purchasePrice * p.quantity), 0))}
             </h3>
           </div>
           <div className="bg-black rounded-[2rem] p-8 text-white shadow-xl shadow-black/20 flex flex-col justify-center relative overflow-hidden group">
@@ -223,7 +223,7 @@ export default function Stores() {
                   </div>
                   <div className="bg-slate-50 rounded-[1.8rem] p-6 flex flex-col justify-center">
                     <p className="text-[9px] font-black text-slate-400 uppercase tracking-tighter mb-1">Asset Value</p>
-                    <p className="text-xl font-black text-slate-900 leading-none">₹{stats.stockValue.toLocaleString()}</p>
+                    <p className="text-xl font-black text-slate-900 leading-none">{formatCurrency(stats.stockValue)}</p>
                   </div>
                 </div>
 

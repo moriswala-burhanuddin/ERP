@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { Plus, FileText, Loader2, ArrowLeft, Users2, ClipboardCheck, Award, UserX, Briefcase, ShieldCheck, Zap } from "lucide-react";
+import { useLicense } from "@/contexts/LicenseContext";
+import { Plus, FileText, Loader2, ArrowLeft, Users2, ClipboardCheck, Award, UserX, Briefcase, ShieldCheck, Zap, Lock } from "lucide-react";
 
 interface Candidate {
     id: string;
@@ -28,6 +29,7 @@ const COLUMNS = [
 ];
 
 const HiringKanban = () => {
+    const { hasFeature } = useLicense();
     const [candidates, setCandidates] = useState<Candidate[]>([]);
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [resumeText, setResumeText] = useState("");
@@ -128,10 +130,17 @@ const HiringKanban = () => {
                                         value={resumeText}
                                         onChange={e => setResumeText(e.target.value)}
                                     />
-                                    <Button onClick={handleParseResume} disabled={parsing || !resumeText} className="w-full h-14 rounded-2xl bg-indigo-600 text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-200 gap-3">
-                                        {parsing ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
-                                        {parsing ? "Reading..." : "Read Resume with AI"}
-                                    </Button>
+                                    {hasFeature('Recruitment AI') ? (
+                                        <Button onClick={handleParseResume} disabled={parsing || !resumeText} className="w-full h-14 rounded-2xl bg-indigo-600 text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-indigo-200 gap-3">
+                                            {parsing ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+                                            {parsing ? "Reading..." : "Read Resume with AI"}
+                                        </Button>
+                                    ) : (
+                                        <div className="bg-slate-100 rounded-2xl p-6 text-center border-2 border-dashed border-slate-200 text-slate-400">
+                                            <Lock className="w-6 h-6 mx-auto mb-2 opacity-20" />
+                                            <p className="text-[9px] font-black uppercase tracking-widest">AI Recruitment Feature Locked</p>
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="space-y-6">
                                     {[

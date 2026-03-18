@@ -4,7 +4,7 @@ import { Search, Plus, Mail, Tags, FileText, Download, Trash2, XCircle, ChevronD
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
+import { cn, formatCurrency } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 
 export default function Customers() {
@@ -198,7 +198,7 @@ export default function Customers() {
                       <span className={cn(
                         "font-black",
                         (c.creditBalance || 0) > 0 ? "text-rose-600" : "text-emerald-600"
-                      )}>₹{(c.creditBalance || 0).toLocaleString()}</span>
+                      )}> {formatCurrency(c.creditBalance || 0)}</span>
                     </div>
                   </div>
 
