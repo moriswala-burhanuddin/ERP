@@ -24,11 +24,16 @@ import {
   ClipboardList,
   ArrowRightLeft,
   Percent,
-  Shield
+  Shield,
+  ChevronLeft,
+  ChevronRight,
+  PanelLeftClose,
+  PanelLeftOpen
 } from 'lucide-react';
 import { useERPStore } from '@/lib/store-data';
 import { useStoreConfig } from '@/lib/store-config';
 import { SyncStatus } from '../sync/SyncStatus';
+import logo from '../../assets/invenza-bg.png';
 
 import { ROLE_SIDEBARS, NavItem } from '@/config/navigation';
 
@@ -39,14 +44,15 @@ export function Sidebar() {
   const { ecommerceEnabled, disabledModules } = useStoreConfig();
   const activeStore = getActiveStore();
 
+  const [appVersion, setAppVersion] = useState('v1.0.1');
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  // Get items based on role, default to 'user' if no role
   const userRole = currentUser?.role || 'user';
-  const [appVersion, setAppVersion] = useState('v1.0.1');
 
   useEffect(() => {
     const fetchVersion = async () => {
@@ -77,40 +83,54 @@ export function Sidebar() {
   });
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 h-screen bg-white text-slate-600 border-r border-slate-200 sticky top-0">
+    <aside 
+      className={`hidden lg:flex flex-col h-screen bg-white text-slate-600 border-r border-slate-200 sticky top-0 transition-all duration-300 ease-in-out relative ${
+        isCollapsed ? 'w-20' : 'w-64'
+      }`}
+    >
+      {/* ISO Styled Toggle Button */}
+      <button
+        onClick={() => setIsCollapsed(!isCollapsed)}
+        className="absolute -right-3 top-10 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md hover:bg-slate-50 transition-all z-50 text-slate-400 hover:text-slate-900"
+      >
+        {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+      </button>
+
       {/* Clean Header */}
-      <div className="p-5 border-b border-slate-100 bg-white">
-        <div className="flex items-center gap-3 mb-1">
-          <div className="w-10 h-10 flex items-center justify-center">
-            <img src="/invenza-bg.png" alt="Invenza Logo" className="w-full h-full object-contain" />
+      <div className={`p-5 border-b border-slate-100 bg-white transition-all ${isCollapsed ? 'items-center px-2' : ''}`}>
+        <div className={`flex items-center mb-1 ${isCollapsed ? 'flex-col gap-2' : 'gap-4'}`}>
+          <div className={`flex items-center justify-center transition-all ${isCollapsed ? 'w-12 h-12' : 'w-20 h-20'}`}>
+            <img src={logo} alt="Invenza Logo" className="w-full h-full object-contain filter drop-shadow-sm" />
           </div>
-          <div className="flex flex-col">
-            <h1 className="text-xl font-black text-slate-900 tracking-tight leading-none">Invenza</h1>
-            <div className="flex items-center gap-2 mt-1">
-              <span className="text-[10px] font-bold bg-green-900/50 px-2 py-0.5 rounded-full text-green-400 border border-green-800">
-                PRIME {appVersion}
-              </span>
-              <button
-                onClick={async () => {
-                  alert('Checking for updates...');
-                  const api = window.electronAPI;
-                  if (api?.checkForUpdates) {
-                    console.log('[Sidebar] Manual update check started...');
-                    const res = await api.checkForUpdates();
-                    console.log('[Sidebar] Check result:', res);
-                    if (!res.success) alert('Update check failed: ' + res.error);
-                    else if (!res.info) alert('No updates available.');
-                  }
-                }}
-                className="text-[10px] text-gray-500 hover:text-white transition-colors underline"
-              >
-                Check
-              </button>
+          {!isCollapsed && (
+            <div className="flex flex-col">
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight leading-none">Invenza</h1>
+              <div className="flex items-center gap-2 mt-2">
+                <span className="text-[10px] font-bold bg-green-900/50 px-2 py-0.5 rounded-full text-green-400 border border-green-800">
+                  PRIME {appVersion}
+                </span>
+                <button
+                  onClick={async () => {
+                    alert('Checking for updates...');
+                    const api = window.electronAPI;
+                    if (api?.checkForUpdates) {
+                      console.log('[Sidebar] Manual update check started...');
+                      const res = await api.checkForUpdates();
+                      console.log('[Sidebar] Check result:', res);
+                      if (!res.success) alert('Update check failed: ' + res.error);
+                      else if (!res.info) alert('No updates available.');
+                    }
+                  }}
+                  className="text-[10px] text-gray-500 hover:text-slate-900 transition-colors underline"
+                >
+                  Check
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
-        {activeStore && (
-          <p className="text-xs text-gray-400 mt-2 font-medium">{activeStore.name} [{activeStore.branch}]</p>
+        {!isCollapsed && activeStore && (
+          <p className="text-xs text-gray-400 mt-2 font-medium truncate">{activeStore.name} [{activeStore.branch}]</p>
         )}
       </div>
 
@@ -127,13 +147,16 @@ export function Sidebar() {
               <button
                 key={item.href}
                 onClick={() => navigate(item.href)}
-                className={`w-full flex items-center gap-3 px-3 py-2 text-[15px] font-medium rounded-xl transition-all ${isActive
-                  ? 'bg-black text-white shadow-md'
+                className={`w-full flex items-center rounded-xl transition-all ${
+                  isCollapsed ? 'justify-center p-3' : 'gap-3 px-3 py-2.5'
+                } ${isActive
+                  ? 'bg-black text-white shadow-lg'
                   : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                   }`}
+                title={isCollapsed ? item.title : ''}
               >
-                <Icon className={`w-5 h-5 ${isActive ? 'text-black' : 'text-gray-400'}`} />
-                <span>{item.title}</span>
+                <Icon className={`w-5 h-5 transition-transform ${isActive ? 'text-white' : 'text-slate-400'} ${!isActive && !isCollapsed ? 'group-hover:scale-110' : ''}`} />
+                {!isCollapsed && <span className="text-[15px] font-semibold">{item.title}</span>}
               </button>
             );
           } catch (err) {
@@ -143,28 +166,33 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Sync Status - Light variant might be needed but keeping for now */}
-      <div className="px-4 py-2">
-        <SyncStatus />
+      {/* Sync Status */}
+      <div className={`px-4 py-3 transition-all ${isCollapsed ? 'flex justify-center' : ''}`}>
+        <SyncStatus compact={isCollapsed} />
       </div>
 
       {/* User Section (Docked to bottom) */}
-      <div className="p-4 border-t border-slate-200 bg-slate-50">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-9 h-9 bg-gray-700 flex items-center justify-center text-white text-sm font-semibold rounded-full">
+      <div className={`p-4 border-t border-slate-200 bg-slate-50 transition-all ${isCollapsed ? 'items-center px-2' : ''}`}>
+        <div className={`flex items-center mb-3 ${isCollapsed ? 'justify-center' : 'gap-3'}`}>
+          <div className="w-10 h-10 bg-slate-800 flex items-center justify-center text-white text-sm font-bold rounded-xl shadow-inner border border-white/10 group-hover:rotate-3 transition-transform">
             {currentUser?.name?.charAt(0) || 'U'}
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold text-slate-900 truncate">{currentUser?.name || 'User'}</p>
-            <p className="text-xs text-slate-500 capitalize font-medium">{currentUser?.role || 'user'}</p>
-          </div>
+          {!isCollapsed && (
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-black text-slate-900 truncate tracking-tight">{currentUser?.name || 'User'}</p>
+              <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">{currentUser?.role || 'user'}</p>
+            </div>
+          )}
         </div>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gray-800 hover:bg-red-900 text-gray-300 hover:text-red-400 text-sm font-medium transition-colors border border-gray-700 rounded-xl"
+          className={`flex items-center justify-center bg-slate-900 hover:bg-rose-600 text-slate-300 hover:text-white transition-all border border-slate-800 rounded-xl ${
+            isCollapsed ? 'w-10 h-10 p-0' : 'w-full px-3 py-2.5 gap-2 text-xs font-bold'
+          }`}
+          title={isCollapsed ? 'Sign Out' : ''}
         >
-          <LogOut className="w-4 h-4" />
-          Sign Out
+          <LogOut className={isCollapsed ? "w-5 h-5" : "w-4 h-4"} />
+          {!isCollapsed && <span>SIGN OUT</span>}
         </button>
       </div>
     </aside>

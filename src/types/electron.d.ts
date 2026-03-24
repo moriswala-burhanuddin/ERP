@@ -42,21 +42,25 @@ export interface ElectronAPI {
 
     // Sales
     getSales: (storeId: string) => Promise<Sale[]>;
-    addSale: (sale: Sale) => Promise<{ success: boolean; id?: string; invoiceNumber?: string }>;
-    updateSale: (id: string, updates: Updates<Sale>) => Promise<{ success: boolean }>;
+    addSale: (sale: Omit<Sale, "id" | "invoiceNumber">) => Promise<string>;
+    deleteSale: (id: string) => Promise<void>;
+    updateSale: (id: string, updates: Partial<Sale>) => Promise<void>;
 
     // Quotations
     getQuotations: (storeId: string) => Promise<Quotation[]>;
     addQuotation: (quotation: Quotation) => Promise<{ success: boolean; id?: string; quotationNumber?: string }>;
-    updateQuotation: (id: string, updates: Updates<Quotation>) => Promise<{ success: boolean }>;
+    updateQuotation: (id: string, updates: Partial<Quotation>) => Promise<{ success: boolean }>;
+    deleteQuotation: (id: string) => Promise<void>;
 
     // Purchases
     getPurchases: (storeId: string) => Promise<Purchase[]>;
-    addPurchase: (purchase: Purchase) => Promise<{ success: boolean; id?: string }>;
+    addPurchase: (purchase: Purchase) => Promise<void>;
+    deletePurchase: (id: string) => Promise<void>;
 
     // Transactions
     getTransactions: (storeId: string) => Promise<Transaction[]>;
-    addTransaction: (transaction: Transaction) => Promise<{ success: boolean; id?: string }>;
+    addTransaction: (transaction: Transaction) => Promise<void>;
+    deleteTransaction: (id: string) => Promise<void>;
 
     // Accounts
     getAccounts: (storeId: string) => Promise<Account[]>;
@@ -84,6 +88,8 @@ export interface ElectronAPI {
     manualBackup: () => Promise<{ success: boolean; path?: string; error?: string }>;
     updateSecondaryDisplay: (data: unknown) => void;
     handleBarcodeScan: (barcode: string, mode: 'IN' | 'OUT', storeId: string) => Promise<BarcodeResponse>;
+    getVersion: () => Promise<string>;
+    checkForUpdates: () => Promise<{ success: boolean; info?: any; error?: string }>;
     log: (message: string) => void;
 
     // Sync

@@ -18,19 +18,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Sales
     getSales: (storeId) => ipcRenderer.invoke('db:getSales', storeId),
     addSale: (sale) => ipcRenderer.invoke('db:addSale', sale),
+    deleteSale: (id) => ipcRenderer.invoke('db:deleteSale', id),
 
     // Quotations
     getQuotations: (storeId) => ipcRenderer.invoke('db:getQuotations', storeId),
     addQuotation: (quotation) => ipcRenderer.invoke('db:addQuotation', quotation),
     updateQuotation: (id, updates) => ipcRenderer.invoke('db:updateQuotation', id, updates),
+    deleteQuotation: (id) => ipcRenderer.invoke('db:deleteQuotation', id),
 
     // Purchases
     getPurchases: (storeId) => ipcRenderer.invoke('db:getPurchases', storeId),
     addPurchase: (purchase) => ipcRenderer.invoke('db:addPurchase', purchase),
+    deletePurchase: (id) => ipcRenderer.invoke('db:deletePurchase', id),
 
     // Transactions
     getTransactions: (storeId) => ipcRenderer.invoke('db:getTransactions', storeId),
     addTransaction: (transaction) => ipcRenderer.invoke('db:addTransaction', transaction),
+    deleteTransaction: (id) => ipcRenderer.invoke('db:deleteTransaction', id),
 
     // Accounts
     getAccounts: (storeId) => ipcRenderer.invoke('db:getAccounts', storeId),

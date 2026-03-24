@@ -1,7 +1,7 @@
 import requests
 
 session = "12345"
-base_url = "https://erp.decentinstitute.in/api/v1/store/cart"
+base_url = "https://erp.tmr-tools.com/api/v1/store/cart"
 
 print("1. Adding item to cart...")
 r1 = requests.post(f"{base_url}/add/", headers={"x-cart-session": session}, json={"project_id": "p-123", "quantity": 1})

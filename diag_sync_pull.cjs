@@ -1,6 +1,6 @@
 const https = require('https');
 
-const API_URL = 'erp.decentinstitute.in';
+const API_URL = 'erp.tmr-tools.com';
 const STORE_ID = 'store-1';
 const AUTH_TOKEN = 'your_token_here'; // This script will likely fail without a real token, but we can check if it gets past the 400 validation
 

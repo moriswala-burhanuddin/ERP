@@ -3,7 +3,7 @@ import { Cloud, CloudOff, RefreshCw, CheckCircle, AlertCircle } from 'lucide-rea
 import { useToast } from '@/components/ui/use-toast';
 import { useERPStore } from '@/lib/store-data';
 
-export function SyncStatus() {
+export function SyncStatus({ compact = false }: { compact?: boolean }) {
     const { accessToken, isSyncing, syncData } = useERPStore();
     const [status, setStatus] = useState<'synced' | 'dirty' | 'syncing' | 'error'>('synced');
     const [dirtyCount, setDirtyCount] = useState(0);
@@ -95,40 +95,60 @@ export function SyncStatus() {
 
     if (!window.electronAPI) return null;
 
+    if (compact) {
+        return (
+            <div 
+                className={`p-2 rounded-xl flex items-center justify-center transition-all ${
+                    status === 'synced' ? 'bg-slate-800 text-green-500' :
+                    status === 'dirty' ? 'bg-yellow-900/40 text-yellow-500 animate-pulse' :
+                    status === 'syncing' ? 'bg-blue-900/40 text-blue-400' :
+                    'bg-red-900/40 text-red-500'
+                }`}
+                title={status === 'dirty' ? `${dirtyCount} changes pending` : status}
+                onClick={status === 'dirty' ? handleSync : undefined}
+            >
+                {status === 'synced' && <CheckCircle className="w-5 h-5" />}
+                {status === 'dirty' && <CloudOff className="w-5 h-5" />}
+                {status === 'syncing' && <RefreshCw className="w-5 h-5 animate-spin" />}
+                {status === 'error' && <AlertCircle className="w-5 h-5" />}
+            </div>
+        );
+    }
+
     return (
-        <div className="px-4 py-2 border-t border-slate-800 bg-slate-900">
+        <div className="px-4 py-2 border-t border-slate-800 bg-slate-900 rounded-xl overflow-hidden shadow-inner">
             <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">
                     Cloud Sync
                 </span>
-                {status === 'synced' && <span className="text-[10px] text-green-500 font-bold">ONLINE</span>}
-                {status === 'dirty' && <span className="text-[10px] text-yellow-500 font-bold">UNSAVED CLOUD</span>}
-                {status === 'error' && <span className="text-[10px] text-red-500 font-bold">OFFLINE</span>}
+                {status === 'synced' && <span className="text-[10px] text-green-500 font-black tracking-tighter">ONLINE</span>}
+                {status === 'dirty' && <span className="text-[10px] text-yellow-500 font-black tracking-tighter">UNSAVED</span>}
+                {status === 'error' && <span className="text-[10px] text-red-500 font-black tracking-tighter">OFFLINE</span>}
             </div>
 
             <div className="flex items-center gap-2">
-                <div className={`flex-1 flex items-center gap-2 p-2 rounded border transition-colors ${status === 'synced' ? 'bg-slate-800/50 border-slate-700 text-slate-400' :
-                    status === 'dirty' ? 'bg-yellow-900/10 border-yellow-700/50 text-yellow-500' :
-                        status === 'syncing' ? 'bg-blue-900/10 border-blue-700/50 text-blue-400' :
-                            'bg-red-900/10 border-red-700/50 text-red-500'
+                <div className={`flex-1 flex items-center gap-2 p-2.5 rounded-lg border transition-all ${status === 'synced' ? 'bg-slate-800/50 border-slate-700/50 text-slate-400' :
+                    status === 'dirty' ? 'bg-yellow-900/10 border-yellow-700/30 text-yellow-500' :
+                        status === 'syncing' ? 'bg-blue-900/10 border-blue-700/30 text-blue-400' :
+                            'bg-red-900/10 border-red-700/30 text-red-500'
                     }`}>
-                    {status === 'synced' && <CheckCircle className="w-4 h-4" />}
-                    {status === 'dirty' && <CloudOff className="w-4 h-4" />}
-                    {status === 'syncing' && <RefreshCw className="w-4 h-4 animate-spin" />}
-                    {status === 'error' && <AlertCircle className="w-4 h-4" />}
+                    {status === 'synced' && <CheckCircle className="w-3.5 h-3.5" />}
+                    {status === 'dirty' && <CloudOff className="w-3.5 h-3.5" />}
+                    {status === 'syncing' && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+                    {status === 'error' && <AlertCircle className="w-3.5 h-3.5" />}
 
-                    <span className="text-xs font-bold">
+                    <span className="text-[10px] font-black uppercase tracking-tight">
                         {status === 'synced' && "All Synced"}
-                        {status === 'dirty' && `${dirtyCount} Changes Pending`}
-                        {status === 'syncing' && "Syncing..."}
-                        {status === 'error' && "Connection Error"}
+                        {status === 'dirty' && `${dirtyCount} Changes`}
+                        {status === 'syncing' && "Syncing"}
+                        {status === 'error' && "Error"}
                     </span>
                 </div>
 
                 <button
                     onClick={handleSync}
                     disabled={status === 'syncing' || status === 'synced'}
-                    className="p-2 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-600 text-white rounded transition-colors"
+                    className="w-10 h-10 flex items-center justify-center bg-blue-600 hover:bg-blue-500 disabled:bg-slate-800 disabled:text-slate-600 text-white rounded-lg transition-all shadow-lg active:scale-95"
                     title="Sync Now"
                 >
                     <RefreshCw className={`w-4 h-4 ${status === 'syncing' ? 'animate-spin' : ''}`} />

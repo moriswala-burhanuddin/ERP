@@ -94,6 +94,13 @@ export const dbAdapter = {
         }
         return null
     },
+    
+    async deleteSale(id: string) {
+        if (isElectron()) {
+            return await window.electronAPI.deleteSale(id)
+        }
+        return null
+    },
 
     async getQuotations(storeId: string): Promise<Quotation[] | null> {
         if (isElectron()) {
@@ -116,6 +123,13 @@ export const dbAdapter = {
         return null
     },
 
+    async deleteQuotation(id: string) {
+        if (isElectron()) {
+            return await window.electronAPI.deleteQuotation(id)
+        }
+        return null
+    },
+
     async getPurchases(storeId: string): Promise<Purchase[] | null> {
         if (isElectron()) {
             return await window.electronAPI.getPurchases(storeId)
@@ -130,6 +144,13 @@ export const dbAdapter = {
         return null
     },
 
+    async deletePurchase(id: string) {
+        if (isElectron()) {
+            return await window.electronAPI.deletePurchase(id)
+        }
+        return null
+    },
+
     async getTransactions(storeId: string): Promise<Transaction[] | null> {
         if (isElectron()) {
             return await window.electronAPI.getTransactions(storeId)
@@ -140,6 +161,13 @@ export const dbAdapter = {
     async addTransaction(transaction: Transaction) {
         if (isElectron()) {
             return await window.electronAPI.addTransaction(transaction)
+        }
+        return null
+    },
+
+    async deleteTransaction(id: string) {
+        if (isElectron()) {
+            return await window.electronAPI.deleteTransaction(id)
         }
         return null
     },

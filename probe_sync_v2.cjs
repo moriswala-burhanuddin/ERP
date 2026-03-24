@@ -1,5 +1,5 @@
 const https = require('https');
-const host = 'erp.decentinstitute.in';
+const host = 'erp.tmr-tools.com';
 
 async function check(path) {
     return new Promise((resolve) => {

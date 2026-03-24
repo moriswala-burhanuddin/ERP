@@ -871,6 +871,19 @@ addCol('products', 'price_usd REAL');
 
 addCol('customers', 'source TEXT DEFAULT "POS"');
 addCol('customers', 'joined_at TEXT');
+
+// --- Soft-Delete migrations (is_deleted flag for all key tables) ---
+addCol('customers',     'is_deleted INTEGER DEFAULT 0');
+addCol('purchases',     'is_deleted INTEGER DEFAULT 0');
+addCol('sales',         'is_deleted INTEGER DEFAULT 0');
+addCol('quotations',    'is_deleted INTEGER DEFAULT 0');
+addCol('transactions',  'is_deleted INTEGER DEFAULT 0');
+addCol('receivings',    'is_deleted INTEGER DEFAULT 0');
+addCol('invoices',      'is_deleted INTEGER DEFAULT 0');
+addCol('users',         'is_deleted INTEGER DEFAULT 0');
+addCol('employees',     'is_deleted INTEGER DEFAULT 0');
+addCol('accounts',      'is_deleted INTEGER DEFAULT 0');
+addCol('stores',        'is_deleted INTEGER DEFAULT 0');
 // --------------------------------------------------------
 
 
@@ -1690,8 +1703,12 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'))
 
   // Customers
   getAllCustomers: (storeId) => {
-    const customers = db.prepare('SELECT * FROM customers WHERE store_id = ? ORDER BY updated_at DESC').all(storeId)
+    const customers = db.prepare('SELECT * FROM customers WHERE store_id = ? AND is_deleted = 0 ORDER BY updated_at DESC').all(storeId)
     return customers.map(toCamelCase)
+  },
+
+  deleteCustomer: (id) => {
+    return db.prepare("UPDATE customers SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?").run(id)
   },
 
   addCustomer: (customer) => {
@@ -1748,7 +1765,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
   },
 
   getAllSales: (storeId) => {
-    const sales = db.prepare('SELECT * FROM sales WHERE store_id = ? ORDER BY date DESC').all(storeId)
+    const sales = db.prepare('SELECT * FROM sales WHERE store_id = ? AND is_deleted = 0 ORDER BY date DESC').all(storeId)
     return sales.map(sale => {
       const camelSale = toCamelCase(sale)
       return { ...camelSale, items: JSON.parse(camelSale.items) }
@@ -1980,7 +1997,7 @@ VALUES(?, ?, ?, ?, ?, 0)
 
   // Generic getters
   getAllStores: () => db.prepare('SELECT * FROM stores').all().map(toCamelCase),
-  getAllUsers: () => db.prepare('SELECT u.*, e.id as employee_id FROM users u LEFT JOIN employees e ON u.id = e.user_id').all().map(toCamelCase),
+  getAllUsers: () => db.prepare('SELECT u.*, e.id as employee_id FROM users u LEFT JOIN employees e ON u.id = e.user_id WHERE u.is_deleted = 0').all().map(toCamelCase),
 
   getDashboardMetrics: (storeId) => {
     try {
@@ -2334,10 +2351,14 @@ VALUES(?, ?, ?, ?, datetime('now'))
       SELECT r.*, s.company_name as supplier_name 
       FROM receivings r 
       JOIN suppliers s ON r.supplier_id = s.id 
-      WHERE r.store_id = ?
+      WHERE r.store_id = ? AND r.is_deleted = 0
   ORDER BY r.updated_at DESC
     `).all(storeId)
     return receivings.map(toCamelCase)
+  },
+
+  deleteReceiving: (id) => {
+    return db.prepare("UPDATE receivings SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?").run(id)
   },
 
   getReceivingById: (id) => {
@@ -2590,7 +2611,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       FROM invoices i
       LEFT JOIN customers c ON i.customer_id = c.id
       LEFT JOIN suppliers s ON i.supplier_id = s.id
-      WHERE i.store_id = ?
+      WHERE i.store_id = ? AND i.is_deleted = 0
   ORDER BY i.date DESC
     `).all(storeId)
     return invoices.map(toCamelCase)
@@ -2712,30 +2733,12 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
   },
 
   deleteInvoice: (id) => {
-    const transaction = db.transaction(() => {
-      db.prepare('DELETE FROM invoice_items WHERE invoice_id = ?').run(id)
-      db.prepare('DELETE FROM invoices WHERE id = ?').run(id)
-    })
-    transaction()
-    return { success: true }
+    return db.prepare("UPDATE invoices SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?").run(id)
   },
 
 
   deleteUser: (id) => {
-    // Get linked employee ID if any
-    const emp = db.prepare('SELECT id FROM employees WHERE user_id = ?').get(id);
-
-    // Delete all dependent records first
-    if (emp) {
-      db.prepare('DELETE FROM attendance WHERE employee_id = ?').run(emp.id);
-      db.prepare('DELETE FROM leaves WHERE employee_id = ?').run(emp.id);
-      db.prepare('DELETE FROM shifts WHERE employee_id = ?').run(emp.id);
-      db.prepare('DELETE FROM employees WHERE id = ?').run(emp.id);
-    }
-
-    db.prepare('DELETE FROM commissions WHERE user_id = ?').run(id);
-
-    return db.prepare('DELETE FROM users WHERE id = ?').run(id);
+    return db.prepare("UPDATE users SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?").run(id)
   },
 
   clearLocalData: (storeId) => {
@@ -2777,21 +2780,41 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       ];
 
       for (const table of tablesToClear) {
-        db.prepare(`DELETE FROM ${table} WHERE store_id = ?`).run(storeId);
+        try {
+          if (table === 'stock_transfers') {
+            db.prepare(`DELETE FROM stock_transfers WHERE from_store_id = ? OR to_store_id = ?`).run(storeId, storeId);
+          } else {
+            db.prepare(`DELETE FROM ${table} WHERE store_id = ?`).run(storeId);
+          }
+        } catch (e) {
+          console.warn(`[DB] Could not clear table ${table}:`, e.message);
+        }
       }
       
       return true;
     });
-
-    try {
-      return transaction();
-    } catch (error) {
-      console.error('Local data reset failed:', error);
-      throw error;
-    }
+    return transaction();
   },
 
-  getAllAccounts: (storeId) => db.prepare('SELECT * FROM accounts WHERE store_id = ?').all(storeId).map(toCamelCase),
+  deleteSale: (id) => {
+    // Soft-delete: mark as deleted and mark dirty for sync
+    return db.prepare(`UPDATE sales SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?`).run(id);
+  },
+
+  deletePurchase: (id) => {
+    // Soft-delete: mark as deleted and mark dirty for sync
+    return db.prepare(`UPDATE purchases SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?`).run(id);
+  },
+
+  deleteQuotation: (id) => {
+    return db.prepare(`UPDATE quotations SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?`).run(id);
+  },
+
+  deleteTransaction: (id) => {
+    return db.prepare(`UPDATE transactions SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?`).run(id);
+  },
+
+  getAllAccounts: (storeId) => db.prepare('SELECT * FROM accounts WHERE store_id = ? AND is_deleted = 0').all(storeId).map(toCamelCase),
 
   addAccount: (account) => {
     const stmt = db.prepare(`
@@ -2844,20 +2867,20 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     return db.prepare('DELETE FROM accounts WHERE id = ?').run(id)
   },
   getAllQuotations: (storeId) => {
-    const quotations = db.prepare('SELECT * FROM quotations WHERE store_id = ? ORDER BY date DESC').all(storeId)
+    const quotations = db.prepare('SELECT * FROM quotations WHERE store_id = ? AND is_deleted = 0 ORDER BY date DESC').all(storeId)
     return quotations.map(q => {
       const camelQ = toCamelCase(q)
       return { ...camelQ, items: JSON.parse(camelQ.items) }
     })
   },
   getAllPurchases: (storeId) => {
-    const purchases = db.prepare('SELECT * FROM purchases WHERE store_id = ? ORDER BY date DESC').all(storeId)
+    const purchases = db.prepare('SELECT * FROM purchases WHERE store_id = ? AND is_deleted = 0 ORDER BY date DESC').all(storeId)
     return purchases.map(p => {
       const camelP = toCamelCase(p)
       return { ...camelP, items: JSON.parse(camelP.items) }
     })
   },
-  getAllTransactions: (storeId) => db.prepare('SELECT * FROM transactions WHERE store_id = ? ORDER BY date DESC').all(storeId).map(toCamelCase),
+  getAllTransactions: (storeId) => db.prepare('SELECT * FROM transactions WHERE store_id = ? AND is_deleted = 0 ORDER BY date DESC').all(storeId).map(toCamelCase),
 
   addQuotation: (quotation) => {
     const stmt = db.prepare(`
@@ -3159,9 +3182,17 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'))
   `)
     stmt.run(
       shift.id, shift.employeeId, shift.storeId, shift.startTime,
-      shift.endTime, shift.type, 'assigned'
+  shift.endTime, shift.type, 'assigned'
     )
     return toCamelCase(db.prepare('SELECT * FROM shifts WHERE id = ?').get(shift.id))
+  },
+
+  deleteAccount: (id) => {
+    return db.prepare("UPDATE accounts SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?").run(id)
+  },
+
+  deleteEmployee: (id) => {
+    return db.prepare("UPDATE employees SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?").run(id)
   },
 
   deleteShift: (id) => {
@@ -3423,38 +3454,13 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     return db.prepare("UPDATE candidates SET status = ?, updated_at = datetime('now') WHERE id = ?").run(status, id)
   },
 
-  getEmployees: (storeId) => {
-    return db.prepare('SELECT e.*, u.name, u.email, u.role, u.avatar FROM employees e JOIN users u ON e.user_id = u.id WHERE e.store_id = ?')
-      .all(storeId)
-      .map(row => {
-        const camel = toCamelCase(row);
-        return {
-          ...camel,
-          user: {
-            name: camel.name,
-            email: camel.email,
-            role: camel.role,
-            avatar: camel.avatar
-          }
-        };
-      });
-  },
-
-  getCommissions: (storeId) => {
-    return db.prepare('SELECT * FROM commissions WHERE sale_id IN (SELECT id FROM sales WHERE store_id = ?)').all(storeId).map(toCamelCase)
-  },
-
-  getLoyaltyPoints: (customerId) => {
-    return db.prepare('SELECT * FROM loyalty_points WHERE customer_id = ? ORDER BY created_at DESC').all(customerId).map(toCamelCase)
-  },
-
   // Employees (HR)
   getEmployees: (storeId) => {
     return db.prepare(`
       SELECT e.*, u.name as user_name, u.email as user_email, u.role as user_role, u.avatar as user_avatar, u.is_active as user_is_active
       FROM employees e
       LEFT JOIN users u ON e.user_id = u.id
-      WHERE e.store_id = ?
+      WHERE e.store_id = ? AND e.is_deleted = 0
       ORDER BY e.updated_at DESC
     `).all(storeId).map(e => {
       const camelE = toCamelCase(e)
@@ -3470,6 +3476,14 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
         documents: JSON.parse(camelE.documents || '[]')
       }
     })
+  },
+
+  getCommissions: (storeId) => {
+    return db.prepare('SELECT * FROM commissions WHERE sale_id IN (SELECT id FROM sales WHERE store_id = ?)').all(storeId).map(toCamelCase)
+  },
+
+  getLoyaltyPoints: (customerId) => {
+    return db.prepare('SELECT * FROM loyalty_points WHERE customer_id = ? ORDER BY created_at DESC').all(customerId).map(toCamelCase)
   },
 
   // Primary onboarding entry point: HR creates employee → system auto-creates linked user account

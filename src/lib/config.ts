@@ -2,7 +2,7 @@
 // This file provides the base URL for API calls based on the environment
 
 // Read from environment variable, fallback to production
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://erp.decentinstitute.in';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://erp.tmr-tools.com';
 
 // API version
 const API_VERSION = 'v1';

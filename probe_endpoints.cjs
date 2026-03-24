@@ -9,7 +9,7 @@ const paths = [
     '/api/v1/auth/login/'
 ];
 
-const host = 'erp.decentinstitute.in';
+const host = 'erp.tmr-tools.com';
 
 async function checkPath(path) {
     return new Promise((resolve) => {

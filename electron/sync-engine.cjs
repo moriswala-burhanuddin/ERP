@@ -137,12 +137,14 @@ const syncEngine = {
                         .map(col => `${col} = excluded.${col}`)
                         .join(', ');
 
+                    const hasIsDeleted = localCols.has('is_deleted');
                     const sql = `
                         INSERT INTO ${table} (${columns.join(', ')}, sync_status) 
                         VALUES (${columns.map(() => '?').join(', ')}, 1)
                         ON CONFLICT(id) DO UPDATE SET 
                             ${updateSets},
                             sync_status = 1
+                        ${hasIsDeleted ? `WHERE ${table}.is_deleted = 0 OR excluded.is_deleted = 1` : ''}
                     `;
                     const stmt = db.prepare(sql);
 

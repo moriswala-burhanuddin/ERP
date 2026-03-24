@@ -1,6 +1,6 @@
 const https = require('https');
 
-const API_URL = 'https://erp.decentinstitute.in';
+const API_URL = 'https://erp.tmr-tools.com';
 
 console.log(`Checking connectivity to: ${API_URL}`);
 

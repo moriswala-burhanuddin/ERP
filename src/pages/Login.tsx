@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useERPStore } from '@/lib/store-data';
 import { Store, Eye, EyeOff, Lock, Mail, ShieldCheck, Sparkles, ArrowRight, Fingerprint, ShieldAlert, Cpu } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import logo from '../assets/invenza-bg.png';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -62,7 +63,7 @@ export default function Login() {
               <div className="absolute -inset-4 bg-indigo-500/20 rounded-[2.5rem] blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <div className="w-24 h-24 rounded-[2.5rem] bg-gradient-to-br from-indigo-500 to-emerald-500 p-[1px] shadow-2xl shadow-indigo-500/20 transition-transform duration-700 group-hover:scale-105 group-hover:rotate-6">
                 <div className="w-full h-full bg-[#0A0A0B] rounded-[2.4rem] flex items-center justify-center overflow-hidden">
-                  <img src="/invenza-bg.png" alt="Invenza Logo" className="w-[70%] h-[70%] object-contain" />
+                  <img src={logo} alt="Invenza Logo" className="w-[70%] h-[70%] object-contain" />
                 </div>
               </div>
               <div className="absolute -bottom-2 -right-2 w-8 h-8 rounded-xl bg-emerald-500 flex items-center justify-center shadow-lg border-2 border-[#141417]">

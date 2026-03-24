@@ -1652,7 +1652,7 @@ export const useERPStore = create<ERPState>()(
         set((state) => ({
           sales: state.sales.filter(s => s.id !== id)
         }));
-        // dbAdapter.deleteSale(id) - Not implemented
+        dbAdapter.deleteSale(id);
       },
 
       // Transaction Actions
@@ -1751,7 +1751,7 @@ export const useERPStore = create<ERPState>()(
         set((state) => ({
           purchases: state.purchases.filter(p => p.id !== id)
         }));
-        // dbAdapter.deletePurchase(id); - Not implemented
+        dbAdapter.deletePurchase(id);
       },
 
       // Quotation Actions
@@ -1867,7 +1867,7 @@ export const useERPStore = create<ERPState>()(
         set((state) => ({
           quotations: state.quotations.filter(q => q.id !== id)
         }));
-        // dbAdapter.deleteQuotation(id); - Not implemented
+        dbAdapter.deleteQuotation(id);
       },
 
       // Inventory Intelligence Implementation

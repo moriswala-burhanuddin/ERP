@@ -363,19 +363,21 @@ export default function Sales() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Admin Code</Label>
+              <Label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2">Admin Password</Label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
-                  <ShieldCheck className="w-5 h-5 text-slate-300 group-focus-within:text-black transition-colors" />
-                </div>
                 <Input
                   type="password"
-                  placeholder="••••"
-                  className="w-full bg-slate-50 border-none rounded-[1.2rem] h-16 pl-14 font-black tracking-widest focus:ring-2 focus:ring-black"
+                  placeholder="Enter administrator password"
+                  className="w-full bg-slate-50 border-none rounded-[1.2rem] h-16 pl-6 font-black tracking-widest focus:ring-2 focus:ring-black"
                   value={adminCode}
                   onChange={(e) => setAdminCode(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && handleDeleteSale()}
+                  autoFocus
                 />
               </div>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2 ml-2">
+                Administrative privileges required to delete records.
+              </p>
             </div>
           </div>
           <DialogFooter className="flex-col gap-3">

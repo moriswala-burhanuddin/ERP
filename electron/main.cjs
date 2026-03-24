@@ -100,6 +100,7 @@ function createWindow() {
     mainWindow = new BrowserWindow({
         width: 1200,
         height: 800,
+        icon: path.join(__dirname, '../build/icon.png'),
         webPreferences: {
             preload: path.join(__dirname, 'preload.cjs'),
             contextIsolation: true,
@@ -293,6 +294,12 @@ ipcMain.handle('db:addSale', async (event, sale) => {
 })
 
 // Quotations
+ipcMain.handle('db:deleteSale', async (event, id) => {
+    const result = dbHelpers.deleteSale(id)
+    if (mainWindow) mainWindow.webContents.send('sync:trigger')
+    return result
+})
+
 ipcMain.handle('db:getQuotations', async (event, storeId) => {
     return dbHelpers.getAllQuotations(storeId)
 })
@@ -311,6 +318,12 @@ ipcMain.handle('db:updateQuotation', async (event, id, updates) => {
     return stmt.run({ id, ...updates })
 })
 
+ipcMain.handle('db:deleteQuotation', async (event, id) => {
+    const result = dbHelpers.deleteQuotation(id)
+    if (mainWindow) mainWindow.webContents.send('sync:trigger')
+    return result
+})
+
 // Purchases
 ipcMain.handle('db:getPurchases', async (event, storeId) => {
     return dbHelpers.getAllPurchases(storeId)
@@ -324,12 +337,24 @@ ipcMain.handle('db:addPurchase', async (event, purchase) => {
 })
 
 // Transactions
+ipcMain.handle('db:deletePurchase', async (event, id) => {
+    const result = dbHelpers.deletePurchase(id)
+    if (mainWindow) mainWindow.webContents.send('sync:trigger')
+    return result
+})
+
 ipcMain.handle('db:getTransactions', async (event, storeId) => {
     return dbHelpers.getAllTransactions(storeId)
 })
 
 ipcMain.handle('db:addTransaction', async (event, transaction) => {
     const result = dbHelpers.addTransaction(transaction)
+    if (mainWindow) mainWindow.webContents.send('sync:trigger')
+    return result
+})
+
+ipcMain.handle('db:deleteTransaction', async (event, id) => {
+    const result = dbHelpers.deleteTransaction(id)
     if (mainWindow) mainWindow.webContents.send('sync:trigger')
     return result
 })
