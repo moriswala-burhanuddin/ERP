@@ -512,6 +512,25 @@ db.exec(`
     FOREIGN KEY (employee_id) REFERENCES employees(id),
     FOREIGN KEY (store_id) REFERENCES stores(id)
   );
+ 
+  CREATE TABLE IF NOT EXISTS performance_reviews (
+    id TEXT PRIMARY KEY,
+    employee_id TEXT NOT NULL,
+    reviewer_id TEXT,
+    month TEXT NOT NULL,
+    date TEXT,
+    kpi_score REAL DEFAULT 0,
+    rating INTEGER DEFAULT 5,
+    comments TEXT,
+    store_id TEXT NOT NULL,
+    device_id TEXT,
+    is_deleted INTEGER DEFAULT 0,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    sync_status INTEGER DEFAULT 0,
+    FOREIGN KEY (employee_id) REFERENCES employees(id),
+    FOREIGN KEY (reviewer_id) REFERENCES users(id),
+    FOREIGN KEY (store_id) REFERENCES stores(id)
+  );
 
   CREATE TABLE IF NOT EXISTS item_kits (
     id TEXT PRIMARY KEY,
@@ -881,6 +900,7 @@ addCol('transactions',  'is_deleted INTEGER DEFAULT 0');
 addCol('receivings',    'is_deleted INTEGER DEFAULT 0');
 addCol('invoices',      'is_deleted INTEGER DEFAULT 0');
 addCol('users',         'is_deleted INTEGER DEFAULT 0');
+addCol('users',         'is_superuser INTEGER DEFAULT 0');
 addCol('employees',     'is_deleted INTEGER DEFAULT 0');
 addCol('accounts',      'is_deleted INTEGER DEFAULT 0');
 addCol('stores',        'is_deleted INTEGER DEFAULT 0');
@@ -2075,9 +2095,47 @@ VALUES(?, ?, ?, ?, ?, 0)
   },
 
   addUser: (user) => {
+    // Check if user exists by email or username (including soft-deleted)
+    const existing = db.prepare("SELECT id, is_deleted FROM users WHERE email = ? OR username = ?").get(user.email, user.username || user.email);
+
+    if (existing) {
+      if (existing.is_deleted === 1) {
+        console.log(`[DB] Reactivating soft-deleted user: ${user.email} (ID: ${existing.id})`);
+        const nameParts = (user.name || '').split(' ', 1)
+        const firstName = user.firstName || nameParts[0] || ''
+        const lastName = user.lastName || (user.name || '').split(' ').slice(1).join(' ') || ''
+        
+        // Hash password if present
+        const password = user.password ? bcrypt.hashSync(user.password, 10) : null;
+        const isSuperuser = user.role === 'super_admin' ? 1 : 0;
+        const isStaff = (user.isStaff || user.role === 'admin' || user.role === 'super_admin') ? 1 : 0;
+
+        db.prepare(`
+          UPDATE users SET 
+            name = ?, email = ?, username = ?, first_name = ?, last_name = ?, 
+            password = ?, role = ?, is_staff = ?, is_superuser = ?, 
+            is_active = ?, is_deleted = 0, store_id = ?, avatar = ?, 
+            device_id = ?, updated_at = datetime('now'), sync_status = 0
+          WHERE id = ?
+        `).run(
+          user.name, user.email, user.username || user.email,
+          firstName, lastName, password, user.role,
+          isStaff, isSuperuser,
+          user.isActive !== false ? 1 : 0,
+          user.storeId, user.avatar, deviceId,
+          existing.id
+        )
+        const result = db.prepare('SELECT * FROM users WHERE id = ?').get(existing.id)
+        return toCamelCase(result)
+      } else {
+        // User is active already
+        throw new Error('A user with this email or username already exists and is active.');
+      }
+    }
+
     const stmt = db.prepare(`
-      INSERT INTO users(id, name, email, username, first_name, last_name, password, role, is_staff, is_active, store_id, avatar, device_id, updated_at, sync_status)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
+      INSERT INTO users(id, name, email, username, first_name, last_name, password, role, is_staff, is_superuser, is_active, is_deleted, store_id, avatar, device_id, updated_at, sync_status)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, ?, datetime('now'), 0)
     `)
     const nameParts = (user.name || '').split(' ', 1)
     const firstName = user.firstName || nameParts[0] || ''
@@ -2086,10 +2144,13 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     // Hash password if present
     const password = user.password ? bcrypt.hashSync(user.password, 10) : null;
 
+    const isSuperuser = user.role === 'super_admin' ? 1 : 0;
+    const isStaff = (user.isStaff || user.role === 'admin' || user.role === 'super_admin') ? 1 : 0;
+
     stmt.run(
       user.id, user.name, user.email, user.username || user.email,
       firstName, lastName, password, user.role,
-      user.isStaff ? 1 : (user.role === 'admin' ? 1 : 0),
+      isStaff, isSuperuser,
       user.isActive !== false ? 1 : 0,  // Default to active
       user.storeId, user.avatar, deviceId
     )
@@ -2115,11 +2176,23 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     }
     Object.keys(updates).forEach(key => {
       if (fieldMap[key]) {
-        fields.push(`${fieldMap[key]} = ?`)
         let val = updates[key];
-        if (key === 'password' && val) {
+        
+        // Fix: Only update password if a non-empty string is provided
+        if (key === 'password') {
+          if (!val || val.trim() === '') return; 
           val = bcrypt.hashSync(val, 10);
         }
+        
+        // Handle is_staff and is_superuser mapping for role updates
+        if (key === 'role') {
+           fields.push(`is_superuser = ?`);
+           values.push(val === 'super_admin' ? 1 : 0);
+           fields.push(`is_staff = ?`);
+           values.push((val === 'admin' || val === 'super_admin') ? 1 : 0);
+        }
+
+        fields.push(`${fieldMap[key]} = ?`)
         values.push(val)
       }
     })
@@ -2128,6 +2201,10 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     db.prepare(`UPDATE users SET ${fields.join(', ')}, updated_at = datetime('now'), sync_status = 0 WHERE id = ? `).run(...values)
     const result = db.prepare('SELECT * FROM users WHERE id = ?').get(id)
     return toCamelCase(result)
+  },
+
+  deleteUser: (id) => {
+    return db.prepare("UPDATE users SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?").run(id)
   },
 
   verifyPassword: (id, password) => {
@@ -2742,9 +2819,39 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
   },
 
   clearLocalData: (storeId) => {
-    const db = getDb();
+    // 0. Disable foreign keys for the purge
+    db.pragma('foreign_keys = OFF');
+
     const transaction = db.transaction(() => {
-      // 1. Keep 3 Products
+      // 1. Clear Dependent Child Tables first to avoid constraint issues
+      const childTables = [
+        'sale_items', 'sale_payments', 'invoice_items', 'receiving_items',
+        'stock_logs', 'stock_transfers', 'loyalty_points', 'commissions',
+        'item_kit_items', 'supplier_custom_values', 'product_custom_values'
+      ];
+
+      for (const table of childTables) {
+        try {
+          // Try with store_id first, fallback to full clear if fails
+          db.prepare(`DELETE FROM ${table} WHERE store_id = ?`).run(storeId);
+        } catch (e) {
+          try {
+            if (table === 'sale_items' || table === 'sale_payments') {
+               db.prepare(`DELETE FROM ${table} WHERE sale_id IN (SELECT id FROM sales WHERE store_id = ?)`).run(storeId);
+            } else if (table === 'invoice_items') {
+               db.prepare(`DELETE FROM ${table} WHERE invoice_id IN (SELECT id FROM invoices WHERE store_id = ?)`).run(storeId);
+            } else if (table === 'stock_logs' || table === 'stock_transfers' || table === 'product_custom_values') {
+               db.prepare(`DELETE FROM ${table} WHERE product_id IN (SELECT id FROM products WHERE store_id = ?)`).run(storeId);
+            } else {
+               db.prepare(`DELETE FROM ${table}`).run();
+            }
+          } catch (inner) {
+            // Table might not exist or have different schema
+          }
+        }
+      }
+
+      // 2. Keep 3 Products
       const recentProducts = db.prepare('SELECT id FROM products WHERE store_id = ? ORDER BY updated_at DESC LIMIT 3').all(storeId);
       const productIds = recentProducts.map(p => p.id);
       
@@ -2755,23 +2862,18 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
         db.prepare('DELETE FROM products WHERE store_id = ?').run(storeId);
       }
 
-      // 2. Keep 3 Sales
+      // 3. Keep 3 Sales
       const recentSales = db.prepare('SELECT id FROM sales WHERE store_id = ? ORDER BY date DESC LIMIT 3').all(storeId);
       const saleIds = recentSales.map(s => s.id);
       
       const salePlaceholders = saleIds.map(() => '?').join(',');
       if (saleIds.length > 0) {
         db.prepare(`DELETE FROM sales WHERE store_id = ? AND id NOT IN (${salePlaceholders})`).run(storeId, ...saleIds);
-        // Clear sale items for deleted sales
-        db.prepare(`DELETE FROM sale_items WHERE sale_id NOT IN (SELECT id FROM sales)`).run();
-        db.prepare(`DELETE FROM sale_payments WHERE sale_id NOT IN (SELECT id FROM sales)`).run();
       } else {
         db.prepare('DELETE FROM sales WHERE store_id = ?').run(storeId);
-        db.prepare('DELETE FROM sale_items').run();
-        db.prepare('DELETE FROM sale_payments').run();
       }
 
-      // 3. Clear other tables completely
+      // 4. Clear other tables completely
       const tablesToClear = [
         'customers', 'suppliers', 'purchases', 'transactions', 
         'quotations', 'receivings', 'receiving_items', 'invoices', 
@@ -2787,13 +2889,19 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
             db.prepare(`DELETE FROM ${table} WHERE store_id = ?`).run(storeId);
           }
         } catch (e) {
-          console.warn(`[DB] Could not clear table ${table}:`, e.message);
+          // Table might not exist or have different schema
         }
       }
       
       return true;
     });
-    return transaction();
+
+    const result = transaction();
+    
+    // 5. Re-enable foreign keys (Global setting is OFF, but we'll stick to startup preference)
+    db.pragma('foreign_keys = OFF'); 
+    
+    return result;
   },
 
   deleteSale: (id) => {
@@ -3192,6 +3300,11 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'))
   },
 
   deleteEmployee: (id) => {
+    // Soft delete the employee and deactivate the linked user account
+    const emp = db.prepare('SELECT user_id FROM employees WHERE id = ?').get(id)
+    if (emp && emp.user_id) {
+      db.prepare("UPDATE users SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?").run(emp.user_id)
+    }
     return db.prepare("UPDATE employees SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?").run(id)
   },
 
@@ -3457,7 +3570,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
   // Employees (HR)
   getEmployees: (storeId) => {
     return db.prepare(`
-      SELECT e.*, u.name as user_name, u.email as user_email, u.role as user_role, u.avatar as user_avatar, u.is_active as user_is_active
+      SELECT e.*, u.name as user_name, u.email as user_email, u.role as user_role, u.avatar as user_avatar, u.is_active as user_is_active, u.is_superuser as user_is_superuser
       FROM employees e
       LEFT JOIN users u ON e.user_id = u.id
       WHERE e.store_id = ? AND e.is_deleted = 0
@@ -3488,43 +3601,89 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
 
   // Primary onboarding entry point: HR creates employee → system auto-creates linked user account
   addEmployee: (data) => {
-    const userId = data.userId || `user-${Date.now()}`
-    const employeeId = data.id || `emp-${Date.now()}`
-
     const createBoth = db.transaction(() => {
-      // 1. Create the User account (login credentials)
+      // 1. Handle User account (login credentials)
+      let userId = data.userId;
+      const existingUser = db.prepare("SELECT id, is_deleted FROM users WHERE email = ? OR username = ?").get(data.email, data.email);
+
       const nameParts = (data.name || '').split(' ')
       const firstName = data.firstName || nameParts[0] || ''
       const lastName = data.lastName || nameParts.slice(1).join(' ') || ''
       const password = data.password ? bcrypt.hashSync(data.password, 10) : bcrypt.hashSync('ChangeMe123!', 10)
       const role = data.role || 'employee'
+      const isStaff = (role !== 'employee' && role !== 'user') ? 1 : 0;
 
-      db.prepare(`
-        INSERT INTO users(id, name, email, username, first_name, last_name, password, role, is_staff, is_active, store_id, device_id, updated_at, sync_status)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, datetime('now'), 0)
-      `).run(
-        userId, data.name, data.email, data.email,
-        firstName, lastName, password, role,
-        (role !== 'employee' && role !== 'user') ? 1 : 0,
-        data.storeId, deviceId
-      )
+      if (existingUser) {
+        userId = existingUser.id;
+        console.log(`[DB] Linking employee to existing user: ${data.email} (ID: ${userId})`);
+        db.prepare(`
+          UPDATE users SET 
+            name = ?, email = ?, username = ?, first_name = ?, last_name = ?, 
+            password = ?, role = ?, is_staff = ?, 
+            is_active = 1, is_deleted = 0, store_id = ?, device_id = ?, 
+            updated_at = datetime('now'), sync_status = 0
+          WHERE id = ?
+        `).run(
+          data.name, data.email, data.email, firstName, lastName,
+          password, role, isStaff, data.storeId, deviceId, userId
+        )
+      } else {
+        userId = userId || `user-${Date.now()}`
+        db.prepare(`
+          INSERT INTO users(id, name, email, username, first_name, last_name, password, role, is_staff, is_active, is_deleted, store_id, device_id, updated_at, sync_status)
+          VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, 1, 0, ?, ?, datetime('now'), 0)
+        `).run(
+          userId, data.name, data.email, data.email,
+          firstName, lastName, password, role, isStaff,
+          data.storeId, deviceId
+        )
+      }
 
-      // 2. Create the Employee HR profile linked to the user
-      db.prepare(`
-        INSERT INTO employees(id, user_id, department, designation, salary, joining_date, documents, store_id, updated_at, sync_status)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
-      `).run(
-        employeeId, userId,
-        data.department || 'General',
-        data.designation || data.role?.replace(/_/g, ' ').toUpperCase() || 'Staff',
-        data.salary || 0,
-        data.joiningDate || new Date().toISOString().split('T')[0],
-        JSON.stringify(data.documents || []),
-        data.storeId
-      )
+      // 2. Handle Employee HR profile
+      let employeeId = data.id || `emp-${Date.now()}`
+      const existingEmp = db.prepare("SELECT id FROM employees WHERE user_id = ?").get(userId);
+
+      const cleanSalary = (val) => {
+        if (typeof val === 'number') return val;
+        if (!val) return 0;
+        return parseFloat(String(val).replace(/[^0-9.]/g, '')) || 0;
+      };
+
+      if (existingEmp) {
+        employeeId = existingEmp.id;
+        console.log(`[DB] Updating existing employee profile: ${employeeId}`);
+        db.prepare(`
+          UPDATE employees SET 
+            department = ?, designation = ?, salary = ?, joining_date = ?, 
+            documents = ?, store_id = ?, is_deleted = 0, 
+            updated_at = datetime('now'), sync_status = 0
+          WHERE id = ?
+        `).run(
+          data.department || 'General',
+          data.designation || data.role?.replace(/_/g, ' ').toUpperCase() || 'Staff',
+          cleanSalary(data.salary),
+          data.joiningDate || new Date().toISOString().split('T')[0],
+          JSON.stringify(data.documents || []),
+          data.storeId, employeeId
+        )
+      } else {
+        db.prepare(`
+          INSERT INTO employees(id, user_id, department, designation, salary, joining_date, documents, store_id, is_deleted, updated_at, sync_status)
+          VALUES(?, ?, ?, ?, ?, ?, ?, ?, 0, datetime('now'), 0)
+        `).run(
+          employeeId, userId,
+          data.department || 'General',
+          data.designation || data.role?.replace(/_/g, ' ').toUpperCase() || 'Staff',
+          cleanSalary(data.salary),
+          data.joiningDate || new Date().toISOString().split('T')[0],
+          JSON.stringify(data.documents || []),
+          data.storeId
+        )
+      }
+      return employeeId;
     })
 
-    createBoth()
+    const finalEmployeeId = createBoth()
 
     // Return the full employee with user info
     const emp = db.prepare(`
@@ -3532,7 +3691,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       FROM employees e
       LEFT JOIN users u ON e.user_id = u.id
       WHERE e.id = ?
-    `).get(employeeId)
+    `).get(finalEmployeeId)
 
     if (!emp) return null
     const camelE = toCamelCase(emp)
@@ -3603,13 +3762,14 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
   },
 
   deleteEmployee: (id) => {
-    // Deactivate the linked user account but keep the record for audit
-    const emp = db.prepare('SELECT user_id FROM employees WHERE id = ?').get(id)
-    if (emp && emp.user_id) {
-      db.prepare("UPDATE users SET is_active = 0, updated_at = datetime('now'), sync_status = 0 WHERE id = ?").run(emp.user_id)
-    }
-    db.prepare("UPDATE employees SET updated_at = datetime('now'), sync_status = 0 WHERE id = ?").run(id)
-    db.prepare('DELETE FROM employees WHERE id = ?').run(id)
+    const transaction = db.transaction(() => {
+      const emp = db.prepare('SELECT user_id FROM employees WHERE id = ?').get(id)
+      if (emp && emp.user_id) {
+        db.prepare("UPDATE users SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?").run(emp.user_id)
+      }
+      db.prepare("UPDATE employees SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?").run(id)
+    })
+    transaction()
     return { success: true }
   },
 
@@ -4095,7 +4255,7 @@ SELECT
 
         case 'purchases_summary':
           query = `
-          SELECT supplier_id, (SELECT name FROM suppliers WHERE id = supplier_id) as supplier_name,
+          SELECT supplier_id, (SELECT company_name FROM suppliers WHERE id = supplier_id) as supplier_name,
   COUNT(*) as count, SUM(total_amount) as total
           FROM receivings
           WHERE store_id = @storeId ${dateFilter('completed_at')}

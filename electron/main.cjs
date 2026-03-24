@@ -398,7 +398,9 @@ ipcMain.handle('db:getUsers', async () => {
 })
 
 ipcMain.handle('db:deleteUser', async (event, id) => {
-    return dbHelpers.deleteUser(id)
+    const result = dbHelpers.deleteUser(id)
+    if (mainWindow) mainWindow.webContents.send('sync:trigger')
+    return result
 })
 
 ipcMain.handle('db:addStore', async (event, store) => {

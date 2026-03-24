@@ -123,7 +123,13 @@ export default function Users() {
                     </div>
                     <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-widest text-slate-400 bg-slate-50/50 p-4 rounded-2xl">
                       <span className="flex items-center gap-3"><ShieldAlert className="w-4 h-4 text-rose-500" /> ROLE</span>
-                      <span className="text-slate-900">{u.role === 'admin' ? 'ADMIN' : 'STAFF'}</span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          u.role === 'admin' ? 'bg-blue-100 text-blue-700' :
+                          u.role === 'super_admin' ? 'bg-purple-100 text-purple-700' :
+                          'bg-slate-100 text-slate-700'
+                        }`}>
+                          {u.role.toUpperCase().replace('_', ' ')}
+                        </span>
                     </div>
                   </div>
 

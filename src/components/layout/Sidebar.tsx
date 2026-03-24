@@ -83,15 +83,14 @@ export function Sidebar() {
   });
 
   return (
-    <aside 
-      className={`hidden lg:flex flex-col h-screen bg-white text-slate-600 border-r border-slate-200 sticky top-0 transition-all duration-300 ease-in-out relative ${
-        isCollapsed ? 'w-20' : 'w-64'
-      }`}
+    <aside
+      className={`hidden lg:flex flex-col h-screen bg-white text-slate-600 border-r border-slate-200 sticky top-0 transition-all duration-300 ease-in-out relative ${isCollapsed ? 'w-20' : 'w-64'
+        }`}
     >
       {/* ISO Styled Toggle Button */}
       <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute -right-3 top-10 w-6 h-6 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md hover:bg-slate-50 transition-all z-50 text-slate-400 hover:text-slate-900"
+        className="absolute -right-3 top-10 w-7 h-7 bg-black border border-slate-200 rounded-full flex items-center justify-center shadow-sm hover:shadow-md hover:bg-slate-50 transition-all z-50 text-slate-400 hover:text-slate-900"
       >
         {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
       </button>
@@ -147,11 +146,10 @@ export function Sidebar() {
               <button
                 key={item.href}
                 onClick={() => navigate(item.href)}
-                className={`w-full flex items-center rounded-xl transition-all ${
-                  isCollapsed ? 'justify-center p-3' : 'gap-3 px-3 py-2.5'
-                } ${isActive
-                  ? 'bg-black text-white shadow-lg'
-                  : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                className={`w-full flex items-center rounded-xl transition-all ${isCollapsed ? 'justify-center p-3' : 'gap-3 px-3 py-2.5'
+                  } ${isActive
+                    ? 'bg-black text-white shadow-lg'
+                    : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
                   }`}
                 title={isCollapsed ? item.title : ''}
               >
@@ -186,9 +184,8 @@ export function Sidebar() {
         </div>
         <button
           onClick={handleLogout}
-          className={`flex items-center justify-center bg-slate-900 hover:bg-rose-600 text-slate-300 hover:text-white transition-all border border-slate-800 rounded-xl ${
-            isCollapsed ? 'w-10 h-10 p-0' : 'w-full px-3 py-2.5 gap-2 text-xs font-bold'
-          }`}
+          className={`flex items-center justify-center bg-slate-900 hover:bg-rose-600 text-slate-300 hover:text-white transition-all border border-slate-800 rounded-xl ${isCollapsed ? 'w-10 h-10 p-0' : 'w-full px-3 py-2.5 gap-2 text-xs font-bold'
+            }`}
           title={isCollapsed ? 'Sign Out' : ''}
         >
           <LogOut className={isCollapsed ? "w-5 h-5" : "w-4 h-4"} />

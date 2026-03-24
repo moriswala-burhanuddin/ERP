@@ -74,7 +74,7 @@ export default function Login() {
             <h1 className="text-4xl font-black text-white uppercase tracking-tighter mb-3">Invenza<span className="text-indigo-500 text-5xl">.</span></h1>
             <div className="flex items-center gap-3 bg-white/5 border border-white/5 px-5 py-2 rounded-full">
               <Cpu className="w-3.5 h-3.5 text-indigo-400" />
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Version 3.0</span>
+              {/* <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em]">Version 3.0</span> */}
             </div>
           </div>
 
@@ -96,18 +96,21 @@ export default function Login() {
                   <Mail className="w-4 h-4 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
                 </div>
                 <input
+                  id="email"
+                  name="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full bg-white/5 border border-white/5 rounded-[2rem] py-5 pl-14 pr-6 text-sm font-bold text-white focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/50 outline-none transition-all placeholder:text-slate-700 hover:bg-white/[0.08]"
                   placeholder="yourname@example.com"
+                  autoComplete="email"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-3">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-3">
+              <label htmlFor="password" className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-3">
                 Password
               </label>
               <div className="relative group">
@@ -115,11 +118,14 @@ export default function Login() {
                   <Lock className="w-4 h-4 text-slate-500 group-focus-within:text-emerald-400 transition-colors" />
                 </div>
                 <input
+                  id="password"
+                  name="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-white/5 border border-white/5 rounded-[2rem] py-5 pl-14 pr-14 text-sm font-bold text-white focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500/50 outline-none transition-all placeholder:text-slate-700 hover:bg-white/[0.08]"
                   placeholder="••••••••••••"
+                  autoComplete="current-password"
                   required
                 />
                 <button

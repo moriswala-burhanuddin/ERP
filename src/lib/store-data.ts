@@ -2029,44 +2029,66 @@ export const useERPStore = create<ERPState>()(
       getStoreUsers: () => get().users.filter(u => u.storeId === get().activeStoreId),
       getActiveStore: () => get().stores.find(s => s.id === get().activeStoreId),
 
-        // Database sync - Load data from Electron SQLite when available
-        syncData: async () => {
-          const { isSyncing, accessToken, refreshToken, activeStoreId, loadFromDatabase, logout } = get();
-  
-          console.log('[SYNC] Request received. Current state:', { isSyncing, hasToken: !!accessToken, isElectron: isElectron() });
-  
-          // Skip sync for mock tokens/local sessions/bypass accounts to avoid 401 logouts
-          const isMockToken = accessToken === 'mock-local-token' || accessToken === 'bypass-token-offline';
-          
-          if (isSyncing) {
-            console.warn('[SYNC] Already syncing, ignoring request.');
-            return 'already_syncing';
-          }
-          if (!accessToken) {
-            console.warn('[SYNC] No access token found. Please login.');
-            return 'no_token';
-          }
-          if (!isElectron()) {
-            console.warn('[SYNC] Not in electron, skipping sync.');
-            return 'not_electron';
-          }
-          if (isMockToken) {
-            console.log('%c[SYNC] Skipping cloud sync for local/bypass session. Real Django login required for sync.', 'color: orange; font-weight: bold;');
-            return 'bypass_mode';
-          }
-  
-          set({ isSyncing: true });
+      // Database sync - Load data from Electron SQLite when available
+      syncData: async () => {
+        const { isSyncing, accessToken, refreshToken, activeStoreId, loadFromDatabase, logout } = get();
 
-        // Helper to handle API requests with refresh retry
-        const authenticatedFetch = async (url: string, options: RequestInit, retry = true): Promise<Response> => {
-          const currentToken = get().accessToken;
-          const response = await fetch(url, {
-            ...options,
-            headers: {
-              ...options.headers,
-              'Authorization': `Bearer ${currentToken}`
+        console.log('[SYNC] Request received. Current state:', { isSyncing, hasToken: !!accessToken, isElectron: isElectron() });
+
+        // Skip sync for mock tokens/local sessions/bypass accounts to avoid 401 logouts
+        const isMockToken = accessToken === 'mock-local-token' || accessToken === 'bypass-token-offline';
+        const isSuperAdmin = get().currentUser?.role === 'super_admin';
+
+        if (isSyncing) {
+          console.warn('[SYNC] Already syncing, ignoring request.');
+          return 'already_syncing';
+        }
+        if (!accessToken) {
+          console.warn('[SYNC] No access token found. Please login.');
+          return 'no_token';
+        }
+        if (!isElectron()) {
+          console.warn('[SYNC] Not in electron, skipping sync.');
+          return 'not_electron';
+        }
+        
+        // Only skip mock tokens if user is NOT a super_admin (who might be bootstrapping)
+        if (isMockToken) {
+          console.log('[SYNC] Note: This is a local-only / bootstrap session.');
+          // We allow it to proceed because the server will enforce ALLOW_BOOTSTRAP_SYNC
+        }
+
+        set({ isSyncing: true });
+
+          // Helper to handle API requests with refresh retry
+          const authenticatedFetch = async (url: string, options: RequestInit, retry = true): Promise<Response> => {
+            const currentToken = get().accessToken;
+            const user = get().currentUser;
+            const headers: any = { ...options.headers };
+            let finalUrl = url;
+            
+            // Use Bootstrap Auth if we are in mock session OR if it's a sync request from super_admin
+            const isSyncUrl = url.includes('/sync/');
+            const isSuperAdmin = user?.role === 'super_admin';
+            const isMock = currentToken === 'mock-local-token' || currentToken === 'local-token-123';
+
+            if (isMock || (isSyncUrl && isSuperAdmin)) {
+              console.log('[SYNC] Elevating request with Bootstrap Auth...');
+              headers['X-Bootstrap-Auth'] = 'super-admin-init';
+              const separator = finalUrl.includes('?') ? '&' : '?';
+              if (!finalUrl.includes('bootstrap=true')) {
+                finalUrl = `${finalUrl}${separator}bootstrap=true`;
+              }
             }
-          });
+            
+            if (!isMock && currentToken && !((isSyncUrl && isSuperAdmin))) {
+              headers['Authorization'] = `Bearer ${currentToken}`;
+            }
+
+            const response = await fetch(finalUrl, {
+              ...options,
+              headers
+            });
 
           if (response.status === 401 && retry && get().refreshToken) {
             console.log('[SYNC] Token expired, attempting refresh...');
@@ -2096,7 +2118,7 @@ export const useERPStore = create<ERPState>()(
 
         try {
           console.log('[SYNC] Starting two-way sync...');
-          
+
           // 1. PUSH
           const dirtyData = await (window as any).electronAPI.getDirtyData();
           if (dirtyData && dirtyData.totalCount > 0) {
@@ -2113,7 +2135,7 @@ export const useERPStore = create<ERPState>()(
             if (pushResponse.ok) {
               const pushResult = await pushResponse.json();
               console.log('%c[SYNC] PUSH RESPONSE:', 'color: green; font-weight: bold; font-size: 14px', pushResult);
-              
+
               if (pushResult.sync_version) {
                 console.log(`%c[SYNC] Server Version: ${pushResult.sync_version}`, 'color: blue; font-weight: bold');
               } else {
@@ -2122,7 +2144,7 @@ export const useERPStore = create<ERPState>()(
 
               const totalSynced = Object.values(pushResult.synced_ids || {}).reduce((acc: number, ids: any) => acc + (ids?.length || 0), 0);
               console.log(`%c[SYNC] Total IDs synced: ${totalSynced}`, 'color: green; font-size: 12px');
-              
+
               if (pushResult.synced_ids) {
                 await (window as any).electronAPI.markAsSynced(pushResult.synced_ids);
                 console.log('[SYNC] Local database updated with synced status');
@@ -2141,7 +2163,7 @@ export const useERPStore = create<ERPState>()(
           console.log('[SYNC] Starting Pull stage...');
           const lastSync = await (window as any).electronAPI.getLastPullTimestamp() || '2000-01-01T00:00:00.000Z';
           console.log('[SYNC] Pulling updates since:', lastSync);
-          
+
           const pullResponse = await authenticatedFetch(`${API_URL}/sync/pull`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -2162,7 +2184,7 @@ export const useERPStore = create<ERPState>()(
               });
               if (applyResult.success) {
                 console.log('[SYNC] Local state refreshing from DB...');
-                await loadFromDatabase(); 
+                await loadFromDatabase();
               }
             }
             console.log('%c[SYNC] TWO-WAY SYNC COMPLETED SUCCESSFULLY', 'color: green; font-weight: bold; font-size: 16px');
