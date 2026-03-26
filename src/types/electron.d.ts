@@ -28,6 +28,7 @@ export interface ElectronAPI {
     // Products
     getProducts: (storeId: string) => Promise<Product[]>;
     getDashboardMetrics: (storeId: string) => Promise<DashboardMetrics>;
+    getLowStockNotifications: (storeId: string) => Promise<any[]>;
     getProductByBarcode: (barcode: string, storeId: string) => Promise<Product | null>;
     addProduct: (product: Product) => Promise<{ success: boolean; id?: string }>;
     updateProduct: (id: string, updates: Updates<Product>) => Promise<{ success: boolean }>;

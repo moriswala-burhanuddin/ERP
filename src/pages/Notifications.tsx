@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useERPStore } from '@/lib/store-data';
-import { API_URL } from '@/lib/config';
+import { dbAdapter } from '@/lib/db-adapter';
 import { Bell, RefreshCw, AlertCircle, CheckCircle, Info, AlertTriangle, Trash2, ShieldAlert, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -21,90 +21,43 @@ const Notifications = () => {
     const [error, setError] = useState<string | null>(null);
     const [unreadCount, setUnreadCount] = useState(0);
 
-    const { syncData, accessToken } = useERPStore();
+    const { activeStoreId } = useERPStore();
 
-    // Helper function for authenticated fetch requests
-    const authenticatedFetch = useCallback(async (url: string, options?: RequestInit) => {
-        if (!accessToken) {
-            throw new Error("No access token available.");
-        }
-        return fetch(url, {
-            ...options,
-            headers: {
-                ...options?.headers,
-                'Authorization': `Bearer ${accessToken}`,
-                'Content-Type': 'application/json'
-            }
-        });
-    }, [accessToken]);
-
-    const fetchNotifications = useCallback(async (isRetry = false) => {
+    const fetchNotifications = useCallback(async () => {
         setIsLoading(true);
-        setError(null); // Clear previous errors
+        setError(null);
         try {
-            const response = await authenticatedFetch(`${API_URL}/notifications/`);
-
-            if (response.status === 401) {
-                if (!isRetry && typeof isRetry === 'boolean') {
-                    console.log("[Notifications] 401 Unauthorized. Attempting sync/refresh...");
-                    await syncData();
-                    // Retry once with the new token (if sync was successful)
-                    return fetchNotifications(true);
-                }
-                setError("SESSION EXPIRED. PLEASE LOG IN AGAIN.");
+            if (!activeStoreId) {
+                setNotifications([]);
                 setIsLoading(false);
                 return;
             }
 
-            if (!response.ok) throw new Error("Failed to fetch notifications");
-
-            const data = await response.json();
-            const results = Array.isArray(data) ? data : (data.results || []);
-            setNotifications(results);
-            setUnreadCount(results.filter((n: any) => !n.is_read).length);
+            console.log("[Notifications] Fetching local low stock alerts...");
+            const results = await dbAdapter.getLowStockNotifications(activeStoreId);
+            setNotifications(results || []);
+            setUnreadCount((results || []).filter((n: any) => !n.is_read).length);
         } catch (err: any) {
             console.error('Fetch error:', err);
-            setError("COULD NOT CONNECT TO ERP SERVER.");
+            setError("COULD NOT FETCH SYSTEM ALERTS.");
         } finally {
             setIsLoading(false);
         }
-    }, [authenticatedFetch, syncData]);
+    }, [activeStoreId]);
 
     useEffect(() => {
         fetchNotifications();
     }, [fetchNotifications]);
 
-    const markAsRead = async (id: string) => {
-        if (!accessToken) return;
-
-        try {
-            await fetch(`${API_URL}/notifications/${id}/mark_as_read/`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`
-                }
-            });
-            setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-        } catch (err) {
-            console.error("Failed to mark as read", err);
-        }
+    const markAsRead = (id: string) => {
+        setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+        setUnreadCount(prev => Math.max(0, prev - 1));
     };
 
-    const clearAll = async () => {
-        if (!accessToken) return;
-
-        try {
-            await fetch(`${API_URL}/notifications/clear_all/`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`
-                }
-            });
-            setNotifications([]);
-            toast.success("All notifications cleared");
-        } catch (err) {
-            toast.error("Failed to clear notifications");
-        }
+    const clearAll = () => {
+        setNotifications([]);
+        setUnreadCount(0);
+        toast.success("All alerts cleared from view");
     };
 
     const getTypeIcon = (type: string) => {
@@ -152,7 +105,7 @@ const Notifications = () => {
                     <div className="bg-white rounded-[2.5rem] p-12 text-center border border-white">
                         <AlertCircle className="w-12 h-12 text-red-100 mx-auto mb-6" />
                         <p className="text-sm font-black text-slate-900 uppercase">{error}</p>
-                        <Button onClick={() => fetchNotifications(false)} variant="ghost" className="mt-4 uppercase text-[10px] font-black">Try Again</Button>
+                        <Button onClick={() => fetchNotifications()} variant="ghost" className="mt-4 uppercase text-[10px] font-black">Try Again</Button>
                     </div>
                 ) : notifications.length === 0 ? (
                     <div className="bg-white rounded-[3rem] p-32 text-center border border-white flex flex-col items-center justify-center">

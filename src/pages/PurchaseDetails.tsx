@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useERPStore } from '@/lib/store-data';
@@ -9,6 +10,7 @@ import { toast } from 'sonner';
 import { useStoreConfig } from '@/lib/store-config';
 import { isElectron } from '@/lib/electron-helper';
 import { generateUgandaComplianceHtml, UgandaComplianceData } from '@/components/compliance/UgandaInvoiceTemplate';
+import { TaxInclusionDialog } from '@/components/compliance/TaxInclusionDialog';
 
 export default function PurchaseDetails() {
     const { id } = useParams();
@@ -22,6 +24,9 @@ export default function PurchaseDetails() {
     const purchase = purchases.find(p => p.id === id);
     const account = accounts.find(a => a.id === purchase?.accountId);
     const supplier = suppliers.find(s => s.companyName === purchase?.supplier || s.id === (purchase as any).supplierId);
+
+    const [showTaxPrompt, setShowTaxPrompt] = useState(false);
+    const [pendingAction, setPendingAction] = useState<'print' | 'pdf' | null>(null);
 
     if (!purchase) {
         return (
@@ -70,8 +75,8 @@ export default function PurchaseDetails() {
 
     const handlePrint = async () => {
         if (isElectron() && window.electronAPI?.printReceipt) {
-            const html = generateUgandaComplianceHtml(getComplianceData(), config, 'PURCHASE');
-            await window.electronAPI.printReceipt(html);
+            setPendingAction('print');
+            setShowTaxPrompt(true);
         } else {
             window.print();
         }
@@ -79,15 +84,29 @@ export default function PurchaseDetails() {
 
     const handleDownloadPDF = async () => {
         if (isElectron() && window.electronAPI?.generatePDF) {
-            const html = generateUgandaComplianceHtml(getComplianceData(), config, 'PURCHASE');
+            setPendingAction('pdf');
+            setShowTaxPrompt(true);
+        } else {
+            toast.error("PDF download requires the desktop app.");
+        }
+    };
+
+    const handleTaxConfirm = async (showTax: boolean) => {
+        setShowTaxPrompt(false);
+        const action = pendingAction;
+        setPendingAction(null);
+
+        if (action === 'print') {
+            const html = generateUgandaComplianceHtml(getComplianceData(), config, 'PURCHASE', showTax);
+            await window.electronAPI.printReceipt(html);
+        } else if (action === 'pdf') {
+            const html = generateUgandaComplianceHtml(getComplianceData(), config, 'PURCHASE', showTax);
             const result = await window.electronAPI.generatePDF(html, `Purchase_${purchase.invoiceNumber}.pdf`);
             if (result.success) {
                 toast.success("Purchase saved as PDF.");
             } else if (result.error !== 'Cancelled') {
                 toast.error(`Failed to save PDF: ${result.error}`);
             }
-        } else {
-            toast.error("PDF download requires the desktop app.");
         }
     };
 
@@ -245,6 +264,11 @@ export default function PurchaseDetails() {
                     </div>
                 </div>
             </main>
+            <TaxInclusionDialog 
+                open={showTaxPrompt} 
+                onOpenChange={setShowTaxPrompt} 
+                onConfirm={handleTaxConfirm} 
+            />
         </div>
     );
 }

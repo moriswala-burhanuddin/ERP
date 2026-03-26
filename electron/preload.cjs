@@ -188,6 +188,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     // Dashboard
     getDashboardMetrics: (storeId) => ipcRenderer.invoke('db:getDashboardMetrics', storeId),
+    getLowStockNotifications: (storeId) => ipcRenderer.invoke('db:getLowStockNotifications', storeId),
 
     // System Features
     printReceipt: (html) => ipcRenderer.invoke('system:printReceipt', html),

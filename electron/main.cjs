@@ -24,6 +24,11 @@ ipcMain.handle('db:getDashboardMetrics', async (event, storeId) => {
     return dbHelpers.getDashboardMetrics(storeId)
 });
 
+ipcMain.handle('db:getLowStockNotifications', async (event, storeId) => {
+    console.log(`IPC: getLowStockNotifications for store ${storeId}`)
+    return dbHelpers.getLowStockNotifications(storeId)
+});
+
 // Crypto for device ID
 const crypto = require('crypto')
 

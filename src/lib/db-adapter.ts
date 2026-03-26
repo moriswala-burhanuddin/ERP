@@ -24,6 +24,7 @@ export const dbAdapter = {
     },
 
     getDashboardMetrics: (storeId: string): Promise<DashboardMetrics | null> => isElectron() ? window.electronAPI.getDashboardMetrics(storeId) : Promise.resolve(null),
+    getLowStockNotifications: (storeId: string): Promise<any> => isElectron() ? window.electronAPI.getLowStockNotifications(storeId) : Promise.resolve([]),
 
     async getProductByBarcode(barcode: string, storeId: string) {
         if (isElectron()) {

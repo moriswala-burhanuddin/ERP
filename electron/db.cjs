@@ -2100,6 +2100,29 @@ VALUES(?, ?, ?, ?, ?, 0)
     }
   },
 
+  getLowStockNotifications: (storeId) => {
+    try {
+      const lowStockProducts = db.prepare(`
+        SELECT id, name, quantity, min_stock, sku, updated_at
+        FROM products
+        WHERE store_id = ? AND quantity <= min_stock AND is_deleted = 0
+        ORDER BY quantity ASC
+      `).all(storeId);
+
+      return lowStockProducts.map(p => ({
+        id: `low-stock-${p.id}`,
+        title: 'Low Stock Alert',
+        message: `${p.name} (${p.sku || 'No SKU'}) is low on stock. Current: ${p.quantity}, Min Level: ${p.min_stock}`,
+        type: 'stock_alert',
+        is_read: false,
+        created_at: p.updated_at || new Date().toISOString()
+      }));
+    } catch (err) {
+      console.error('[DB] getLowStockNotifications ERROR:', err.message);
+      return [];
+    }
+  },
+
   addUser: (user) => {
     // Check if user exists by email or username (including soft-deleted)
     const existing = db.prepare("SELECT id, is_deleted FROM users WHERE email = ? OR username = ?").get(user.email, user.username || user.email);

@@ -14,6 +14,7 @@ import { isElectron } from '@/lib/electron-helper';
 import { formatCurrency } from '@/lib/utils';
 
 import { generateUgandaComplianceHtml, UgandaComplianceData } from '@/components/compliance/UgandaInvoiceTemplate';
+import { TaxInclusionDialog } from '@/components/compliance/TaxInclusionDialog';
 
 export default function InvoiceDetails() {
     const { id } = useParams();
@@ -22,6 +23,9 @@ export default function InvoiceDetails() {
     const config = useStoreConfig();
     const { invoices, deleteInvoice, updateInvoice, fetchInvoices } = useERPStore();
     const printRef = useRef<HTMLDivElement>(null);
+
+    const [showTaxPrompt, setShowTaxPrompt] = useState(false);
+    const [pendingAction, setPendingAction] = useState<'print' | 'pdf' | null>(null);
 
     const invoice = invoices.find(inv => inv.id === id);
 
@@ -69,8 +73,8 @@ export default function InvoiceDetails() {
 
     const handlePrint = async () => {
         if (isElectron() && window.electronAPI?.printReceipt) {
-            const html = generateUgandaComplianceHtml(getComplianceData(), config, invoice.type === 'customer' ? 'SALE' : 'PURCHASE');
-            await window.electronAPI.printReceipt(html);
+            setPendingAction('print');
+            setShowTaxPrompt(true);
         } else {
             window.print();
         }
@@ -78,7 +82,27 @@ export default function InvoiceDetails() {
 
     const handleDownloadPDF = async () => {
         if (isElectron() && window.electronAPI?.generatePDF) {
-            const html = generateUgandaComplianceHtml(getComplianceData(), config, invoice.type === 'customer' ? 'SALE' : 'PURCHASE');
+            setPendingAction('pdf');
+            setShowTaxPrompt(true);
+        } else {
+            toast({
+                title: "Not Available",
+                description: "This feature only works in the desktop app.",
+                variant: "destructive"
+            });
+        }
+    };
+
+    const handleTaxConfirm = async (showTax: boolean) => {
+        setShowTaxPrompt(false);
+        const action = pendingAction;
+        setPendingAction(null);
+
+        if (action === 'print') {
+            const html = generateUgandaComplianceHtml(getComplianceData(), config, invoice.type === 'customer' ? 'SALE' : 'PURCHASE', showTax);
+            await window.electronAPI.printReceipt(html);
+        } else if (action === 'pdf') {
+            const html = generateUgandaComplianceHtml(getComplianceData(), config, invoice.type === 'customer' ? 'SALE' : 'PURCHASE', showTax);
             const result = await window.electronAPI.generatePDF(html, `Invoice_${invoice.invoiceNumber}.pdf`);
             if (result.success) {
                 toast({
@@ -93,12 +117,6 @@ export default function InvoiceDetails() {
                     variant: "destructive"
                 });
             }
-        } else {
-            toast({
-                title: "Not Available",
-                description: "This feature only works in the desktop app.",
-                variant: "destructive"
-            });
         }
     };
 
@@ -324,6 +342,11 @@ export default function InvoiceDetails() {
                     </Button>
                 </div>
             </div>
+            <TaxInclusionDialog
+                open={showTaxPrompt}
+                onOpenChange={setShowTaxPrompt}
+                onConfirm={handleTaxConfirm}
+            />
         </div>
     );
 }

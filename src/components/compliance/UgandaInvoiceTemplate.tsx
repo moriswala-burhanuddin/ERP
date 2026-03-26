@@ -26,7 +26,7 @@ export interface UgandaComplianceData {
     verificationCode?: string;
 }
 
-export function generateUgandaComplianceHtml(data: UgandaComplianceData, store: any, type: 'SALE' | 'PURCHASE' | 'INVOICE' = 'SALE') {
+export function generateUgandaComplianceHtml(data: UgandaComplianceData, store: any, type: 'SALE' | 'PURCHASE' | 'INVOICE' = 'SALE', showTax: boolean = true) {
     const dateObj = new Date(data.date);
     const dateStr = dateObj.toLocaleDateString();
     const timeStr = dateObj.toLocaleTimeString();
@@ -136,25 +136,17 @@ export function generateUgandaComplianceHtml(data: UgandaComplianceData, store: 
             <tr><td>Address:</td><td>${address.replace(/\n/g, '<br>')}</td></tr>
             <tr><td>Seller's Reference Number:</td><td>${data.invoiceNumber}</td></tr>
             <tr><td>Served by:</td><td>ADMIN</td></tr>
-        </table>
-
-        <div class="section-title">Section B: Document Details</div>
-        <table>
-            <tr><td width="30%">Document Type:</td><td>${type === 'SALE' ? 'Sales Invoice' : type === 'PURCHASE' ? 'Purchase Invoice' : 'Tax Invoice'}</td></tr>
             <tr><td>Issued Date:</td><td>${dateStr}</td></tr>
             <tr><td>Time:</td><td>${timeStr}</td></tr>
-            <tr><td>Device Number:</td><td>${data.deviceNumber || 'N/A'}</td></tr>
-            <tr><td>Fiscal Document Number:</td><td>${data.fiscalNumber || 'N/A'}</td></tr>
-            <tr><td>Verification Code:</td><td>${data.verificationCode || 'N/A'}</td></tr>
         </table>
 
-        <div class="section-title">Section C: Buyer's Details</div>
+        <div class="section-title">Section B: Buyer's Details</div>
         <table>
             <tr><td width="30%">Name:</td><td>${buyerName}</td></tr>
             ${data.customerPhone ? `<tr><td>Phone:</td><td>${data.customerPhone}</td></tr>` : ''}
         </table>
 
-        <div class="section-title">Section D: Goods & Services Details</div>
+        <div class="section-title">Section C: Goods & Services Details</div>
         <table>
             <thead>
                 <tr>
@@ -164,7 +156,6 @@ export function generateUgandaComplianceHtml(data: UgandaComplianceData, store: 
                     <th>Unit Measure</th>
                     <th>Unit Price</th>
                     <th>Total</th>
-                    <th>Tax Category</th>
                 </tr>
             </thead>
             <tbody>
@@ -176,13 +167,13 @@ export function generateUgandaComplianceHtml(data: UgandaComplianceData, store: 
                         <td class="text-center">${item.unitMeasure || 'PCE-Piece'}</td>
                         <td class="text-right">${item.unitPrice.toLocaleString()}</td>
                         <td class="text-right">${item.total.toLocaleString()}</td>
-                        <td class="text-center">${item.taxCategory || 'A'}</td>
                     </tr>
                 `).join('')}
             </tbody>
         </table>
 
-        <div class="section-title">Section E: Tax Details</div>
+        ${showTax ? `
+        <div class="section-title">Section D: Tax Details</div>
         <table>
             <thead>
                 <tr>
@@ -201,12 +192,15 @@ export function generateUgandaComplianceHtml(data: UgandaComplianceData, store: 
                 </tr>
             </tbody>
         </table>
+        ` : ''}
 
-        <div class="section-title">Section F: Summary</div>
+        <div class="section-title">${showTax ? 'Section E' : 'Section D'}: Summary</div>
         <table>
+            ${showTax ? `
             <tr><td width="30%">Net Amount:</td><td class="text-right">${(data.totalAmount / 1.18).toFixed(4)}</td></tr>
             <tr><td>Tax Amount:</td><td class="text-right">${(data.totalAmount - (data.totalAmount / 1.18)).toFixed(4)}</td></tr>
-            <tr><td>Gross Amount:</td><td class="text-right">${data.totalAmount.toLocaleString()}</td></tr>
+            ` : ''}
+            <tr><td width="30%">${showTax ? 'Gross Amount' : 'Total Amount'}:</td><td class="text-right">${data.totalAmount.toLocaleString()}</td></tr>
             <tr><td>Amount in words:</td><td>${amountInWords}</td></tr>
             <tr><td>Currency:</td><td>UGX</td></tr>
             <tr><td>Number of Items:</td><td>${data.items.length}</td></tr>
