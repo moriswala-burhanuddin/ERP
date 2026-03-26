@@ -13,9 +13,9 @@ export default function Users() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredUsers = users.filter(user =>
-    (user.storeId === activeStoreId || user.role === 'admin') &&
+    (user.storeId === activeStoreId || user.role === 'admin' || user.role === 'super_admin') &&
     (user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (user.username || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.role.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 

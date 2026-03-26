@@ -6,8 +6,13 @@ export interface InventoryRow {
     name: string;
     barcode: string;
     price: number;
+    purchasePrice?: number;
     stock: number;
-    category?: string; // Optional, good for creation
+    category?: string;
+    brand?: string;
+    unit?: string;
+    minStock?: number;
+    reorderQuantity?: number;
 }
 
 export interface InventoryValidationResult {
@@ -41,7 +46,7 @@ export interface BarcodeResponse {
  * Rules: Numeric, 8-14 characters.
  */
 export const validateBarcode = (barcode: string): boolean => {
-    const regex = /^\d{8,14}$/;
+    const regex = /^[a-zA-Z0-9_\-.]{1,20}$/;
     return regex.test(barcode);
 };
 
@@ -59,8 +64,13 @@ export const validateInventoryRow = (row: Record<string, unknown>, rowIndex: num
     const barcode = String(row.barcode || row.Barcode || '').trim();
     const name = String(row.name || row.Name || '').trim();
     const price = Number(row.price || row.Price || 0);
+    const purchasePrice = Number(row.purchasePrice || row['Purchase Price'] || row.PurchasePrice || 0);
     const stock = Number(row.stock || row.Stock || 0);
     const category = row.category || row.Category ? String(row.category || row.Category) : undefined;
+    const brand = row.brand || row.Brand ? String(row.brand || row.Brand) : undefined;
+    const unit = row.unit || row.Unit || row['Unit of Measure'] ? String(row.unit || row.Unit || row['Unit of Measure']) : undefined;
+    const minStock = Number(row.minStock || row.MinStock || row['Low Stock Alert'] || 0);
+    const reorderQuantity = Number(row.reorderQuantity || row.ReorderQuantity || row['Reorder Amount'] || 0);
 
     if ((row.price !== undefined || row.Price !== undefined) && (isNaN(price) || price < 0)) {
         errors.push('Invalid price (must be non-negative number)');
@@ -85,8 +95,13 @@ export const validateInventoryRow = (row: Record<string, unknown>, rowIndex: num
             name,
             barcode,
             price: price || 0,
+            purchasePrice: purchasePrice || 0,
             stock: stock || 0,
-            category
+            category,
+            brand,
+            unit,
+            minStock: isNaN(minStock) ? 0 : minStock,
+            reorderQuantity: isNaN(reorderQuantity) ? 0 : reorderQuantity
         },
         errors: [],
         isValid: true

@@ -18,6 +18,12 @@ ipcMain.handle('system:getVersion', () => {
     return version;
 });
 
+// Dashboard Metrics
+ipcMain.handle('db:getDashboardMetrics', async (event, storeId) => {
+    console.log(`IPC: getDashboardMetrics for store ${storeId}`)
+    return dbHelpers.getDashboardMetrics(storeId)
+});
+
 // Crypto for device ID
 const crypto = require('crypto')
 
@@ -275,10 +281,6 @@ ipcMain.handle('db:updateCustomer', async (event, id, updates) => {
 // Sales
 ipcMain.handle('db:getSales', async (event, storeId) => {
     return dbHelpers.getAllSales(storeId)
-})
-
-ipcMain.handle('db:getDashboardMetrics', async (event, storeId) => {
-    return dbHelpers.getDashboardMetrics(storeId)
 })
 
 ipcMain.handle('db:addSale', async (event, sale) => {
@@ -575,28 +577,56 @@ ipcMain.handle('db:processExcelUpload', async (event, rows, storeId) => {
         try {
             const existingProduct = dbHelpers.getProductByBarcode(row.barcode, storeId)
 
+            // Resolve categoryId from category name if possible
+            let categoryId = null;
+            let categoryName = String(row.category || row.Category || 'Uncategorized').trim();
+            
+            if (categoryName) {
+                // Try exact match or case-insensitive match
+                let cat = db.prepare('SELECT id, name FROM categories WHERE name = ? COLLATE NOCASE').get(categoryName);
+                if (!cat) {
+                    // AUTO-CREATE CATEGORY
+                    console.log(`[Excel] Category "${categoryName}" not found. Creating...`);
+                    const newCatId = `cat-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+                    db.prepare('INSERT INTO categories (id, name, store_id, updated_at, sync_status) VALUES (?, ?, ?, datetime("now"), 0)').run(
+                        newCatId, categoryName, storeId
+                    );
+                    cat = { id: newCatId, name: categoryName };
+                    if (mainWindow) mainWindow.webContents.send('sync:trigger');
+                }
+                categoryId = cat.id;
+                categoryName = cat.name;
+            }
+
+            const productData = {
+                name: row.name,
+                barcode: row.barcode,
+                sku: row.barcode, 
+                sellingPrice: Number(row.price || 0),
+                purchasePrice: Number(row.purchasePrice || row.purchase_price || row.price * 0.7 || 0),
+                quantity: Number(row.stock || row.quantity || 0),
+                categoryId: categoryId,
+                category: categoryName, // Fix: maps to 'category' column in DB
+                brand: row.brand || row.Brand || '',
+                unit: row.unit || row.Unit || 'Pcs',
+                minStock: Number(row.minStock || row.min_stock || 0),
+                reorderQuantity: Number(row.reorderQuantity || row.reorder_quantity || 0),
+                storeId: storeId,
+                updatedAt: new Date().toISOString()
+            };
+
             if (existingProduct) {
                 dbHelpers.updateProduct(existingProduct.id, {
-                    name: row.name,
-                    sellingPrice: row.price,
-                    quantity: existingProduct.quantity + row.stock,
-                    updatedAt: new Date().toISOString()
+                    ...productData,
+                    // When updating via Excel, we add to existing stock
+                    quantity: existingProduct.quantity + productData.quantity
                 })
                 updatedCount++
             } else {
                 dbHelpers.addProduct({
+                    ...productData,
                     id: `prod-${Date.now()}-${i}`,
-                    name: row.name,
-                    barcode: row.barcode,
-                    sellingPrice: row.price,
-                    purchasePrice: row.price * 0.7,
-                    quantity: row.stock,
-                    sku: row.barcode,
-                    category: row.category || 'Uncategorized',
-                    storeId: storeId,
-                    lastUsed: new Date().toISOString(),
-                    updatedAt: new Date().toISOString(),
-                    unit: 'Pcs'
+                    lastUsed: new Date().toISOString()
                 })
                 createdCount++
             }
@@ -632,6 +662,16 @@ ipcMain.handle('db:markAsSynced', (event, confirmedIds) => {
         return syncEngine.markAsSynced(confirmedIds);
     } catch (err) {
         console.error('db:markAsSynced error:', err);
+        return { success: false, error: err.message };
+    }
+});
+
+ipcMain.handle('db:markAsUnsynced', (event, idsToReset) => {
+    try {
+        const { syncEngine } = require('./sync-engine.cjs');
+        return syncEngine.markAsUnsynced(idsToReset);
+    } catch (err) {
+        console.error('db:markAsUnsynced error:', err);
         return { success: false, error: err.message };
     }
 });

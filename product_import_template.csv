@@ -1,11 +1,11 @@
-Barcode,Name,Price,Stock,Category
-12345678,Power Drill 18V,89.99,24,Power Tools
-87654321,Hammer Claw 16oz,19.99,56,Hand Tools
-55667788,Screwdriver Set 12pc,29.99,38,Hand Tools
-99887766,Paint Roller Kit,24.99,42,Painting
-11223344,PVC Pipe 2" x 10ft,12.99,120,Plumbing
-44332211,LED Bulb 60W 4pk,15.99,85,Electrical
-12123434,Circular Saw 7.25",129.99,12,Power Tools
-56567878,Wood Screws Box 100ct,8.99,200,Fasteners
-90901212,Safety Goggles,12.99,65,Safety
-34345656,Measuring Tape 25ft,14.99,48,Hand Tools
+Barcode,Name,Price,Stock,Category,Purchase Price,Brand,Unit of Measure,Low Stock Alert,Reorder Amount
+12345678,Power Drill 18V,89.99,24,Power Tools,60.00,DeWalt,Pcs,5,10
+87654321,Hammer Claw 16oz,19.99,56,Hand Tools,12.00,Stanley,Pcs,10,20
+55667788,Screwdriver Set 12pc,29.99,38,Hand Tools,18.00,Wera,Set,5,10
+99887766,Paint Roller Kit,24.99,42,Painting,15.00,Harris,Pcs,8,15
+11223344,PVC Pipe 2" x 10ft,12.99,120,Plumbing,5.00,Generic,Pcs,20,50
+44332211,LED Bulb 60W 4pk,15.99,85,Electrical,8.00,Philips,Pcs,15,30
+12123434,Circular Saw 7.25",129.99,12,Power Tools,90.00,Makita,Pcs,3,5
+56567878,Wood Screws Box 100ct,8.99,200,Fasteners,4.00,Forgefix,Box,50,100
+90901212,Safety Goggles,12.99,65,Safety,6.00,3M,Pcs,10,20
+34345656,Measuring Tape 25ft,14.99,48,Hand Tools,7.00,Lufkin,Pcs,10,20

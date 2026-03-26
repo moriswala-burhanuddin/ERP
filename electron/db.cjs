@@ -932,26 +932,27 @@ try {
   if (!salesTableInfo.some(col => col.name === 'tax_amount')) {
     db.prepare("ALTER TABLE sales ADD COLUMN tax_amount REAL DEFAULT 0").run();
   }
-  // Products migration
-  const productsTableInfo = db.prepare('PRAGMA table_info(products)').all();
-  const hasIsDeleted = productsTableInfo.some(col => col.name === 'is_deleted');
-  if (!hasIsDeleted) {
-    db.prepare('ALTER TABLE products ADD COLUMN is_deleted INTEGER DEFAULT 0').run();
-  }
-
-  const hasIsKit = productsTableInfo.some(col => col.name === 'is_kit');
-  if (!hasIsKit) {
-    db.prepare('ALTER TABLE products ADD COLUMN is_kit INTEGER DEFAULT 0').run();
-  }
-
-  const hasLimitedQty = productsTableInfo.some(col => col.name === 'limited_qty');
-  if (!hasLimitedQty) {
-    db.prepare('ALTER TABLE products ADD COLUMN limited_qty REAL').run();
-  }
-
   const hasBarcodeEnabled = productsTableInfo.some(col => col.name === 'barcode_enabled');
   if (!hasBarcodeEnabled) {
     db.prepare('ALTER TABLE products ADD COLUMN barcode_enabled INTEGER DEFAULT 1').run();
+  }
+
+  // --- Category Schema Migration ---
+  const hasCategoryId = productsTableInfo.some(col => col.name === 'category_id');
+  if (!hasCategoryId) {
+    try {
+      console.log('[DB] Migrating products table: category -> category_id, category_name');
+      // 1. Add new columns
+      db.prepare('ALTER TABLE products ADD COLUMN category_id TEXT').run();
+      db.prepare('ALTER TABLE products ADD COLUMN category_name TEXT').run();
+      
+      // 2. Copy old 'category' data to 'category_name' (for baseline)
+      db.prepare('UPDATE products SET category_name = category').run();
+      
+      console.log('[DB] Category columns added and initialized.');
+    } catch (e) {
+      console.error('[DB] Category migration failed:', e.message);
+    }
   }
 
   // Individual column additions with error suppression to ensure idempotency
@@ -1600,6 +1601,10 @@ const toCamelCase = (obj) => {
     const camelKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())
     newObj[camelKey] = obj[key]
   }
+  // Alignment: ensure categories are accessible via categoryName (frontend expectation)
+  if (newObj.category && !newObj.categoryName) {
+    newObj.categoryName = newObj.category
+  }
   return newObj
 }
 
@@ -1626,7 +1631,7 @@ const dbHelpers = {
 VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `)
     stmt.run(
-      product.id, product.name, product.sku, product.category,
+      product.id, product.name, product.sku, product.category || product.categoryName,
       product.sellingPrice, product.purchasePrice, product.quantity,
       product.storeId, product.lastUsed, product.unit, product.brand,
       product.barcode, product.minStock || 0, product.reorderQuantity || 0, deviceId
@@ -1646,6 +1651,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       quantity: 'quantity',
       sku: 'sku',
       category: 'category',
+      categoryName: 'category',
       unit: 'unit',
       brand: 'brand',
       barcode: 'barcode',
@@ -2922,6 +2928,60 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     return db.prepare(`UPDATE transactions SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?`).run(id);
   },
 
+  runQuery: (query, params = []) => {
+    const result = db.prepare(query).all(params)
+    return result.map(toCamelCase)
+  },
+
+  getDashboardMetrics: (storeId) => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      
+      // 1. Total Sales Today
+      const salesToday = db.prepare('SELECT COUNT(*) as count, SUM(total_amount) as revenue, SUM(profit) as profit FROM sales WHERE store_id = ? AND date = ? AND is_deleted = 0').get(storeId, today);
+      
+      // 2. All-time Sales
+      const salesTotal = db.prepare('SELECT COUNT(*) as count, SUM(total_amount) as revenue, SUM(profit) as profit FROM sales WHERE store_id = ? AND is_deleted = 0').get(storeId);
+
+      // 3. Low Stock Items
+      const lowStockItems = db.prepare('SELECT id, name, quantity, min_stock, sku FROM products WHERE store_id = ? AND quantity <= min_stock AND is_deleted = 0 LIMIT 10').all(storeId).map(toCamelCase);
+      
+      // 4. Inventory Value
+      const inventory = db.prepare('SELECT SUM(quantity * purchase_price) as value, COUNT(*) as count FROM products WHERE store_id = ? AND is_deleted = 0').get(storeId);
+      
+      // 5. Customer Count
+      const customerCount = db.prepare('SELECT COUNT(*) as count FROM customers WHERE store_id = ? AND is_deleted = 0').get(storeId);
+
+      // 6. Recent Sales
+      const recentSales = db.prepare(`
+        SELECT s.id, s.invoice_number, s.total_amount, s.date, c.name as customer_name
+        FROM sales s
+        LEFT JOIN customers c ON s.customer_id = c.id
+        WHERE s.store_id = ? AND s.is_deleted = 0
+        ORDER BY s.date DESC, s.id DESC LIMIT 5
+      `).all(storeId).map(toCamelCase);
+
+      return {
+        revenue: salesTotal.revenue || 0,
+        todayRevenue: salesToday.revenue || 0,
+        posRevenue: salesTotal.revenue || 0, // Fallback for POS
+        onlineRevenue: 0,
+        profit: salesTotal.profit || 0,
+        todayProfit: salesToday.profit || 0,
+        totalSales: salesTotal.count || 0,
+        inventoryValue: inventory.value || 0,
+        totalItems: inventory.count || 0,
+        lowStockCount: lowStockItems.length,
+        customerCount: customerCount.count || 0,
+        recentSales: recentSales,
+        lowStockItems: lowStockItems
+      };
+    } catch (err) {
+      console.error('[DB] getDashboardMetrics ERROR:', err.message);
+      return null;
+    }
+  },
+
   getAllAccounts: (storeId) => db.prepare('SELECT * FROM accounts WHERE store_id = ? AND is_deleted = 0').all(storeId).map(toCamelCase),
 
   addAccount: (account) => {
@@ -3931,6 +3991,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, datetime('now'), 0)
     const values = []
     const fieldMap = {
       category: 'category',
+      categoryName: 'category',
       sellingPrice: 'selling_price',
       purchasePrice: 'purchase_price',
       unit: 'unit',

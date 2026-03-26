@@ -6,16 +6,22 @@ import { Button } from '@/components/ui/button';
 import { cn, formatCurrency } from '@/lib/utils';
 import { toast } from 'sonner';
 
+import { useStoreConfig } from '@/lib/store-config';
+import { isElectron } from '@/lib/electron-helper';
+import { generateUgandaComplianceHtml, UgandaComplianceData } from '@/components/compliance/UgandaInvoiceTemplate';
+
 export default function PurchaseDetails() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const { getStorePurchases, getStoreAccounts, deletePurchase } = useERPStore();
+    const config = useStoreConfig();
+    const { getStorePurchases, getStoreAccounts, deletePurchase, suppliers } = useERPStore();
 
     const purchases = getStorePurchases();
     const accounts = getStoreAccounts();
 
     const purchase = purchases.find(p => p.id === id);
     const account = accounts.find(a => a.id === purchase?.accountId);
+    const supplier = suppliers.find(s => s.companyName === purchase?.supplier || s.id === (purchase as any).supplierId);
 
     if (!purchase) {
         return (
@@ -40,6 +46,51 @@ export default function PurchaseDetails() {
         }
     };
 
+    const getComplianceData = (): UgandaComplianceData => {
+        return {
+            invoiceNumber: purchase.invoiceNumber,
+            date: purchase.date,
+            items: purchase.items.map(item => ({
+                productName: item.productName,
+                quantity: item.quantity,
+                unitPrice: item.price,
+                total: item.quantity * item.price,
+                taxCategory: 'A',
+                unitMeasure: 'PCE-Piece'
+            })),
+            subtotal: purchase.totalAmount / 1.18,
+            taxAmount: purchase.totalAmount - (purchase.totalAmount / 1.18),
+            totalAmount: purchase.totalAmount,
+            supplierName: purchase.supplier,
+            supplierPhone: supplier?.phone,
+            paymentMode: 'Cash', // Default for purchase
+            notes: (purchase as any).notes || 'N/A'
+        };
+    };
+
+    const handlePrint = async () => {
+        if (isElectron() && window.electronAPI?.printReceipt) {
+            const html = generateUgandaComplianceHtml(getComplianceData(), config, 'PURCHASE');
+            await window.electronAPI.printReceipt(html);
+        } else {
+            window.print();
+        }
+    };
+
+    const handleDownloadPDF = async () => {
+        if (isElectron() && window.electronAPI?.generatePDF) {
+            const html = generateUgandaComplianceHtml(getComplianceData(), config, 'PURCHASE');
+            const result = await window.electronAPI.generatePDF(html, `Purchase_${purchase.invoiceNumber}.pdf`);
+            if (result.success) {
+                toast.success("Purchase saved as PDF.");
+            } else if (result.error !== 'Cancelled') {
+                toast.error(`Failed to save PDF: ${result.error}`);
+            }
+        } else {
+            toast.error("PDF download requires the desktop app.");
+        }
+    };
+
     return (
         <div className="min-h-screen bg-[#F2F2F7] pb-40">
             {/* Superior Header */}
@@ -56,9 +107,13 @@ export default function PurchaseDetails() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <Button variant="ghost" className="rounded-2xl h-12 bg-slate-50 font-black uppercase text-[10px] tracking-widest text-slate-400 px-6">
+                        <Button onClick={handlePrint} variant="ghost" className="rounded-2xl h-12 bg-slate-50 font-black uppercase text-[10px] tracking-widest text-slate-400 px-6">
                             <Printer className="w-4 h-4 mr-2" />
-                            Print Receipt
+                            Print Compliance
+                        </Button>
+                        <Button onClick={handleDownloadPDF} variant="ghost" className="rounded-2xl h-12 bg-black text-white font-black uppercase text-[10px] tracking-widest px-6 shadow-lg shadow-black/20">
+                            <Download className="w-4 h-4 mr-2" />
+                            PDF
                         </Button>
                         <Button onClick={handleDelete} variant="ghost" className="rounded-2xl h-12 w-12 p-0 bg-red-50 text-red-600 hover:bg-red-100">
                             <Trash2 className="w-5 h-5" />

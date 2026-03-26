@@ -9,6 +9,8 @@ import { toast } from 'sonner';
 import { isElectron } from '@/lib/electron-helper';
 import { useStoreConfig } from '@/lib/store-config';
 
+import { generateUgandaComplianceHtml, UgandaComplianceData } from '@/components/compliance/UgandaInvoiceTemplate';
+
 export default function SaleDetails() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -45,36 +47,32 @@ export default function SaleDetails() {
         }
     };
 
+    const getComplianceData = (): UgandaComplianceData => {
+        return {
+            invoiceNumber: sale.invoiceNumber,
+            date: sale.date,
+            items: sale.items.map(item => ({
+                productName: item.productName,
+                quantity: item.quantity,
+                unitPrice: item.price,
+                total: item.quantity * item.price,
+                taxCategory: 'A',
+                unitMeasure: 'PCE-Piece'
+            })),
+            subtotal: sale.totalAmount / 1.18, // Estimated net if not explicitly stored
+            taxAmount: sale.totalAmount - (sale.totalAmount / 1.18),
+            totalAmount: sale.totalAmount,
+            customerName: customer?.name,
+            customerPhone: customer?.phone,
+            paymentMode: sale.paymentMode || 'Cash',
+            notes: (sale as any).notes || 'N/A'
+        };
+    };
+
     const handlePrint = async () => {
         if (isElectron() && window.electronAPI?.printReceipt) {
-            const html = printRef.current?.innerHTML || '';
-            const styledHtml = `
-        <html>
-          <head>
-            <style>
-              body { font-family: sans-serif; padding: 20px; }
-              .font-mono { font-family: monospace; }
-              .font-black { font-weight: 900; }
-              .text-xs { font-size: 10px; }
-              .text-sm { font-size: 12px; }
-              .text-xl { font-size: 20px; }
-              .uppercase { text-transform: uppercase; }
-              .tracking-tighter { letter-spacing: -0.05em; }
-              .border-b-2 { border-bottom: 2px solid #e2e8f0; }
-              .border-t-2 { border-top: 2px solid #e2e8f0; }
-              .py-2 { padding-top: 8px; padding-bottom: 8px; }
-              .flex { display: flex; }
-              .justify-between { justify-content: space-between; }
-              .text-right { text-align: right; }
-              table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-              th { text-align: left; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid #000; padding: 8px; }
-              td { padding: 8px; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
-            </style>
-          </head>
-          <body>${html}</body>
-        </html>
-      `;
-            await window.electronAPI.printReceipt(styledHtml);
+            const html = generateUgandaComplianceHtml(getComplianceData(), config, 'SALE');
+            await window.electronAPI.printReceipt(html);
         } else {
             window.print();
         }
@@ -82,34 +80,8 @@ export default function SaleDetails() {
 
     const handleDownloadPDF = async () => {
         if (isElectron() && window.electronAPI?.generatePDF) {
-            const html = printRef.current?.innerHTML || '';
-            const styledHtml = `
-        <html>
-          <head>
-            <style>
-              body { font-family: sans-serif; padding: 20px; }
-              .font-mono { font-family: monospace; }
-              .font-black { font-weight: 900; }
-              .text-xs { font-size: 10px; }
-              .text-sm { font-size: 12px; }
-              .text-xl { font-size: 20px; }
-              .uppercase { text-transform: uppercase; }
-              .tracking-tighter { letter-spacing: -0.05em; }
-              .border-b-2 { border-bottom: 2px solid #e2e8f0; }
-              .border-t-2 { border-top: 2px solid #e2e8f0; }
-              .py-2 { padding-top: 8px; padding-bottom: 8px; }
-              .flex { display: flex; }
-              .justify-between { justify-content: space-between; }
-              .text-right { text-align: right; }
-              table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-              th { text-align: left; font-size: 10px; text-transform: uppercase; border-bottom: 2px solid #000; padding: 8px; }
-              td { padding: 8px; border-bottom: 1px solid #f1f5f9; font-size: 12px; }
-            </style>
-          </head>
-          <body>${html}</body>
-        </html>
-      `;
-            const result = await window.electronAPI.generatePDF(styledHtml, `Invoice_${sale.invoiceNumber}.pdf`);
+            const html = generateUgandaComplianceHtml(getComplianceData(), config, 'SALE');
+            const result = await window.electronAPI.generatePDF(html, `Invoice_${sale.invoiceNumber}.pdf`);
             if (result.success) {
                 toast.success("Invoice saved as PDF.");
             } else if (result.error !== 'Cancelled') {

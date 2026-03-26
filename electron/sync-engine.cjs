@@ -103,6 +103,33 @@ const syncEngine = {
     },
 
     /**
+     * Resets records to sync_status = 0 to force re-sync.
+     * Useful when server reports missing dependencies.
+     */
+    markAsUnsynced: (tableIds) => {
+        const transaction = db.transaction(() => {
+            for (const [table, ids] of Object.entries(tableIds)) {
+                if (!TABLE_NAMES.includes(table)) continue;
+                if (!ids || ids.length === 0) continue;
+
+                const updateStmt = db.prepare(`UPDATE ${table} SET sync_status = 0 WHERE id = ?`);
+
+                for (const id of ids) {
+                    updateStmt.run(id);
+                }
+            }
+        });
+
+        try {
+            transaction();
+            return { success: true };
+        } catch (error) {
+            console.error('Error marking records as unsynced:', error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    /**
      * Applies updates from the server to the local database.
      * @param {Object} updates - Object keyed by table name, containing arrays of records.
      */

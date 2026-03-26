@@ -34,8 +34,13 @@ const StoreConfig = () => {
                 return;
             }
 
-            const { updateConfig, ...cleanData } = configData;
-            const result = await dbAdapter.saveStoreConfig(activeStore.id, cleanData as Record<string, unknown>);
+            // Sanitize data: remove all functions (actions) from zustand store
+            // Electron IPC cannot clone objects with functions
+            const sanitizedData = Object.fromEntries(
+                Object.entries(configData).filter(([_, value]) => typeof value !== 'function')
+            );
+
+            const result = await dbAdapter.saveStoreConfig(activeStore.id, sanitizedData as Record<string, unknown>);
 
             if (result?.success) {
                 toast.success('Infrastructure Synchronized: Parameters persisted.');

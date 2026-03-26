@@ -3,7 +3,8 @@ import { API_URL } from './config';
 export const authApi = {
     login: async (email, password) => {
         try {
-            const response = await fetch(`${API_URL}/auth/login`, {
+            // Using standard Django SimpleJWT endpoint
+            const response = await fetch(`${API_URL}/auth/token/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password })
@@ -33,7 +34,7 @@ export const authApi = {
 
     refreshToken: async (refresh) => {
         try {
-            const response = await fetch(`${API_URL}/auth/refresh`, {
+            const response = await fetch(`${API_URL}/auth/token/refresh/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ refresh })

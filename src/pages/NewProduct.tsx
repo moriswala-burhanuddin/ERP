@@ -52,18 +52,29 @@ export default function NewProduct() {
       const products = getStoreProducts();
       const product = products.find(p => p.id === id);
       if (product) {
+        // Resolve categoryId if it's missing but we have a categoryName (for legacy/imported data)
+        let finalCategoryId = product.categoryId;
+        if (!finalCategoryId && product.categoryName && categories.length > 0) {
+          const matchedCategory = categories.find(c => 
+            c.name.toLowerCase().trim() === product.categoryName?.toLowerCase().trim()
+          );
+          if (matchedCategory) {
+            finalCategoryId = matchedCategory.id;
+          }
+        }
+
         setFormData({
           name: product.name,
-          sku: product.sku,
-          categoryId: product.categoryId || '',
-          categoryName: product.categoryName || '',
+          sku: product.sku || '',
+          categoryId: finalCategoryId || '',
+          categoryName: product.categoryName || '', // Keep categoryName for display
           brand: product.brand || '',
-          unit: product.unit || '',
-          purchasePrice: product.purchasePrice.toString(),
-          sellingPrice: product.sellingPrice.toString(),
-          quantity: product.quantity.toString(),
-          minStock: (product.minStock || 0).toString(),
-          reorderQuantity: (product.reorderQuantity || 0).toString(),
+          unit: product.unit || 'Pcs', // Default to 'Pcs' if not set
+          purchasePrice: String(product.purchasePrice || ''), // Ensure string, handle potential null/undefined
+          sellingPrice: String(product.sellingPrice),
+          quantity: String(product.quantity),
+          minStock: String(product.minStock || '0'), // Ensure string, default to '0'
+          reorderQuantity: String(product.reorderQuantity || '0'), // Ensure string, default to '0'
           barcodeEnabled: product.barcodeEnabled ?? true,
           limitedQty: product.limitedQty?.toString() || '',
         });
@@ -93,7 +104,7 @@ export default function NewProduct() {
         limitedQty: product.limitedQty?.toString() || '',
       });
     }
-  }, [id, isEditMode, getStoreProducts, navigate, productCustomValues, location.state]);
+  }, [id, isEditMode, getStoreProducts, navigate, productCustomValues, location.state, categories]);
 
   const handleAiSuggest = async () => {
     if (!formData.name.trim()) {

@@ -1,41 +1,74 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Bell, RefreshCw, AlertCircle, CheckCircle, Info, AlertTriangle, Trash2 } from 'lucide-react';
+import { useERPStore } from '@/lib/store-data';
+import { API_URL } from '@/lib/config';
+import { Bell, RefreshCw, AlertCircle, CheckCircle, Info, AlertTriangle, Trash2, ShieldAlert, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { API_URL } from '@/lib/config';
-import { useERPStore } from '@/lib/store-data';
 import { toast } from 'sonner';
 
+export interface Notification {
+    id: string;
+    title: string;
+    message: string;
+    type: 'info' | 'warning' | 'error' | 'success' | 'stock_alert';
+    is_read: boolean;
+    created_at: string;
+}
+
 const Notifications = () => {
-    const [notifications, setNotifications] = useState<any[]>([]);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [unreadCount, setUnreadCount] = useState(0);
 
-    const { accessToken } = useERPStore();
+    const { syncData, accessToken } = useERPStore();
 
-    const fetchNotifications = useCallback(async () => {
-        if (!accessToken) return;
+    // Helper function for authenticated fetch requests
+    const authenticatedFetch = useCallback(async (url: string, options?: RequestInit) => {
+        if (!accessToken) {
+            throw new Error("No access token available.");
+        }
+        return fetch(url, {
+            ...options,
+            headers: {
+                ...options?.headers,
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
+        });
+    }, [accessToken]);
 
+    const fetchNotifications = useCallback(async (isRetry = false) => {
         setIsLoading(true);
-        setError(null);
+        setError(null); // Clear previous errors
         try {
-            const response = await fetch(`${API_URL}/notifications/`, {
-                headers: {
-                    'Authorization': `Bearer ${accessToken}`,
-                    'Content-Type': 'application/json'
+            const response = await authenticatedFetch(`${API_URL}/notifications/`);
+
+            if (response.status === 401) {
+                if (!isRetry && typeof isRetry === 'boolean') {
+                    console.log("[Notifications] 401 Unauthorized. Attempting sync/refresh...");
+                    await syncData();
+                    // Retry once with the new token (if sync was successful)
+                    return fetchNotifications(true);
                 }
-            });
+                setError("SESSION EXPIRED. PLEASE LOG IN AGAIN.");
+                setIsLoading(false);
+                return;
+            }
 
             if (!response.ok) throw new Error("Failed to fetch notifications");
 
             const data = await response.json();
-            setNotifications(Array.isArray(data) ? data : (data.results || []));
+            const results = Array.isArray(data) ? data : (data.results || []);
+            setNotifications(results);
+            setUnreadCount(results.filter((n: any) => !n.is_read).length);
         } catch (err: any) {
-            setError(err.message || "Failed to fetch notifications");
+            console.error('Fetch error:', err);
+            setError("COULD NOT CONNECT TO ERP SERVER.");
         } finally {
             setIsLoading(false);
         }
-    }, [accessToken]);
+    }, [authenticatedFetch, syncData]);
 
     useEffect(() => {
         fetchNotifications();
@@ -119,7 +152,7 @@ const Notifications = () => {
                     <div className="bg-white rounded-[2.5rem] p-12 text-center border border-white">
                         <AlertCircle className="w-12 h-12 text-red-100 mx-auto mb-6" />
                         <p className="text-sm font-black text-slate-900 uppercase">{error}</p>
-                        <Button onClick={fetchNotifications} variant="ghost" className="mt-4 uppercase text-[10px] font-black">Try Again</Button>
+                        <Button onClick={() => fetchNotifications(false)} variant="ghost" className="mt-4 uppercase text-[10px] font-black">Try Again</Button>
                     </div>
                 ) : notifications.length === 0 ? (
                     <div className="bg-white rounded-[3rem] p-32 text-center border border-white flex flex-col items-center justify-center">

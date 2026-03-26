@@ -181,10 +181,10 @@ export const useStoreConfig = create<StoreConfigState>()(
         (set) => ({
             // 1. Company Information
             companyLogo: null,
-            companyName: '',
-            taxId: '',
-            websiteUrl: '',
-            companyEmail: '',
+            companyName: 'GHIZER ENTERPRISES U LIMITED',
+            taxId: '1037861252',
+            websiteUrl: 'https://tmr-tools.com',
+            companyEmail: 'tmr@gmail.com',
             etimsApiUrl: '',
             aiHostUrl: '',
             aiSearchUsername: '',
@@ -205,10 +205,10 @@ export const useStoreConfig = create<StoreConfigState>()(
             cumulativeTax: false,
 
             // 3. Currency Management
-            currencySymbol: '$',
-            currencyCode: 'USD',
+            currencySymbol: 'UGX',
+            currencyCode: 'UGX',
             currencySymbolPosition: 'before',
-            numberOfDecimals: 2,
+            numberOfDecimals: 0,
             thousandsSeparator: ',',
             decimalPoint: '.',
             exchangeRates: [],

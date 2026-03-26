@@ -63,6 +63,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // Sync
     getDirtyData: () => ipcRenderer.invoke('db:getDirtyData'),
     markAsSynced: (confirmedIds) => ipcRenderer.invoke('db:markAsSynced', confirmedIds),
+    markAsUnsynced: (idsToReset) => ipcRenderer.invoke('db:markAsUnsynced', idsToReset),
     getLastPullTimestamp: () => ipcRenderer.invoke('db:getLastPullTimestamp'),
     applyCloudUpdates: (data) => ipcRenderer.invoke('db:applyCloudUpdates', data),
     onSyncTrigger: (callback) => ipcRenderer.on('sync:trigger', () => callback()),

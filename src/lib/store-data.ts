@@ -48,6 +48,15 @@ export interface Category {
   updatedAt: string;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  storeId: string;
+  updatedAt: string;
+  syncStatus?: number;
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -1278,6 +1287,7 @@ export const useERPStore = create<ERPState>()(
           products: [...state.products, newProduct]
         }));
         await dbAdapter.addProduct(newProduct);
+        get().syncData(); // Trigger push
         return newProduct;
       },
 
@@ -1285,10 +1295,11 @@ export const useERPStore = create<ERPState>()(
         set((state) => ({
           products: state.products.map(p => p.id === id ? { ...p, ...product, updatedAt: new Date().toISOString() } : p)
         }));
-        dbAdapter.updateProduct(id, product);
+        await dbAdapter.updateProduct(id, product);
+        get().syncData(); // Trigger push
       },
 
-      deleteProduct: (id) => {
+      deleteProduct: async (id) => {
         const product = get().products.find(p => p.id === id);
         if (product) {
           get().addActivityLog({
@@ -1299,7 +1310,8 @@ export const useERPStore = create<ERPState>()(
         set((state) => ({
           products: state.products.filter(p => p.id !== id)
         }));
-        dbAdapter.deleteProduct(id);
+        await dbAdapter.deleteProduct(id);
+        get().syncData(); // Trigger push
       },
 
       // Category Actions
@@ -1364,22 +1376,24 @@ export const useERPStore = create<ERPState>()(
       },
 
       // Customer Actions
-      addCustomer: (customer) => {
+      addCustomer: async (customer) => {
         const newCustomer = { ...customer, id: generateId(), updatedAt: new Date().toISOString() };
         set((state) => ({
           customers: [...state.customers, newCustomer]
         }));
-        dbAdapter.addCustomer(newCustomer);
+        await dbAdapter.addCustomer(newCustomer);
+        get().syncData(); // Trigger push
       },
 
-      updateCustomer: (id, customer) => {
+      updateCustomer: async (id, customer) => {
         set((state) => ({
           customers: state.customers.map(c => c.id === id ? { ...c, ...customer, updatedAt: new Date().toISOString() } : c)
         }));
-        dbAdapter.updateCustomer(id, customer);
+        await dbAdapter.updateCustomer(id, customer);
+        get().syncData(); // Trigger push
       },
 
-      deleteCustomer: (id) => {
+      deleteCustomer: async (id) => {
         const customer = get().customers.find(c => c.id === id);
         if (customer) {
           get().addActivityLog({
@@ -1390,7 +1404,10 @@ export const useERPStore = create<ERPState>()(
         set((state) => ({
           customers: state.customers.filter(c => c.id !== id)
         }));
-        dbAdapter.deleteCustomer?.(id);
+        if (dbAdapter.deleteCustomer) {
+            await dbAdapter.deleteCustomer(id);
+            get().syncData(); // Trigger push
+        }
       },
 
       bulkDeleteCustomers: async (ids) => {
@@ -1807,6 +1824,7 @@ export const useERPStore = create<ERPState>()(
         });
 
         get().addSale(newSale); // Actually add to DB
+        get().syncData(); // Trigger push
       },
 
       // Invoice Actions Implementation
@@ -1982,7 +2000,13 @@ export const useERPStore = create<ERPState>()(
               state.updateProduct(existingProduct.id, {
                 name: row.name,
                 sellingPrice: row.price,
+                purchasePrice: row.purchasePrice || existingProduct.purchasePrice,
                 quantity: existingProduct.quantity + row.stock,
+                categoryName: row.category || existingProduct.categoryName,
+                brand: row.brand || existingProduct.brand,
+                unit: row.unit || existingProduct.unit,
+                minStock: row.minStock !== undefined ? row.minStock : existingProduct.minStock,
+                reorderQuantity: row.reorderQuantity !== undefined ? row.reorderQuantity : existingProduct.reorderQuantity,
                 updatedAt: new Date().toISOString()
               });
               updatedCount++;
@@ -1992,13 +2016,16 @@ export const useERPStore = create<ERPState>()(
                 name: row.name,
                 barcode: row.barcode,
                 sellingPrice: row.price,
-                purchasePrice: row.price * 0.7, // Estimate purchase price
+                purchasePrice: row.purchasePrice || row.price * 0.7, // Estimate purchase price if missing
                 quantity: row.stock,
                 sku: row.barcode, // Use barcode as SKU if not provided
                 categoryName: row.category || 'Uncategorized',
+                brand: row.brand || '',
+                unit: row.unit || 'Pcs',
+                minStock: row.minStock || 0,
+                reorderQuantity: row.reorderQuantity || 0,
                 storeId: state.activeStoreId,
                 lastUsed: new Date().toISOString(),
-                unit: 'Pcs'
               });
               createdCount++;
             }
@@ -2064,7 +2091,9 @@ export const useERPStore = create<ERPState>()(
           const authenticatedFetch = async (url: string, options: RequestInit, retry = true): Promise<Response> => {
             const currentToken = get().accessToken;
             const user = get().currentUser;
-            const headers: any = { ...options.headers };
+            const headers: Record<string, string> = { 
+              ...(options.headers as Record<string, string>) 
+            };
             let finalUrl = url;
             
             // Use Bootstrap Auth if we are in mock session OR if it's a sync request from super_admin
@@ -2120,7 +2149,11 @@ export const useERPStore = create<ERPState>()(
           console.log('[SYNC] Starting two-way sync...');
 
           // 1. PUSH
-          const dirtyData = await (window as any).electronAPI.getDirtyData();
+          const dirtyData = await (window as any).electronAPI.getDirtyData() as {
+            totalCount: number;
+            deviceId: string;
+            payload: Record<string, any[]>;
+          };
           if (dirtyData && dirtyData.totalCount > 0) {
             console.log(`[SYNC] Pushing ${dirtyData.totalCount} changes to cloud...`);
             const pushResponse = await authenticatedFetch(`${API_URL}/sync/push`, {
@@ -2142,18 +2175,78 @@ export const useERPStore = create<ERPState>()(
                 console.warn('%c[SYNC] WARNING: No sync_version from server. VPS might be OUTDATED!', 'color: red; font-weight: bold');
               }
 
-              const totalSynced = Object.values(pushResult.synced_ids || {}).reduce((acc: number, ids: any) => acc + (ids?.length || 0), 0);
+              const totalSynced = Object.values(pushResult.synced_ids || {}).reduce((acc: number, ids: unknown) => acc + (Array.isArray(ids) ? ids.length : 0), 0);
               console.log(`%c[SYNC] Total IDs synced: ${totalSynced}`, 'color: green; font-size: 12px');
 
               if (pushResult.synced_ids) {
                 await (window as any).electronAPI.markAsSynced(pushResult.synced_ids);
                 console.log('[SYNC] Local database updated with synced status');
               }
+
+              // --- ADVANCED ERROR RECOVERY ---
+              if (pushResult.errors && pushResult.errors.length > 0) {
+                console.warn(`[SYNC] Server reported ${pushResult.errors.length} errors during push. Attempting recovery...`);
+                const idsToReset: Record<string, string[]> = {};
+                const idsToMarkSynced: Record<string, string[]> = {};
+
+                for (const error of (pushResult.errors as any[] || [])) {
+                  const msg = error.message || "";
+                  
+                  // Handle Missing Dependencies (e.g., "Missing dependency sale-xxx for deliveries.sale_id")
+                  if (msg.includes("Missing dependency")) {
+                    const match = msg.match(/Missing dependency ([a-zA-Z0-9\-_]+) for ([a-z_]+)\.([a-z_]+)/);
+                    if (match) {
+                      const missingId = match[1];
+                      const dependentTable = match[2];
+                      const fieldName = match[3];
+                      
+                      // Determine the table of the missing ID (e.g., sale_id -> sales)
+                      let targetTable = fieldName.replace("_id", "s"); // Simple heuristic
+                      if (fieldName === "customer_id") targetTable = "customers";
+                      if (fieldName === "store_id") targetTable = "stores";
+                      if (fieldName === "user_id") targetTable = "users";
+                      if (fieldName === "sale_id") targetTable = "sales";
+                      if (fieldName === "employee_id") targetTable = "employees";
+
+                      console.log(`[SYNC] Recovery: Forcing re-sync of ${targetTable} ID: ${missingId}`);
+                      if (!idsToReset[targetTable]) idsToReset[targetTable] = [];
+                      idsToReset[targetTable].push(missingId);
+                    }
+                  }
+
+                  // Handle Unique Constraint Violations (e.g., duplicate employee user_id)
+                  if (msg.includes("duplicate key value violates unique constraint") || msg.includes("UniqueViolation")) {
+                     // If it's an employee already existing in cloud but with different ID, 
+                     // we should mark local as synced to stop the error loop
+                     const empMatch = msg.match(/syncing employees row ([a-zA-Z0-9\-_]+):/);
+                     if (empMatch) {
+                        const localId = empMatch[1];
+                        console.log(`[SYNC] Recovery: Employee ${localId} already exists on server (unique constraint). Marking as synced locally.`);
+                        if (!idsToMarkSynced['employees']) idsToMarkSynced['employees'] = [];
+                        idsToMarkSynced['employees'].push(localId);
+                     }
+                  }
+                }
+
+                if (Object.keys(idsToReset).length > 0) {
+                  await (window as any).electronAPI.markAsUnsynced(idsToReset);
+                }
+                if (Object.keys(idsToMarkSynced).length > 0) {
+                  await (window as any).electronAPI.markAsSynced(idsToMarkSynced);
+                }
+              }
+              // --- END ERROR RECOVERY ---
+
               console.log('[SYNC] Push successful');
             } else {
               const pushErrorText = await pushResponse.text();
               console.error(`%c[SYNC] Push failed (400/500). Status: ${pushResponse.status}`, 'color: red; font-weight: bold');
               console.error(`[SYNC] Error detail: ${pushErrorText}`);
+              
+              // If it's a 403 Forbidden, it might be due to the bypass token
+              if (pushResponse.status === 403) {
+                console.warn('[SYNC] Server rejected request. Bypass token may not have sync permissions.');
+              }
             }
           } else {
             console.log('[SYNC] No local changes to push.');
