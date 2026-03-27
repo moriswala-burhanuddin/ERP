@@ -34,13 +34,14 @@ import { useERPStore } from '@/lib/store-data';
 import { useStoreConfig } from '@/lib/store-config';
 import { SyncStatus } from '../sync/SyncStatus';
 import logo from '../../assets/invenza-bg.png';
+import { cn } from '@/lib/utils';
 
 import { ROLE_SIDEBARS, NavItem } from '@/config/navigation';
 
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { currentUser, logout, getActiveStore } = useERPStore();
+  const { currentUser, logout, getActiveStore, checkPermission } = useERPStore();
   const { ecommerceEnabled, disabledModules } = useStoreConfig();
   const activeStore = getActiveStore();
 
@@ -77,10 +78,76 @@ export function Sidebar() {
   }
 
   // Filter menu items based on disabled modules
-  const filteredMenuItems = navItems.filter(item => {
+  let filteredMenuItems = navItems.filter(item => {
     const moduleKey = item.moduleKey || item.title.toLowerCase().replace(/\s+(.)/g, (match, group1) => group1.toUpperCase());
     return !disabledModules.includes(moduleKey);
   });
+
+  // Strict Permission Filtering
+  const canSeeSuppliers = checkPermission('canSeeSuppliers');
+  if (!canSeeSuppliers) {
+    filteredMenuItems = filteredMenuItems.filter(item => 
+      !['/suppliers', '/purchase-orders', '/receivings', '/purchases'].includes(item.href)
+    );
+  }
+
+  const canAccessAllInvoices = checkPermission('canAccessAllInvoices');
+  if (!canAccessAllInvoices) {
+    filteredMenuItems = filteredMenuItems.filter(item => 
+      !['/invoices', '/quotations', '/sales/quotations'].includes(item.href)
+    );
+  }
+
+  const canManageCustomers = checkPermission('canManageCustomers');
+  if (!canManageCustomers) {
+    filteredMenuItems = filteredMenuItems.filter(item => item.href !== '/customers');
+  }
+
+  const canSeeDetailedSales = checkPermission('canSeeDetailedSales');
+  if (!canSeeDetailedSales) {
+    filteredMenuItems = filteredMenuItems.filter(item => 
+      !['/day-book', '/party-ledger'].includes(item.href)
+    );
+  }
+
+  const canManageEmployees = checkPermission('canManageEmployees');
+  if (!canManageEmployees) {
+    filteredMenuItems = filteredMenuItems.filter(item => 
+      !['/hr', '/hr/employees', '/hr/attendance', '/hr/leaves', '/hr/performance'].some(path => item.href.startsWith(path))
+    );
+  }
+
+  const canManagePayroll = checkPermission('canManagePayroll');
+  if (!canManagePayroll) {
+    filteredMenuItems = filteredMenuItems.filter(item => item.href !== '/hr/payroll');
+  }
+
+  const canManageLedger = checkPermission('canManageLedger');
+  if (!canManageLedger) {
+    filteredMenuItems = filteredMenuItems.filter(item => 
+      !['/accounts', '/transactions'].includes(item.href)
+    );
+  }
+
+  const canManageCommissions = checkPermission('canManageCommissions');
+  if (!canManageCommissions) {
+    filteredMenuItems = filteredMenuItems.filter(item => item.href !== '/commissions');
+  }
+
+  const canManageCheques = checkPermission('canManageCheques');
+  if (!canManageCheques) {
+    filteredMenuItems = filteredMenuItems.filter(item => item.href !== '/finance/cheques');
+  }
+
+  const canManageTaxes = checkPermission('canManageTaxes');
+  if (!canManageTaxes) {
+    filteredMenuItems = filteredMenuItems.filter(item => item.href !== '/tax-settings');
+  }
+
+  const canSeeProfit = checkPermission('canSeeProfit');
+  if (!canSeeProfit) {
+    filteredMenuItems = filteredMenuItems.filter(item => item.href !== '/profit-loss');
+  }
 
   return (
     <aside

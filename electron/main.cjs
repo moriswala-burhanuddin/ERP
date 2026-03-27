@@ -879,6 +879,17 @@ ipcMain.handle('db:deleteEmployee', async (event, id) => {
     return result
 })
 
+// Permissions
+ipcMain.handle('db:getPermissions', async (event, userId) => {
+    return dbHelpers.getPermissions(userId)
+})
+
+ipcMain.handle('db:updatePermissions', async (event, userId, permissions) => {
+    const result = dbHelpers.updatePermissions(userId, permissions)
+    if (mainWindow) mainWindow.webContents.send('sync:trigger')
+    return result
+})
+
 // Payroll
 ipcMain.handle('db:getPayroll', async (event, storeId, employeeId) => {
     return dbHelpers.getPayroll(storeId, employeeId)

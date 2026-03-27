@@ -60,9 +60,12 @@ const Employees = () => {
     const [formData, setFormData] = useState({ ...DEFAULT_FORM });
     const navigate = useNavigate();
 
-    const { activeStoreId, addEmployee, deleteEmployee } = useERPStore();
+    const { activeStoreId, addEmployee, deleteEmployee, checkPermission } = useERPStore();
+
+    const canManageEmployees = checkPermission('canManageEmployees');
 
     const loadData = useCallback(async () => {
+        if (!canManageEmployees) return;
         setLoading(true);
         try {
             if (window.electronAPI) {
@@ -75,7 +78,7 @@ const Employees = () => {
         } finally {
             setLoading(false);
         }
-    }, [activeStoreId]);
+    }, [activeStoreId, canManageEmployees]);
 
     useEffect(() => { loadData(); }, [loadData]);
 
@@ -96,6 +99,7 @@ const Employees = () => {
                 designation: formData.designation,
                 salary: parseFloat(formData.salary) || 0,
                 joiningDate: formData.joiningDate,
+                documents: [],
                 storeId: activeStoreId || 'store-1',
                 employeeId: '',
                 isStaff: false,
@@ -151,161 +155,174 @@ const Employees = () => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <div className="group relative">
-                            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-black transition-colors" />
-                            <input
-                                value={searchTerm}
-                                onChange={e => setSearchTerm(e.target.value)}
-                                placeholder="Search employees..."
-                                className="h-14 bg-slate-50 border-none rounded-2xl pl-12 pr-6 text-[11px] font-bold focus:ring-2 focus:ring-black w-64 placeholder:text-slate-300"
-                            />
-                        </div>
+                        {canManageEmployees && (
+                          <>
+                            <div className="group relative">
+                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-black transition-colors" />
+                                <input
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                    placeholder="Search employees..."
+                                    className="h-14 bg-slate-50 border-none rounded-2xl pl-12 pr-6 text-[11px] font-bold focus:ring-2 focus:ring-black w-64 placeholder:text-slate-300"
+                                />
+                            </div>
 
-                        <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                            <DialogTrigger asChild>
-                                <Button className="bg-black text-white rounded-[1.2rem] h-14 px-10 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    ADD EMPLOYEE
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent className="max-w-2xl rounded-[3rem] p-10 border-none shadow-2xl">
-                                <DialogHeader className="mb-6">
-                                    <DialogTitle className="text-xl font-black uppercase tracking-tight">Add New Employee</DialogTitle>
-                                    <p className="text-xs text-slate-400 font-medium mt-1">
-                                        A login account will be created for this employee automatically.
-                                    </p>
-                                </DialogHeader>
+                            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+                                <DialogTrigger asChild>
+                                    <Button className="bg-black text-white rounded-[1.2rem] h-14 px-10 font-black uppercase text-[10px] tracking-[0.2em] shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        ADD EMPLOYEE
+                                    </Button>
+                                </DialogTrigger>
+                                <DialogContent className="max-w-2xl rounded-[3rem] p-10 border-none shadow-2xl">
+                                    <DialogHeader className="mb-6">
+                                        <DialogTitle className="text-xl font-black uppercase tracking-tight">Add New Employee</DialogTitle>
+                                        <p className="text-xs text-slate-400 font-medium mt-1">
+                                            A login account will be created for this employee automatically.
+                                        </p>
+                                    </DialogHeader>
 
-                                <form onSubmit={handleSubmit} className="space-y-6">
-                                    {/* Login Credentials Section */}
-                                    <div className="bg-slate-50 rounded-2xl p-6 space-y-4">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Lock className="w-4 h-4 text-slate-400" />
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Login Details</p>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2 col-span-2">
-                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Full Name *</Label>
-                                                <Input
-                                                    value={formData.name}
-                                                    onChange={e => set('name', e.target.value)}
-                                                    placeholder="e.g. Ahmad Ali"
-                                                    required
-                                                    className="h-12 bg-white border-slate-200 rounded-xl px-4 text-sm font-medium"
-                                                />
+                                    <form onSubmit={handleSubmit} className="space-y-6">
+                                        {/* Login Credentials Section */}
+                                        <div className="bg-slate-50 rounded-2xl p-6 space-y-4">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Lock className="w-4 h-4 text-slate-400" />
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Login Details</p>
                                             </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Email *</Label>
-                                                <Input
-                                                    type="email"
-                                                    value={formData.email}
-                                                    onChange={e => set('email', e.target.value)}
-                                                    placeholder="ahmad@company.com"
-                                                    required
-                                                    className="h-12 bg-white border-slate-200 rounded-xl px-4 text-sm font-medium"
-                                                />
-                                            </div>
-                                            <div className="space-y-2 relative">
-                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Password *</Label>
-                                                <div className="relative">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2 col-span-2">
+                                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Full Name *</Label>
                                                     <Input
-                                                        type={showPassword ? 'text' : 'password'}
-                                                        value={formData.password}
-                                                        onChange={e => set('password', e.target.value)}
-                                                        placeholder="Min. 6 characters"
+                                                        value={formData.name}
+                                                        onChange={e => set('name', e.target.value)}
+                                                        placeholder="e.g. Ahmad Ali"
                                                         required
-                                                        className="h-12 bg-white border-slate-200 rounded-xl px-4 pr-12 text-sm font-medium"
+                                                        className="h-12 bg-white border-slate-200 rounded-xl px-4 text-sm font-medium"
                                                     />
-                                                    <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-black transition-colors">
-                                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                                    </button>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Email *</Label>
+                                                    <Input
+                                                        type="email"
+                                                        value={formData.email}
+                                                        onChange={e => set('email', e.target.value)}
+                                                        placeholder="ahmad@company.com"
+                                                        required
+                                                        className="h-12 bg-white border-slate-200 rounded-xl px-4 text-sm font-medium"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2 relative">
+                                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Password *</Label>
+                                                    <div className="relative">
+                                                        <Input
+                                                            type={showPassword ? 'text' : 'password'}
+                                                            value={formData.password}
+                                                            onChange={e => set('password', e.target.value)}
+                                                            placeholder="Min. 6 characters"
+                                                            required
+                                                            className="h-12 bg-white border-slate-200 rounded-xl px-4 pr-12 text-sm font-medium"
+                                                        />
+                                                        <button type="button" onClick={() => setShowPassword(v => !v)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-black transition-colors">
+                                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2 col-span-2">
+                                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Job Role *</Label>
+                                                    <Select value={formData.role} onValueChange={val => set('role', val)}>
+                                                        <SelectTrigger className="h-12 bg-white border-slate-200 rounded-xl text-sm font-medium">
+                                                            <SelectValue />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="rounded-2xl border-none shadow-2xl">
+                                                            {ROLE_OPTIONS.map(r => (
+                                                                <SelectItem key={r.value} value={r.value} className="text-sm font-medium">{r.label}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
                                                 </div>
                                             </div>
-                                            <div className="space-y-2 col-span-2">
-                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Job Role *</Label>
-                                                <Select value={formData.role} onValueChange={val => set('role', val)}>
-                                                    <SelectTrigger className="h-12 bg-white border-slate-200 rounded-xl text-sm font-medium">
-                                                        <SelectValue />
-                                                    </SelectTrigger>
-                                                    <SelectContent className="rounded-2xl border-none shadow-2xl">
-                                                        {ROLE_OPTIONS.map(r => (
-                                                            <SelectItem key={r.value} value={r.value} className="text-sm font-medium">{r.label}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
                                         </div>
-                                    </div>
 
-                                    {/* Job Details Section */}
-                                    <div className="bg-slate-50 rounded-2xl p-6 space-y-4">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Briefcase className="w-4 h-4 text-slate-400" />
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Job Details</p>
+                                        {/* Job Details Section */}
+                                        <div className="bg-slate-50 rounded-2xl p-6 space-y-4">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Briefcase className="w-4 h-4 text-slate-400" />
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Job Details</p>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Department *</Label>
+                                                    <Select value={formData.department} onValueChange={val => set('department', val)}>
+                                                        <SelectTrigger className="h-12 bg-white border-slate-200 rounded-xl text-sm font-medium">
+                                                            <SelectValue placeholder="Select department" />
+                                                        </SelectTrigger>
+                                                        <SelectContent className="rounded-2xl border-none shadow-2xl">
+                                                            {DEPARTMENT_OPTIONS.map(d => (
+                                                                <SelectItem key={d} value={d} className="text-sm font-medium">{d}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Designation *</Label>
+                                                    <Input
+                                                        value={formData.designation}
+                                                        onChange={e => set('designation', e.target.value)}
+                                                        placeholder="e.g. Sales Executive"
+                                                        required
+                                                        className="h-12 bg-white border-slate-200 rounded-xl px-4 text-sm font-medium"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Monthly Salary ({CURRENCY_SYMBOL})</Label>
+                                                    <Input
+                                                        type="number"
+                                                        value={formData.salary}
+                                                        onChange={e => set('salary', e.target.value)}
+                                                        placeholder="e.g. 35000"
+                                                        className="h-12 bg-white border-slate-200 rounded-xl px-4 text-sm font-medium"
+                                                    />
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Joining Date</Label>
+                                                    <Input
+                                                        type="date"
+                                                        value={formData.joiningDate}
+                                                        onChange={e => set('joiningDate', e.target.value)}
+                                                        className="h-12 bg-white border-slate-200 rounded-xl px-4 text-sm font-medium"
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Department *</Label>
-                                                <Select value={formData.department} onValueChange={val => set('department', val)}>
-                                                    <SelectTrigger className="h-12 bg-white border-slate-200 rounded-xl text-sm font-medium">
-                                                        <SelectValue placeholder="Select department" />
-                                                    </SelectTrigger>
-                                                    <SelectContent className="rounded-2xl border-none shadow-2xl">
-                                                        {DEPARTMENT_OPTIONS.map(d => (
-                                                            <SelectItem key={d} value={d} className="text-sm font-medium">{d}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Designation *</Label>
-                                                <Input
-                                                    value={formData.designation}
-                                                    onChange={e => set('designation', e.target.value)}
-                                                    placeholder="e.g. Sales Executive"
-                                                    required
-                                                    className="h-12 bg-white border-slate-200 rounded-xl px-4 text-sm font-medium"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Monthly Salary ({CURRENCY_SYMBOL})</Label>
-                                                <Input
-                                                    type="number"
-                                                    value={formData.salary}
-                                                    onChange={e => set('salary', e.target.value)}
-                                                    placeholder="e.g. 35000"
-                                                    className="h-12 bg-white border-slate-200 rounded-xl px-4 text-sm font-medium"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <Label className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Joining Date</Label>
-                                                <Input
-                                                    type="date"
-                                                    value={formData.joiningDate}
-                                                    onChange={e => set('joiningDate', e.target.value)}
-                                                    className="h-12 bg-white border-slate-200 rounded-xl px-4 text-sm font-medium"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
 
-                                    <div className="flex justify-end gap-3 pt-2">
-                                        <Button type="button" variant="ghost" className="h-12 px-8 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400" onClick={() => setIsOpen(false)}>
-                                            Cancel
-                                        </Button>
-                                        <Button type="submit" disabled={submitting} className="h-12 px-12 rounded-2xl bg-black text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 disabled:opacity-50">
-                                            {submitting ? 'Creating...' : 'Create Employee'}
-                                        </Button>
-                                    </div>
-                                </form>
-                            </DialogContent>
-                        </Dialog>
+                                        <div className="flex justify-end gap-3 pt-2">
+                                            <Button type="button" variant="ghost" className="h-12 px-8 rounded-2xl font-black uppercase text-[10px] tracking-widest text-slate-400" onClick={() => setIsOpen(false)}>
+                                                Cancel
+                                            </Button>
+                                            <Button type="submit" disabled={submitting} className="h-12 px-12 rounded-2xl bg-black text-white font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 disabled:opacity-50">
+                                                {submitting ? 'Creating...' : 'Create Employee'}
+                                            </Button>
+                                        </div>
+                                    </form>
+                                </DialogContent>
+                            </Dialog>
+                          </>
+                        )}
                     </div>
                 </div>
             </div>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-                <div className="bg-white rounded-[3.5rem] p-12 shadow-sm border border-white min-h-[700px]">
+                {!canManageEmployees ? (
+                  <div className="bg-white rounded-[3rem] p-24 text-center border border-white flex flex-col items-center justify-center opacity-70">
+                    <ShieldCheck className="w-24 h-24 text-slate-200 mb-6" />
+                    <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Access Restricted</h3>
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-3 leading-relaxed max-w-sm mx-auto">
+                      You do not have permission to view or manage the employee registry.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-[3.5rem] p-12 shadow-sm border border-white min-h-[700px]">
                     <div className="flex items-center justify-between mb-10">
                         <div className="flex items-center gap-4">
                             <div className="p-3 bg-indigo-50 rounded-xl text-indigo-600">
@@ -401,7 +418,8 @@ const Employees = () => {
                             </p>
                         </div>
                     )}
-                </div>
+                  </div>
+                )}
             </main>
         </div>
     );

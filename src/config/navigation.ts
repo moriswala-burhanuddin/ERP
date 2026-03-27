@@ -62,6 +62,7 @@ export const ROLE_SIDEBARS: Record<Role, NavItem[]> = {
         { title: "Notifications", href: "/notifications", icon: Bell },
         { title: "Users", href: "/users", icon: Users },
         { title: "Store Config", href: "/store-config", icon: Settings },
+        { title: "Access Control", href: "/access-control", icon: Shield },
     ],
 
     // HR Manager
@@ -140,6 +141,7 @@ export const ROLE_SIDEBARS: Record<Role, NavItem[]> = {
         { title: "Reports", href: "/reports", icon: BarChart3 },
         { title: "Users", href: "/users", icon: Users },
         { title: "Store Config", href: "/store-config", icon: Settings },
+        { title: "Access Control", href: "/access-control", icon: Shield },
         { title: "Settings", href: "/more", icon: Settings },
     ],
     staff: [

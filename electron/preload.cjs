@@ -236,4 +236,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     addCategory: (category) => ipcRenderer.invoke('db:addCategory', category),
     updateCategory: (id, updates) => ipcRenderer.invoke('db:updateCategory', id, updates),
     deleteCategory: (id) => ipcRenderer.invoke('db:deleteCategory', id),
+    
+    // Permissions
+    getPermissions: (userId) => ipcRenderer.invoke('db:getPermissions', userId),
+    updatePermissions: (userId, permissions) => ipcRenderer.invoke('db:updatePermissions', userId, permissions),
 })

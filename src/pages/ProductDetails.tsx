@@ -11,7 +11,12 @@ export default function ProductDetails() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [isOptimizing, setIsOptimizing] = useState(false);
-    const { getStoreProducts, getStoreSales, updateProduct, deleteProduct, customFields, productCustomValues } = useERPStore();
+    const { getStoreProducts, getStoreSales, updateProduct, deleteProduct, customFields, productCustomValues, checkPermission, currentUser } = useERPStore();
+
+    const canSeeBuyingPrice = checkPermission('canSeeBuyingPrice');
+    const canEditProduct = checkPermission('canEditProduct');
+    const canAddProduct = checkPermission('canAddProduct');
+    const isSuperAdmin = currentUser?.role === 'super_admin';
 
     const product = getStoreProducts().find(p => p.id === id);
     const sales = getStoreSales();
@@ -88,13 +93,17 @@ export default function ProductDetails() {
                     </div>
 
                     <div className="flex items-center gap-3">
+                        {canAddProduct && (
                         <button onClick={handleDelete} className="p-4 bg-red-50 text-red-600 rounded-2xl hover:bg-red-100 transition-all group">
                             <Trash2 className="w-5 h-5" />
                         </button>
+                        )}
+                        {(canEditProduct || checkPermission('canChangeStock')) && (
                         <Button onClick={() => navigate(`/products/edit/${id}`)} className="bg-black text-white rounded-[1.2rem] h-14 px-8 font-black uppercase text-[10px] tracking-widest shadow-xl shadow-black/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                             <Edit3 className="w-4 h-4 mr-2" />
-                            Edit Product
+                            {canEditProduct ? 'Edit Product' : 'Update Stock'}
                         </Button>
+                        )}
                     </div>
                 </div>
             </div>
@@ -123,7 +132,7 @@ export default function ProductDetails() {
                         <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">{formatCurrency(product.sellingPrice)}</h2>
                         <div className="flex items-center gap-1.5 text-emerald-500 font-black text-[10px] uppercase">
                             <TrendingUp className="w-3 h-3" />
-                            {margin.toFixed(1)}% Margin
+                            {canSeeBuyingPrice ? `${margin.toFixed(1)}% Margin` : '*** Margin'}
                         </div>
                     </div>
 
@@ -134,7 +143,7 @@ export default function ProductDetails() {
                             </div>
                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Stock Value</span>
                         </div>
-                        <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">{formatCurrency(stockValue)}</h2>
+                        <h2 className="text-3xl font-black text-slate-900 leading-none mb-1">{canSeeBuyingPrice ? formatCurrency(stockValue) : '***'}</h2>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">At Purchase Price</p>
                     </div>
 
@@ -167,7 +176,7 @@ export default function ProductDetails() {
                                 {[
                                     { label: 'Category', value: product.categoryName || product.categoryId || 'Uncategorized' },
                                     { label: 'Brand', value: product.brand || 'No Brand' },
-                                    { label: 'Cost Price', value: formatCurrency(product.purchasePrice), highlight: true },
+                                    { label: 'Cost Price', value: canSeeBuyingPrice ? formatCurrency(product.purchasePrice) : '***', highlight: true },
                                     { label: 'Selling Price', value: formatCurrency(product.sellingPrice), highlight: true },
                                     { label: 'Unit', value: product.unit || 'Standard' },
                                     { label: 'Last Updated', value: new Date(product.updatedAt).toLocaleDateString() },

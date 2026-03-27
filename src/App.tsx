@@ -85,6 +85,7 @@ import EcommerceReviews from "./pages/ecommerce/EcommerceReviews";
 import EcommerceFeedback from "./pages/ecommerce/EcommerceFeedback";
 import EcommerceReturns from "./pages/ecommerce/EcommerceReturns";
 import Notifications from "./pages/Notifications";
+import AccessControl from "./pages/AccessControl";
 import NotFound from "./pages/NotFound";
 
 import { useEffect } from "react";
@@ -287,6 +288,7 @@ const App = () => {
                 <Route path="/more" element={<More />} />
                 <Route path="/store-config" element={<StoreConfig />} />
                 <Route path="/notifications" element={<Notifications />} />
+                <Route path="/access-control" element={<AccessControl />} />
 
                 {/* Ecommerce Module Routes */}
                 <Route path="/ecommerce">

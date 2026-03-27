@@ -8,7 +8,7 @@ import {
     StockTransfer, PurchaseOrder, ExpenseCategory, TaxSlab, Commission,
     LoyaltyPoint, ProductCustomValue, CustomerCustomValue, CustomField, DashboardMetrics,
     HRAttendance, HRLeave, Employee, HRPayroll, Invoice, InvoiceItem,
-    Cheque, Category
+    Cheque, Category, UserPermission, PermissionSet
 } from './store-data'
 import { InventoryRow } from './inventory-utils'
 
@@ -406,4 +406,8 @@ export const dbAdapter = {
     addCategory: (category: Category) => isElectron() ? window.electronAPI.addCategory(category) : Promise.resolve(null),
     updateCategory: (id: string, updates: Updates<Category>) => isElectron() ? window.electronAPI.updateCategory(id, updates) : Promise.resolve(null),
     deleteCategory: (id: string) => isElectron() ? window.electronAPI.deleteCategory(id) : Promise.resolve(null),
+    
+    // Permissions
+    getPermissions: (userId: string): Promise<UserPermission | null> => isElectron() ? window.electronAPI.getPermissions(userId) : Promise.resolve(null),
+    updatePermissions: (userId: string, permissions: PermissionSet): Promise<UserPermission | null> => isElectron() ? window.electronAPI.updatePermissions(userId, permissions) : Promise.resolve(null),
 }

@@ -5,14 +5,18 @@ import { Search } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 
 export default function StockSummary() {
-    const { products } = useERPStore();
+    const { products, checkPermission } = useERPStore();
     const [searchQuery, setSearchQuery] = useState("");
+
+    const canSeeBuyingPrice = checkPermission('canSeeBuyingPrice');
+    const canSeeExpectedSales = checkPermission('canSeeExpectedSales');
+    const canSeeProfit = checkPermission('canSeeProfit');
 
     const filteredProducts = products.filter(p =>
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.sku.toLowerCase().includes(searchQuery.toLowerCase())
     );
-
+ 
     const totalValue = filteredProducts.reduce((sum, p) => sum + (p.quantity * p.purchasePrice), 0);
     const potentialValue = filteredProducts.reduce((sum, p) => sum + (p.quantity * p.sellingPrice), 0);
     const totalMargin = potentialValue - totalValue;
@@ -27,7 +31,7 @@ export default function StockSummary() {
                 <div className="text-right">
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Total Stock Value</p>
                     <p className="text-3xl font-black text-slate-900">
-                        {formatCurrency(totalValue)}
+                        {canSeeBuyingPrice ? formatCurrency(totalValue) : '***'}
                     </p>
                 </div>
             </div>
@@ -39,6 +43,7 @@ export default function StockSummary() {
                         <p className="text-2xl font-black text-slate-900">{filteredProducts.length}</p>
                     </CardContent>
                 </Card>
+                {canSeeExpectedSales && (
                 <Card className="bg-white border-slate-200">
                     <CardContent className="p-4">
                         <p className="text-xs font-bold text-slate-500 uppercase tracking-widest">Expected Sales Money</p>
@@ -47,6 +52,8 @@ export default function StockSummary() {
                         </p>
                     </CardContent>
                 </Card>
+                )}
+                {canSeeProfit && (
                 <Card className="bg-emerald-50 border-emerald-100">
                     <CardContent className="p-4">
                         <p className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Expected Profit</p>
@@ -55,6 +62,7 @@ export default function StockSummary() {
                         </p>
                     </CardContent>
                 </Card>
+                )}
             </div>
 
             <Card className="border-slate-200 shadow-sm mt-6">
@@ -79,7 +87,7 @@ export default function StockSummary() {
                                 <th className="h-10 px-4 text-right align-middle font-medium text-slate-500 bg-slate-100/50">Amount</th>
                                 <th className="h-10 px-4 text-right align-middle font-medium text-slate-500 bg-slate-100/50">Buying Price</th>
                                 <th className="h-10 px-4 text-right align-middle font-medium text-slate-500 bg-slate-100">Total Value</th>
-                                <th className="h-10 px-4 text-right align-middle font-medium text-slate-500">Profit per Item</th>
+                                {canSeeProfit && <th className="h-10 px-4 text-right align-middle font-medium text-slate-500">Profit per Item</th>}
                             </tr>
                         </thead>
                         <tbody>
@@ -101,16 +109,18 @@ export default function StockSummary() {
                                                 {p.quantity} <span className="text-xs font-normal text-slate-400">{p.unit}</span>
                                             </td>
                                             <td className="p-4 text-right font-mono font-medium text-slate-700 bg-slate-50/30">
-                                                {formatCurrency(p.purchasePrice)}
+                                                {canSeeBuyingPrice ? formatCurrency(p.purchasePrice) : '***'}
                                             </td>
                                             <td className="p-4 text-right font-mono font-black text-slate-900 bg-slate-50/50">
-                                                {formatCurrency(p.quantity * p.purchasePrice)}
+                                                {canSeeBuyingPrice ? formatCurrency(p.quantity * p.purchasePrice) : '***'}
                                             </td>
-                                            <td className="p-4 text-right font-mono font-medium">
-                                                <span className={margin > 0 ? 'text-emerald-600' : 'text-red-500'}>
-                                                    {formatCurrency(margin)} ({Math.round(marginPercent)}%)
-                                                </span>
-                                            </td>
+                                            {canSeeProfit && (
+                                                <td className="p-4 text-right font-mono font-medium">
+                                                    <span className={margin > 0 ? 'text-emerald-600' : 'text-red-500'}>
+                                                        {canSeeBuyingPrice ? `${formatCurrency(margin)} (${Math.round(marginPercent)}%)` : '***'}
+                                                    </span>
+                                                </td>
+                                            )}
                                         </tr>
                                     );
                                 })

@@ -16,7 +16,7 @@ export default function PurchaseDetails() {
     const { id } = useParams();
     const navigate = useNavigate();
     const config = useStoreConfig();
-    const { getStorePurchases, getStoreAccounts, deletePurchase, suppliers } = useERPStore();
+    const { getStorePurchases, getStoreAccounts, deletePurchase, suppliers, checkPermission } = useERPStore();
 
     const purchases = getStorePurchases();
     const accounts = getStoreAccounts();
@@ -25,8 +25,27 @@ export default function PurchaseDetails() {
     const account = accounts.find(a => a.id === purchase?.accountId);
     const supplier = suppliers.find(s => s.companyName === purchase?.supplier || s.id === (purchase as any).supplierId);
 
+    const canSeePurchases = checkPermission('canSeePurchases');
+    const canSeeDetailedPurchases = checkPermission('canSeeDetailedPurchases');
+    const canManagePurchases = canSeeDetailedPurchases || checkPermission('canSeeSuppliers');
+
     const [showTaxPrompt, setShowTaxPrompt] = useState(false);
     const [pendingAction, setPendingAction] = useState<'print' | 'pdf' | null>(null);
+
+    if (!canSeePurchases) {
+        return (
+            <div className="min-h-screen bg-[#F2F2F7] flex items-center justify-center p-6 text-center">
+                <div className="bg-white rounded-[3rem] p-12 shadow-xl max-w-md w-full border border-white">
+                    <ShieldCheck className="w-16 h-16 text-slate-100 mx-auto mb-6" />
+                    <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight mb-2">Access Restricted</h2>
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-8">You do not have permission to view purchase details.</p>
+                    <Button onClick={() => navigate('/purchases')} className="w-full bg-black text-white rounded-2xl h-14 font-black uppercase text-[10px] tracking-widest">
+                        Return to Purchases
+                    </Button>
+                </div>
+            </div>
+        );
+    }
 
     if (!purchase) {
         return (
@@ -126,17 +145,21 @@ export default function PurchaseDetails() {
                     </div>
 
                     <div className="flex items-center gap-3">
-                        <Button onClick={handlePrint} variant="ghost" className="rounded-2xl h-12 bg-slate-50 font-black uppercase text-[10px] tracking-widest text-slate-400 px-6">
-                            <Printer className="w-4 h-4 mr-2" />
-                            Print Compliance
-                        </Button>
-                        <Button onClick={handleDownloadPDF} variant="ghost" className="rounded-2xl h-12 bg-black text-white font-black uppercase text-[10px] tracking-widest px-6 shadow-lg shadow-black/20">
-                            <Download className="w-4 h-4 mr-2" />
-                            PDF
-                        </Button>
-                        <Button onClick={handleDelete} variant="ghost" className="rounded-2xl h-12 w-12 p-0 bg-red-50 text-red-600 hover:bg-red-100">
-                            <Trash2 className="w-5 h-5" />
-                        </Button>
+                        {canManagePurchases && (
+                            <>
+                                <Button onClick={handlePrint} variant="ghost" className="rounded-2xl h-12 bg-slate-50 font-black uppercase text-[10px] tracking-widest text-slate-400 px-6">
+                                    <Printer className="w-4 h-4 mr-2" />
+                                    Print Compliance
+                                </Button>
+                                <Button onClick={handleDownloadPDF} variant="ghost" className="rounded-2xl h-12 bg-black text-white font-black uppercase text-[10px] tracking-widest px-6 shadow-lg shadow-black/20">
+                                    <Download className="w-4 h-4 mr-2" />
+                                    PDF
+                                </Button>
+                                <Button onClick={handleDelete} variant="ghost" className="rounded-2xl h-12 w-12 p-0 bg-red-50 text-red-600 hover:bg-red-100">
+                                    <Trash2 className="w-5 h-5" />
+                                </Button>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

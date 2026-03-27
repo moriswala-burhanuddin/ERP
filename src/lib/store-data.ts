@@ -46,14 +46,6 @@ export interface Category {
   description?: string;
   storeId: string;
   updatedAt: string;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-  description?: string;
-  storeId: string;
-  updatedAt: string;
   syncStatus?: number;
 }
 
@@ -250,6 +242,49 @@ export interface DashboardMetrics {
     minStock: number;
     sku: string;
   }>;
+}
+
+export interface PermissionSet {
+  // Inventory
+  canSeeBuyingPrice: boolean;
+  canSeeProfit: boolean;
+  canEditProduct: boolean;
+  canAddProduct: boolean;
+  canChangeStock: boolean;
+  canTransferStock: boolean;
+
+  // Sales & Purchases
+  canSeePurchases: boolean;
+  canSeeExpectedSales: boolean;
+  canSeeDetailedPurchases: boolean;
+  canSeeDetailedSales: boolean;
+  canApplyDiscounts: boolean;
+  canAccessAllInvoices: boolean;
+  canManageCustomers: boolean;
+
+  // Suppliers
+  canSeeSuppliers: boolean;
+
+  // Dashboard
+  canSeeRevenueMetrics: boolean;
+
+  // HR
+  canManageEmployees: boolean;
+  canManagePayroll: boolean;
+  canManageAttendance: boolean;
+
+  // Finance & Accounts
+  canManageLedger: boolean;
+  canManageCommissions: boolean;
+  canManageCheques: boolean;
+  canManageTaxes: boolean;
+}
+
+export interface UserPermission {
+  id: string;
+  userId: string;
+  permissions: PermissionSet;
+  updatedAt: string;
 }
 
 export interface Quotation {
@@ -704,6 +739,7 @@ interface ERPState {
   isAuthenticated: boolean;
   accessToken: string | null;
   refreshToken: string | null;
+  userPermissions: UserPermission[];
 
   // Device info
   deviceId: string | null;
@@ -823,6 +859,11 @@ interface ERPState {
   addProduct: (product: Omit<Product, 'id' | 'updatedAt'>) => Promise<Product>;
   updateProduct: (id: string, product: Partial<Product>) => Promise<void>;
   deleteProduct: (id: string) => void;
+
+  // Permission Actions
+  fetchPermissions: (userId?: string) => Promise<void>;
+  updateUserPermissions: (userId: string, permissions: PermissionSet) => Promise<void>;
+  checkPermission: (permKey: keyof PermissionSet) => boolean;
 
   // Category Actions
   addCategory: (category: Omit<Category, 'id' | 'updatedAt'>) => Promise<Category>;
@@ -988,6 +1029,7 @@ export const useERPStore = create<ERPState>()(
       workOrders: [],
       deliveries: [],
       testModeEnabled: false,
+      userPermissions: [],
       activityLogs: [],
       deliveryZones: [],
       deliveryPersonnel: [],
@@ -1185,6 +1227,52 @@ export const useERPStore = create<ERPState>()(
         return await dbAdapter.generateBarcode(sku);
       },
 
+      // Permission Actions
+      fetchPermissions: async (userId) => {
+        const targetId = userId || get().currentUser?.id;
+        if (!targetId) return;
+        const perms = await dbAdapter.getPermissions(targetId);
+        if (perms) {
+          set(state => ({
+            userPermissions: [
+              ...state.userPermissions.filter(p => p.userId !== targetId),
+              perms
+            ]
+          }));
+        }
+      },
+
+      updateUserPermissions: async (userId, permissions) => {
+        const updated = await dbAdapter.updatePermissions(userId, permissions);
+        if (updated) {
+          set(state => ({
+            userPermissions: [
+              ...state.userPermissions.filter(p => p.userId !== userId),
+              updated
+            ]
+          }));
+        }
+      },
+
+      checkPermission: (permKey) => {
+        const user = get().currentUser;
+        if (!user) return false;
+        // Super Admin has all permissions
+        if (user.role === 'super_admin') return true;
+
+        const userPerms = get().userPermissions.find(p => p.userId === user.id);
+        if (!userPerms) {
+          // Default permissions for roles if no specific record exists
+          const defaults: Record<string, Partial<PermissionSet>> = {
+            'admin': { canSeeProfit: true, canEditProduct: true, canAddProduct: true },
+            // Removed automatic generous fallbacks. Strict Default Deny policy.
+            // Roles must have permissions explicitly granted via Access Control to see modules.
+            // ... more defaults
+          };
+          return !!defaults[user.role]?.[permKey];
+        }
+        return !!userPerms.permissions[permKey];
+      },
       // Item Kit Actions
       addItemKit: async (kitData) => {
         if (!isElectron()) return;
@@ -1405,8 +1493,8 @@ export const useERPStore = create<ERPState>()(
           customers: state.customers.filter(c => c.id !== id)
         }));
         if (dbAdapter.deleteCustomer) {
-            await dbAdapter.deleteCustomer(id);
-            get().syncData(); // Trigger push
+          await dbAdapter.deleteCustomer(id);
+          get().syncData(); // Trigger push
         }
       },
 
@@ -2078,7 +2166,7 @@ export const useERPStore = create<ERPState>()(
           console.warn('[SYNC] Not in electron, skipping sync.');
           return 'not_electron';
         }
-        
+
         // Only skip mock tokens if user is NOT a super_admin (who might be bootstrapping)
         if (isMockToken) {
           console.log('[SYNC] Note: This is a local-only / bootstrap session.');
@@ -2087,37 +2175,37 @@ export const useERPStore = create<ERPState>()(
 
         set({ isSyncing: true });
 
-          // Helper to handle API requests with refresh retry
-          const authenticatedFetch = async (url: string, options: RequestInit, retry = true): Promise<Response> => {
-            const currentToken = get().accessToken;
-            const user = get().currentUser;
-            const headers: Record<string, string> = { 
-              ...(options.headers as Record<string, string>) 
-            };
-            let finalUrl = url;
-            
-            // Use Bootstrap Auth if we are in mock session OR if it's a sync request from super_admin
-            const isSyncUrl = url.includes('/sync/');
-            const isSuperAdmin = user?.role === 'super_admin';
-            const isMock = currentToken === 'mock-local-token' || currentToken === 'local-token-123';
+        // Helper to handle API requests with refresh retry
+        const authenticatedFetch = async (url: string, options: RequestInit, retry = true): Promise<Response> => {
+          const currentToken = get().accessToken;
+          const user = get().currentUser;
+          const headers: Record<string, string> = {
+            ...(options.headers as Record<string, string>)
+          };
+          let finalUrl = url;
 
-            if (isMock || (isSyncUrl && isSuperAdmin)) {
-              console.log('[SYNC] Elevating request with Bootstrap Auth...');
-              headers['X-Bootstrap-Auth'] = 'super-admin-init';
-              const separator = finalUrl.includes('?') ? '&' : '?';
-              if (!finalUrl.includes('bootstrap=true')) {
-                finalUrl = `${finalUrl}${separator}bootstrap=true`;
-              }
-            }
-            
-            if (!isMock && currentToken && !((isSyncUrl && isSuperAdmin))) {
-              headers['Authorization'] = `Bearer ${currentToken}`;
-            }
+          // Use Bootstrap Auth if we are in mock session OR if it's a sync request from super_admin
+          const isSyncUrl = url.includes('/sync/');
+          const isSuperAdmin = user?.role === 'super_admin';
+          const isMock = currentToken === 'mock-local-token' || currentToken === 'local-token-123';
 
-            const response = await fetch(finalUrl, {
-              ...options,
-              headers
-            });
+          if (isMock || (isSyncUrl && isSuperAdmin)) {
+            console.log('[SYNC] Elevating request with Bootstrap Auth...');
+            headers['X-Bootstrap-Auth'] = 'super-admin-init';
+            const separator = finalUrl.includes('?') ? '&' : '?';
+            if (!finalUrl.includes('bootstrap=true')) {
+              finalUrl = `${finalUrl}${separator}bootstrap=true`;
+            }
+          }
+
+          if (!isMock && currentToken && !((isSyncUrl && isSuperAdmin))) {
+            headers['Authorization'] = `Bearer ${currentToken}`;
+          }
+
+          const response = await fetch(finalUrl, {
+            ...options,
+            headers
+          });
 
           if (response.status === 401 && retry && get().refreshToken) {
             console.log('[SYNC] Token expired, attempting refresh...');
@@ -2191,7 +2279,7 @@ export const useERPStore = create<ERPState>()(
 
                 for (const error of (pushResult.errors as any[] || [])) {
                   const msg = error.message || "";
-                  
+
                   // Handle Missing Dependencies (e.g., "Missing dependency sale-xxx for deliveries.sale_id")
                   if (msg.includes("Missing dependency")) {
                     const match = msg.match(/Missing dependency ([a-zA-Z0-9\-_]+) for ([a-z_]+)\.([a-z_]+)/);
@@ -2199,7 +2287,7 @@ export const useERPStore = create<ERPState>()(
                       const missingId = match[1];
                       const dependentTable = match[2];
                       const fieldName = match[3];
-                      
+
                       // Determine the table of the missing ID (e.g., sale_id -> sales)
                       let targetTable = fieldName.replace("_id", "s"); // Simple heuristic
                       if (fieldName === "customer_id") targetTable = "customers";
@@ -2216,15 +2304,15 @@ export const useERPStore = create<ERPState>()(
 
                   // Handle Unique Constraint Violations (e.g., duplicate employee user_id)
                   if (msg.includes("duplicate key value violates unique constraint") || msg.includes("UniqueViolation")) {
-                     // If it's an employee already existing in cloud but with different ID, 
-                     // we should mark local as synced to stop the error loop
-                     const empMatch = msg.match(/syncing employees row ([a-zA-Z0-9\-_]+):/);
-                     if (empMatch) {
-                        const localId = empMatch[1];
-                        console.log(`[SYNC] Recovery: Employee ${localId} already exists on server (unique constraint). Marking as synced locally.`);
-                        if (!idsToMarkSynced['employees']) idsToMarkSynced['employees'] = [];
-                        idsToMarkSynced['employees'].push(localId);
-                     }
+                    // If it's an employee already existing in cloud but with different ID, 
+                    // we should mark local as synced to stop the error loop
+                    const empMatch = msg.match(/syncing employees row ([a-zA-Z0-9\-_]+):/);
+                    if (empMatch) {
+                      const localId = empMatch[1];
+                      console.log(`[SYNC] Recovery: Employee ${localId} already exists on server (unique constraint). Marking as synced locally.`);
+                      if (!idsToMarkSynced['employees']) idsToMarkSynced['employees'] = [];
+                      idsToMarkSynced['employees'].push(localId);
+                    }
                   }
                 }
 
@@ -2242,7 +2330,7 @@ export const useERPStore = create<ERPState>()(
               const pushErrorText = await pushResponse.text();
               console.error(`%c[SYNC] Push failed (400/500). Status: ${pushResponse.status}`, 'color: red; font-weight: bold');
               console.error(`[SYNC] Error detail: ${pushErrorText}`);
-              
+
               // If it's a 403 Forbidden, it might be due to the bypass token
               if (pushResponse.status === 403) {
                 console.warn('[SYNC] Server rejected request. Bypass token may not have sync permissions.');
@@ -2315,7 +2403,7 @@ export const useERPStore = create<ERPState>()(
             expenseCategories, taxSlabs, purchaseOrders, commissions,
             loyaltyPoints, itemKits, customFields, productCustomValues, customerCustomValues,
             suppliers, supplierCustomFields, paymentTerms, receivings, invoices,
-            categories
+            categories, userPermissions
           ] = await Promise.all([
             dbAdapter.getProducts(state.activeStoreId) as Promise<Product[]>,
             dbAdapter.getCustomers(state.activeStoreId) as Promise<Customer[]>,
@@ -2341,7 +2429,10 @@ export const useERPStore = create<ERPState>()(
             dbAdapter.getPaymentTerms ? dbAdapter.getPaymentTerms(state.activeStoreId) as Promise<PaymentTerm[]> : Promise.resolve([]),
             dbAdapter.getReceivings ? dbAdapter.getReceivings(state.activeStoreId) as Promise<Receiving[]> : Promise.resolve([]),
             dbAdapter.getInvoices ? dbAdapter.getInvoices(state.activeStoreId) as Promise<Invoice[]> : Promise.resolve([]),
-            dbAdapter.getCategories ? dbAdapter.getCategories(state.activeStoreId) as Promise<Category[]> : Promise.resolve([])
+            dbAdapter.getCategories ? dbAdapter.getCategories(state.activeStoreId) as Promise<Category[]> : Promise.resolve([]),
+            dbAdapter.getUsers() // Re-fetch all users to ensure we have them for permissions
+              .then(users => Promise.all((users as User[]).map(u => dbAdapter.getPermissions(u.id))))
+              .then(perms => perms.filter(p => p !== null) as UserPermission[])
           ]);
 
           console.log(`[Store] Data loaded: ${products?.length || 0} products, ${sales?.length || 0} sales found locally.`);
@@ -2393,6 +2484,7 @@ export const useERPStore = create<ERPState>()(
             receivings: receivings || state.receivings,
             invoices: invoices || state.invoices,
             categories: categories || state.categories,
+            userPermissions: userPermissions || state.userPermissions,
           });
         } catch (error) {
           console.error('Failed to load from database:', error);

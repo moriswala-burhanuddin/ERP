@@ -40,7 +40,8 @@ const TABLE_NAMES = [
     'item_kits',
     'kit_items',
     'custom_fields',
-    'product_custom_values'
+    'product_custom_values',
+    'user_permissions'
 ];
 
 const syncEngine = {

@@ -22,8 +22,14 @@ export default function NewProduct() {
     productCustomValues,
     updateProductCustomValues,
     categories,
-    addCategory
+    addCategory,
+    checkPermission
   } = useERPStore();
+
+  const canEditProduct = checkPermission('canEditProduct');
+  const canChangeStock = checkPermission('canChangeStock');
+  const canSeeBuyingPrice = checkPermission('canSeeBuyingPrice');
+  const canAddProduct = checkPermission('canAddProduct');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -86,6 +92,9 @@ export default function NewProduct() {
         toast.error("Product not found.");
         navigate('/products');
       }
+    } else if (!canAddProduct) {
+      toast.error("You do not have permission to add new products.");
+      navigate('/products');
     } else if (location.state?.cloneData) {
       const product = location.state.cloneData as import('@/lib/store-data').Product;
       setFormData({
@@ -104,7 +113,7 @@ export default function NewProduct() {
         limitedQty: product.limitedQty?.toString() || '',
       });
     }
-  }, [id, isEditMode, getStoreProducts, navigate, productCustomValues, location.state, categories]);
+  }, [id, isEditMode, getStoreProducts, navigate, productCustomValues, location.state, categories, canAddProduct]);
 
   const handleAiSuggest = async () => {
     if (!formData.name.trim()) {
@@ -279,7 +288,8 @@ export default function NewProduct() {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  className="w-full bg-slate-50 border-none rounded-[1.5rem] py-5 px-6 font-bold text-slate-900 focus:ring-2 focus:ring-black transition-all placeholder:text-slate-300"
+                  disabled={isEditMode && !canEditProduct}
+                  className="w-full bg-slate-50 border-none rounded-[1.5rem] py-5 px-6 font-bold text-slate-900 focus:ring-2 focus:ring-black transition-all placeholder:text-slate-300 disabled:opacity-50"
                   placeholder="Enter product title..."
                 />
               </div>
@@ -293,7 +303,8 @@ export default function NewProduct() {
                     name="sku"
                     value={formData.sku}
                     onChange={handleChange}
-                    className="w-full bg-slate-50 border-none rounded-[1.5rem] py-5 pl-12 pr-6 font-mono font-black text-slate-900 uppercase focus:ring-2 focus:ring-black transition-all placeholder:text-slate-300"
+                    disabled={isEditMode && !canEditProduct}
+                    className="w-full bg-slate-50 border-none rounded-[1.5rem] py-5 pl-12 pr-6 font-mono font-black text-slate-900 uppercase focus:ring-2 focus:ring-black transition-all placeholder:text-slate-300 disabled:opacity-50"
                     placeholder="E.G. SF-HT-001"
                   />
                 </div>
@@ -328,7 +339,8 @@ export default function NewProduct() {
                     name="categoryId"
                     value={formData.categoryId}
                     onChange={handleChange}
-                    className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold appearance-none cursor-pointer focus:ring-2 focus:ring-black"
+                    disabled={isEditMode && !canEditProduct}
+                    className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold appearance-none cursor-pointer focus:ring-2 focus:ring-black disabled:opacity-50"
                   >
                     <option value="">Select...</option>
                     {categories.map(cat => (
@@ -340,11 +352,11 @@ export default function NewProduct() {
               </div>
               <div className="space-y-3">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Brand</label>
-                <input name="brand" value={formData.brand} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black" placeholder="Optional" />
+                <input name="brand" value={formData.brand} onChange={handleChange} disabled={isEditMode && !canEditProduct} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black disabled:opacity-50" placeholder="Optional" />
               </div>
               <div className="space-y-3">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Unit of Measure</label>
-                <input name="unit" value={formData.unit} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black" placeholder="Pcs, Set, Ltr..." />
+                <input name="unit" value={formData.unit} onChange={handleChange} disabled={isEditMode && !canEditProduct} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black disabled:opacity-50" placeholder="Pcs, Set, Ltr..." />
               </div>
             </div>
           </div>
@@ -366,19 +378,27 @@ export default function NewProduct() {
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Purchase Price *</label>
                 <div className="relative group">
                   <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 font-black">{CURRENCY_SYMBOL}</span>
-                  <input name="purchasePrice" type="number" step="0.01" value={formData.purchasePrice} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-5 font-black text-slate-900 focus:ring-2 focus:ring-black" />
+                  <input 
+                    name="purchasePrice" 
+                    type={canSeeBuyingPrice ? "number" : "text"} 
+                    step="0.01" 
+                    value={canSeeBuyingPrice ? formData.purchasePrice : '***'} 
+                    onChange={handleChange} 
+                    disabled={!canSeeBuyingPrice || (isEditMode && !canEditProduct)} 
+                    className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-5 font-black text-slate-900 focus:ring-2 focus:ring-black disabled:opacity-100 placeholder:text-slate-300" 
+                  />
                 </div>
               </div>
               <div className="space-y-3">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Selling Price *</label>
                 <div className="relative group">
                   <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-300 font-black">{CURRENCY_SYMBOL}</span>
-                  <input name="sellingPrice" type="number" step="0.01" value={formData.sellingPrice} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-5 font-black text-slate-900 focus:ring-2 focus:ring-black" />
+                  <input name="sellingPrice" type="number" step="0.01" value={formData.sellingPrice} onChange={handleChange} disabled={isEditMode && !canEditProduct} className="w-full bg-slate-50 border-none rounded-2xl py-4 pl-10 pr-5 font-black text-slate-900 focus:ring-2 focus:ring-black disabled:opacity-50" />
                 </div>
               </div>
               <div className="space-y-3">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Initial Stock</label>
-                <input name="quantity" type="number" value={formData.quantity} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-black text-slate-900 focus:ring-2 focus:ring-black" />
+                <input name="quantity" type="number" value={formData.quantity} onChange={handleChange} disabled={isEditMode && !canChangeStock && !canEditProduct} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-black text-slate-900 focus:ring-2 focus:ring-black disabled:opacity-50" />
               </div>
             </div>
           </div>
@@ -399,14 +419,14 @@ export default function NewProduct() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Low Stock Alert</label>
-                  <input name="minStock" type="number" value={formData.minStock} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black" placeholder="20" />
+                  <input name="minStock" type="number" value={formData.minStock} onChange={handleChange} disabled={isEditMode && !canChangeStock && !canEditProduct} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black disabled:opacity-50" placeholder="20" />
                 </div>
                 <p className="text-[9px] font-bold text-slate-400 uppercase leading-relaxed ml-1">Get an alert when stock reaches this amount.</p>
               </div>
               <div className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Reorder Amount</label>
-                  <input name="reorderQuantity" type="number" value={formData.reorderQuantity} onChange={handleChange} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black" placeholder="50" />
+                  <input name="reorderQuantity" type="number" value={formData.reorderQuantity} onChange={handleChange} disabled={isEditMode && !canChangeStock && !canEditProduct} className="w-full bg-slate-50 border-none rounded-2xl py-4 px-5 font-bold focus:ring-2 focus:ring-black disabled:opacity-50" placeholder="50" />
                 </div>
                 <p className="text-[9px] font-bold text-slate-400 uppercase leading-relaxed ml-1">Recommended amount to buy when restocking.</p>
               </div>

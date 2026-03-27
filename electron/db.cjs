@@ -455,6 +455,15 @@ db.exec(`
     FOREIGN KEY (store_id) REFERENCES stores(id)
   );
 
+  CREATE TABLE IF NOT EXISTS user_permissions (
+    id TEXT PRIMARY KEY,
+    user_id TEXT UNIQUE NOT NULL,
+    permissions TEXT NOT NULL DEFAULT '{}',
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    sync_status INTEGER DEFAULT 0,
+    FOREIGN KEY (user_id) REFERENCES users(id)
+  );
+
   CREATE TABLE IF NOT EXISTS candidates (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -1610,6 +1619,36 @@ const toCamelCase = (obj) => {
 
 // Database helper functions
 const dbHelpers = {
+  // Permissions
+  getPermissions: (userId) => {
+    const row = db.prepare('SELECT * FROM user_permissions WHERE user_id = ?').get(userId);
+    if (!row) return null;
+    return {
+      ...toCamelCase(row),
+      permissions: JSON.parse(row.permissions || '{}')
+    };
+  },
+
+  updatePermissions: (userId, permissions) => {
+    const existing = db.prepare('SELECT id FROM user_permissions WHERE user_id = ?').get(userId);
+    const permString = JSON.stringify(permissions);
+    
+    if (existing) {
+      db.prepare(`
+        UPDATE user_permissions 
+        SET permissions = ?, updated_at = datetime('now'), sync_status = 0 
+        WHERE user_id = ?
+      `).run(permString, userId);
+    } else {
+      const id = `perm-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+      db.prepare(`
+        INSERT INTO user_permissions (id, user_id, permissions, sync_status)
+        VALUES (?, ?, ?, 0)
+      `).run(id, userId, permString);
+    }
+    return dbHelpers.getPermissions(userId);
+  },
+
   // Products
   getAllProducts: (storeId) => {
     const products = db.prepare('SELECT * FROM products WHERE store_id = ? AND is_deleted = 0 ORDER BY updated_at DESC').all(storeId)

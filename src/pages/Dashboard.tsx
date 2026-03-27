@@ -35,7 +35,7 @@ import { cn, formatCurrency } from '@/lib/utils';
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { getStoreSales, getStoreProducts, getStoreCustomers, getActiveStore } = useERPStore();
+  const { getStoreSales, getStoreProducts, getStoreCustomers, getActiveStore, checkPermission } = useERPStore();
   const [dateRange, setDateRange] = useState('today');
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [onlineStats, setOnlineStats] = useState<any>(null);
@@ -49,8 +49,12 @@ export default function Dashboard() {
     eleganceApi.getStoreSummary().then(setOnlineStats).catch(console.error);
   }, [activeStore]);
 
+  const canSeeRevenue = checkPermission('canSeeRevenueMetrics');
+  const canSeeProfit = checkPermission('canSeeProfit');
+  const canSeeBuyingPrice = checkPermission('canSeeBuyingPrice');
+
   const stats = [
-    {
+    ...(canSeeRevenue ? [{
       label: 'POS Revenue',
       value: metrics?.posRevenue || 0,
       icon: Wallet,
@@ -65,23 +69,23 @@ export default function Dashboard() {
       color: 'bg-amber-500',
       trend: onlineStats ? `${onlineStats.orders} Orders` : 'Website',
       isCurrency: true
-    },
-    {
+    }] : []),
+    ...(canSeeProfit ? [{
       label: 'Net Profit',
       value: metrics?.profit || 0,
       icon: TrendingUp,
       color: 'bg-emerald-600',
       trend: metrics ? `${((metrics.todayProfit / (metrics.profit || 1)) * 100).toFixed(1)}%` : '0%',
       isCurrency: true
-    },
-    {
+    }] : []),
+    ...(canSeeBuyingPrice ? [{
       label: 'Inventory Value',
       value: metrics?.inventoryValue || 0,
       icon: Package,
       color: 'bg-slate-900',
       trend: 'In Stock',
       isCurrency: true
-    },
+    }] : []),
   ];
 
   const salesData = [
@@ -157,6 +161,7 @@ export default function Dashboard() {
 
         <div className="grid lg:grid-cols-3 gap-8 mb-10">
           {/* Main Analytical Card */}
+          {(canSeeRevenue || canSeeProfit) && (
           <div className="lg:col-span-2 bg-white rounded-[3rem] p-10 shadow-sm border border-white/50 relative overflow-hidden group">
             <div className="flex items-center justify-between mb-10">
               <div>
@@ -164,14 +169,18 @@ export default function Dashboard() {
                 <p className="text-xs font-bold text-slate-400">Weekly sales and profit report</p>
               </div>
               <div className="flex gap-2">
+                {canSeeRevenue && (
                 <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl">
                   <div className="w-2 h-2 rounded-full bg-black" />
                   <span className="text-[9px] font-black uppercase tracking-widest">Revenue</span>
                 </div>
+                )}
+                {canSeeProfit && (
                 <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl">
                   <div className="w-2 h-2 rounded-full bg-emerald-500" />
                   <span className="text-[9px] font-black uppercase tracking-widest">Profit</span>
                 </div>
+                )}
               </div>
             </div>
 
@@ -205,15 +214,16 @@ export default function Dashboard() {
                   <Tooltip
                     contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', fontWeight: 'black', textTransform: 'uppercase', fontSize: '10px' }}
                   />
-                  <Area type="monotone" dataKey="total" stroke="#000" strokeWidth={4} fillOpacity={1} fill="url(#colorRevenue)" />
-                  <Area type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={4} fillOpacity={1} fill="url(#colorProfit)" />
+                  {canSeeRevenue && <Area type="monotone" dataKey="total" stroke="#000" strokeWidth={4} fillOpacity={1} fill="url(#colorRevenue)" />}
+                  {canSeeProfit && <Area type="monotone" dataKey="profit" stroke="#10b981" strokeWidth={4} fillOpacity={1} fill="url(#colorProfit)" />}
                 </AreaChart>
               </ResponsiveContainer>
             </div>
           </div>
+          )}
 
           {/* Stats Summary */}
-          <div className="space-y-6">
+          <div className={cn("space-y-6", (!canSeeRevenue && !canSeeProfit) ? "lg:col-span-3" : "")}>
             <div className="bg-black rounded-[2.5rem] p-8 text-white relative overflow-hidden">
               <Target className="absolute -bottom-4 -right-4 w-32 h-32 opacity-10" />
               <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-6">Target</h4>

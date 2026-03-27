@@ -25,7 +25,7 @@ import { cn, formatCurrency } from "@/lib/utils";
 export default function Products() {
   const navigate = useNavigate();
   const { hasFeature } = useLicense();
-  const { getStoreProducts, handleBarcodeScan, processExcelUpload, getStoreSales, updateProduct, bulkDeleteProducts, bulkUpdateProducts } = useERPStore();
+  const { getStoreProducts, handleBarcodeScan, processExcelUpload, getStoreSales, updateProduct, bulkDeleteProducts, bulkUpdateProducts, checkPermission } = useERPStore();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [barcodeInput, setBarcodeInput] = useState('');
@@ -48,6 +48,12 @@ export default function Products() {
 
   const products = getStoreProducts();
   const categories = [...new Set(products.map(p => p.categoryName).filter(Boolean))];
+
+  // ─── Permission Flags ─────────────────────────────────────────
+  const canAddProduct   = checkPermission('canAddProduct');
+  const canEditProduct  = checkPermission('canEditProduct');
+  const canSeeBuyingPrice = checkPermission('canSeeBuyingPrice');
+  const canTransferStock  = checkPermission('canTransferStock');
 
   const runOptimization = async () => {
     if (!window.electronAPI) return;
@@ -236,7 +242,7 @@ export default function Products() {
     <div className="min-h-screen bg-[#F2F2F7] pb-24 lg:pb-10">
       <PageHeader
         title="Inventory"
-        subtitle={`${products.length} Products • ${formatCurrency(totalStockValue)} Value`}
+        subtitle={`${products.length} Products • ${canSeeBuyingPrice ? formatCurrency(totalStockValue) : '***'} Value`}
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6">
@@ -257,6 +263,7 @@ export default function Products() {
           </div>
 
           <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0">
+            {canAddProduct && (
             <Dialog open={isImportOpen} onOpenChange={setIsImportOpen}>
               <DialogTrigger asChild>
                 <button className="flex items-center gap-2 bg-white text-slate-900 border-none shadow-sm px-5 py-3 rounded-[1.2rem] font-black text-[10px] tracking-widest hover:bg-slate-50 transition-all active:scale-95 whitespace-nowrap">
@@ -287,7 +294,9 @@ export default function Products() {
                 </div>
               </DialogContent>
             </Dialog>
+            )}
 
+            {canTransferStock && (
             <Dialog open={isTransferOpen} onOpenChange={setIsTransferOpen}>
               <DialogTrigger asChild>
                 <button onClick={() => { setSelectedProductId(undefined); setIsTransferOpen(true); }} className="flex items-center gap-2 bg-white text-slate-900 border-none shadow-sm px-5 py-3 rounded-[1.2rem] font-black text-[10px] tracking-widest hover:bg-slate-50 transition-all active:scale-95 whitespace-nowrap">
@@ -306,18 +315,21 @@ export default function Products() {
                 />
               </DialogContent>
             </Dialog>
+            )}
 
-            {hasFeature('Reorder Optimization') && (
+            {hasFeature('Reorder Optimization') && canEditProduct && (
               <button onClick={runOptimization} disabled={isOptimizing} className="flex items-center gap-2 bg-indigo-600 text-white border-none shadow-lg shadow-indigo-200 px-5 py-3 rounded-[1.2rem] font-black text-[10px] tracking-widest hover:bg-indigo-700 transition-all active:scale-95 whitespace-nowrap">
                 {isOptimizing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
                 AI OPTIMIZE
               </button>
             )}
 
+            {canAddProduct && (
             <button onClick={() => navigate('/products/new')} className="flex items-center gap-2 bg-black text-white border-none shadow-lg shadow-black/10 px-5 py-3 rounded-[1.2rem] font-black text-[10px] tracking-widest hover:bg-slate-800 transition-all active:scale-95 whitespace-nowrap">
               <Plus className="w-4 h-4" />
               NEW PRODUCT
             </button>
+            )}
           </div>
         </div>
 
@@ -396,6 +408,7 @@ export default function Products() {
             </div>
           </div>
 
+          {canEditProduct && (
           <button
             onClick={toggleSelectAll}
             className="text-[10px] font-black text-slate-400 hover:text-black uppercase tracking-widest transition-colors flex items-center gap-2"
@@ -403,6 +416,7 @@ export default function Products() {
             {selectedIds.length > 0 ? `Deselect (${selectedIds.length})` : 'Select All'}
             <div className={cn("w-3 h-3 border-2 transition-colors", selectedIds.length === filteredProducts.length ? "bg-black border-black shadow-sm" : "border-slate-300")} />
           </button>
+          )}
         </div>
 
         {/* Product Cards Grid */}
@@ -418,6 +432,7 @@ export default function Products() {
                 )}
               >
                 {/* Selector */}
+                {canEditProduct && (
                 <div
                   onClick={(e) => toggleSelectRow(product.id, e)}
                   className={cn(
@@ -427,8 +442,10 @@ export default function Products() {
                 >
                   {selectedIds.includes(product.id) && <div className="w-2 h-2 bg-white rounded-sm" />}
                 </div>
+                )}
 
-                {/* Top Actions */}
+                {/* Top Actions - only for users who can edit */}
+                {canEditProduct && (
                 <div className="absolute top-6 right-6 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
                   <button onClick={(e) => { e.stopPropagation(); handlePrintBarcode(product); }} className="p-3 bg-white shadow-sm border border-slate-50 rounded-2xl text-slate-400 hover:text-black hover:shadow-md transition-all">
                     <Barcode className="w-4 h-4" />
@@ -437,6 +454,7 @@ export default function Products() {
                     <Copy className="w-4 h-4" />
                   </button>
                 </div>
+                )}
 
                 {/* Content */}
                 <div className="flex flex-col h-full pt-4">
@@ -472,11 +490,15 @@ export default function Products() {
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">PRICE</p>
                       <div
                         onClick={(e) => {
+                          if (!canEditProduct) return;
                           e.stopPropagation();
                           setEditingPriceId(product.id);
                           setTempPrice(product.sellingPrice.toString());
                         }}
-                        className="text-2xl font-black text-black leading-none group-hover:scale-110 transition-transform origin-right"
+                        className={cn(
+                          "text-2xl font-black text-black leading-none transition-transform origin-right",
+                          canEditProduct ? "group-hover:scale-110 cursor-pointer" : "cursor-default"
+                        )}
                       >
                         {formatCurrency(product.sellingPrice)}
                       </div>
@@ -514,9 +536,11 @@ export default function Products() {
             <button onClick={() => setIsBulkEditOpen(true)} className="px-6 py-4 rounded-[1.5rem] bg-indigo-600 font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all active:scale-95 shadow-lg shadow-indigo-600/20">
               CHANGE CATEGORY
             </button>
+            {canAddProduct && (
             <button onClick={handleBulkDelete} className="px-6 py-4 rounded-[1.5rem] bg-red-600 font-black text-[10px] uppercase tracking-widest hover:bg-red-700 transition-all active:scale-95 shadow-lg shadow-red-600/20">
               DELETE
             </button>
+            )}
             <button onClick={() => setSelectedIds([])} className="px-6 py-4 rounded-[1.5rem] bg-white/10 font-black text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all active:scale-95">
               CANCEL
             </button>

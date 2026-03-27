@@ -1,6 +1,6 @@
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useERPStore } from '@/lib/store-data';
-import { Wallet, CreditCard, Smartphone, TrendingUp, TrendingDown, ArrowLeft, Landmark, Activity, MoreHorizontal, ArrowUpRight, DollarSign, Plus, X } from 'lucide-react';
+import { Wallet, CreditCard, Smartphone, TrendingUp, TrendingDown, ArrowLeft, Landmark, Activity, MoreHorizontal, ArrowUpRight, DollarSign, Plus, X, ShieldCheck } from 'lucide-react';
 import { cn, formatCurrency, CURRENCY_SYMBOL } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
@@ -9,13 +9,15 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export default function Accounts() {
-  const { getStoreAccounts, getStoreTransactions, getStoreSales, addAccount, activeStoreId } = useERPStore();
+  const { getStoreAccounts, getStoreTransactions, getStoreSales, addAccount, activeStoreId, checkPermission } = useERPStore();
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [newAccount, setNewAccount] = useState({ name: '', type: 'cash' as 'cash' | 'card' | 'wallet', balance: 0 });
 
   const accounts = getStoreAccounts();
   const transactions = getStoreTransactions();
   const sales = getStoreSales();
+
+  const canManageLedger = checkPermission('canManageLedger');
 
   const handleAddAccount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,13 +77,15 @@ export default function Accounts() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              onClick={() => setIsAddModalOpen(true)}
-              className="bg-black hover:bg-slate-800 text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 shadow-2xl shadow-black/10 h-14"
-            >
-              <Plus className="w-4 h-4" />
-              Add Account
-            </Button>
+            {canManageLedger && (
+              <Button
+                onClick={() => setIsAddModalOpen(true)}
+                className="bg-black hover:bg-slate-800 text-white px-6 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest flex items-center gap-3 transition-all active:scale-95 shadow-2xl shadow-black/10 h-14"
+              >
+                <Plus className="w-4 h-4" />
+                Add Account
+              </Button>
+            )}
             <Badge className="bg-emerald-50 text-emerald-600 px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest border-emerald-100">
               All Accounts Active
             </Badge>
@@ -89,106 +93,118 @@ export default function Accounts() {
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 space-y-8">
-        {/* Aggregate Liquidity Card */}
-        <div className="bg-slate-900 rounded-[3.5rem] p-12 text-white shadow-2xl shadow-black/20 overflow-hidden relative group">
-          <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/5 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000" />
-          <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-            <div>
-              <div className="flex items-center gap-4 mb-6">
-                <div className="p-4 bg-white/10 rounded-2xl text-blue-400">
-                  <Landmark className="w-8 h-8" />
-                </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12 h-full">
+        {!canManageLedger ? (
+          <div className="bg-white rounded-[3rem] p-24 text-center border border-white flex flex-col items-center justify-center opacity-70">
+            <ShieldCheck className="w-24 h-24 text-slate-200 mb-6" />
+            <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Access Restricted</h3>
+            <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-3 leading-relaxed max-w-sm mx-auto">
+              You do not have permission to view or manage the Ledger Accounts.
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-8">
+            {/* Aggregate Liquidity Card */}
+            <div className="bg-slate-900 rounded-[3.5rem] p-12 text-white shadow-2xl shadow-black/20 overflow-hidden relative group">
+              <div className="absolute -right-20 -top-20 w-80 h-80 bg-white/5 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000" />
+              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
                 <div>
-                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">TOTAL BALANCE</h4>
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-5xl font-black tracking-tighter">
-                      {formatCurrency(totalBalance)}
-                    </span>
-                    <span className="text-xl font-bold text-slate-500 uppercase">{CURRENCY_SYMBOL}</span>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="p-4 bg-white/10 rounded-2xl text-blue-400">
+                      <Landmark className="w-8 h-8" />
+                    </div>
+                    <div>
+                      <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-1">TOTAL BALANCE</h4>
+                      <div className="flex items-baseline gap-3">
+                        <span className="text-5xl font-black tracking-tighter">
+                          {formatCurrency(totalBalance)}
+                        </span>
+                        <span className="text-xl font-bold text-slate-500 uppercase">{CURRENCY_SYMBOL}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    <Badge className="bg-white/5 text-slate-400 border-white/10 px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest">
+                      {accounts.length} ACCOUNTS
+                    </Badge>
+                    <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest flex items-center gap-2">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      UP TO DATE
+                    </Badge>
                   </div>
                 </div>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                <Badge className="bg-white/5 text-slate-400 border-white/10 px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest">
-                  {accounts.length} ACCOUNTS
-                </Badge>
-                <Badge className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 px-4 py-1.5 rounded-full font-black text-[9px] uppercase tracking-widest flex items-center gap-2">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                  UP TO DATE
-                </Badge>
               </div>
             </div>
+
+            {/* Individual Account Matrix */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {accounts.map((account) => {
+                const activity = getAccountActivity(account.id);
+
+                return (
+                  <div key={account.id} className="bg-white rounded-[3rem] p-10 shadow-sm border border-white hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-500 group overflow-hidden relative">
+                    <div className="absolute -right-8 -top-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                      <DollarSign className="w-32 h-32" />
+                    </div>
+
+                    <div className="relative z-10">
+                      <div className="flex items-center justify-between mb-10">
+                        <div className="flex items-center gap-4">
+                          <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:bg-black group-hover:text-white transition-all shadow-sm">
+                            {getAccountIcon(account.type)}
+                          </div>
+                          <div>
+                            <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">{account.name}</h3>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">{account.type}</p>
+                          </div>
+                        </div>
+                        <button className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all">
+                          <MoreHorizontal className="w-4 h-4 text-slate-400" />
+                        </button>
+                      </div>
+
+                      <div className="mb-10">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">BALANCE</span>
+                        <p className="text-3xl font-black text-slate-900 tracking-tighter">
+                          {formatCurrency(account.balance)}
+                        </p>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4 pt-8 border-t border-slate-50">
+                        <div className="flex flex-col">
+                          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">SALES</span>
+                          <div className="flex items-center gap-1.5 text-emerald-600">
+                            <TrendingUp className="w-3 h-3" />
+                            <span className="text-[10px] font-black tracking-tight">{formatCurrency(activity.salesTotal)}</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">MONEY IN</span>
+                          <div className="flex items-center gap-1.5 text-indigo-600">
+                            <TrendingUp className="w-3 h-3" />
+                            <span className="text-[10px] font-black tracking-tight">{formatCurrency(activity.cashIn)}</span>
+                          </div>
+                        </div>
+                        <div className="flex flex-col">
+                          <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">MONEY OUT</span>
+                          <div className="flex items-center gap-1.5 text-rose-600">
+                            <TrendingDown className="w-3 h-3" />
+                            <span className="text-[10px] font-black tracking-tight">{formatCurrency(activity.cashOut)}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button className="w-full mt-8 h-14 bg-slate-50 hover:bg-black hover:text-white rounded-2xl flex items-center justify-center gap-3 transition-all group/btn">
+                        <span className="text-[10px] font-black uppercase tracking-widest">View Details</span>
+                        <ArrowUpRight className="w-4 h-4 opacity-40 group-hover/btn:opacity-100 transition-opacity" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-
-        {/* Individual Account Matrix */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {accounts.map((account) => {
-            const activity = getAccountActivity(account.id);
-
-            return (
-              <div key={account.id} className="bg-white rounded-[3rem] p-10 shadow-sm border border-white hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-500 group overflow-hidden relative">
-                <div className="absolute -right-8 -top-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                  <DollarSign className="w-32 h-32" />
-                </div>
-
-                <div className="relative z-10">
-                  <div className="flex items-center justify-between mb-10">
-                    <div className="flex items-center gap-4">
-                      <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:bg-black group-hover:text-white transition-all shadow-sm">
-                        {getAccountIcon(account.type)}
-                      </div>
-                      <div>
-                        <h3 className="text-base font-black text-slate-900 uppercase tracking-tight">{account.name}</h3>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">{account.type}</p>
-                      </div>
-                    </div>
-                    <button className="p-3 bg-slate-50 hover:bg-slate-100 rounded-xl transition-all">
-                      <MoreHorizontal className="w-4 h-4 text-slate-400" />
-                    </button>
-                  </div>
-
-                  <div className="mb-10">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest block mb-1">BALANCE</span>
-                    <p className="text-3xl font-black text-slate-900 tracking-tighter">
-                      {formatCurrency(account.balance)}
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-4 pt-8 border-t border-slate-50">
-                    <div className="flex flex-col">
-                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">SALES</span>
-                      <div className="flex items-center gap-1.5 text-emerald-600">
-                        <TrendingUp className="w-3 h-3" />
-                        <span className="text-[10px] font-black tracking-tight">{formatCurrency(activity.salesTotal)}</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">MONEY IN</span>
-                      <div className="flex items-center gap-1.5 text-indigo-600">
-                        <TrendingUp className="w-3 h-3" />
-                        <span className="text-[10px] font-black tracking-tight">{formatCurrency(activity.cashIn)}</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">MONEY OUT</span>
-                      <div className="flex items-center gap-1.5 text-rose-600">
-                        <TrendingDown className="w-3 h-3" />
-                        <span className="text-[10px] font-black tracking-tight">{formatCurrency(activity.cashOut)}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <button className="w-full mt-8 h-14 bg-slate-50 hover:bg-black hover:text-white rounded-2xl flex items-center justify-center gap-3 transition-all group/btn">
-                    <span className="text-[10px] font-black uppercase tracking-widest">View Details</span>
-                    <ArrowUpRight className="w-4 h-4 opacity-40 group-hover/btn:opacity-100 transition-opacity" />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        )}
       </main>
 
       {/* Add Account Modal */}

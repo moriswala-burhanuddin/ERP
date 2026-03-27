@@ -1,15 +1,17 @@
 import { useState } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useERPStore } from '@/lib/store-data';
-import { Plus, Search, Truck, Calendar, ChevronRight, PackageCheck, PackageSearch, ArrowLeft, MoreHorizontal, Filter, Download, Zap, Clock, AlertCircle, CheckCircle2, PackageX } from 'lucide-react';
+import { Plus, Search, Truck, Calendar, ChevronRight, PackageCheck, PackageSearch, ArrowLeft, MoreHorizontal, Filter, Download, Zap, Clock, AlertCircle, CheckCircle2, PackageX, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn, formatCurrency } from '@/lib/utils';
 
 export default function Receivings() {
     const navigate = useNavigate();
-    const { receivings, accounts, suppliers } = useERPStore();
+    const { receivings, accounts, suppliers, checkPermission } = useERPStore();
     const [searchQuery, setSearchQuery] = useState('');
+
+    const canSeePurchases = checkPermission('canSeeDetailedPurchases');
 
     const filteredReceivings = (receivings || []).filter(r =>
         r.receivingNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -66,113 +68,125 @@ export default function Receivings() {
                 </div>
             </div>
 
-            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
-                {/* Logistics Performance Indices */}
-                <div className="grid md:grid-cols-4 gap-6 mb-12">
-                    <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
-                        <div className="p-3 bg-emerald-50 rounded-xl w-fit mb-6 text-emerald-500">
-                            <PackageCheck className="w-5 h-5" />
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 h-full">
+                {!canSeePurchases ? (
+                  <div className="bg-white rounded-[3rem] p-24 text-center border border-white flex flex-col items-center justify-center opacity-70">
+                    <ShieldCheck className="w-24 h-24 text-slate-200 mb-6" />
+                    <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Access Restricted</h3>
+                    <p className="text-xs font-black text-slate-400 uppercase tracking-widest mt-3 leading-relaxed max-w-sm mx-auto">
+                      You do not have permission to view or manage the receiving and logistics records.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    {/* Logistics Performance Indices */}
+                    <div className="grid md:grid-cols-4 gap-6 mb-12">
+                        <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
+                            <div className="p-3 bg-emerald-50 rounded-xl w-fit mb-6 text-emerald-500">
+                                <PackageCheck className="w-5 h-5" />
+                            </div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Settled Value</p>
+                            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{formatCurrency(totalReceived)}</h3>
                         </div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Settled Value</p>
-                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{formatCurrency(totalReceived)}</h3>
-                    </div>
-                    <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
-                        <div className="p-3 bg-rose-50 rounded-xl w-fit mb-6 text-rose-500">
-                            <AlertCircle className="w-5 h-5" />
+                        <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
+                            <div className="p-3 bg-rose-50 rounded-xl w-fit mb-6 text-rose-500">
+                                <AlertCircle className="w-5 h-5" />
+                            </div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Exposure Payable</p>
+                            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{formatCurrency(amountDue)}</h3>
                         </div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Exposure Payable</p>
-                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{formatCurrency(amountDue)}</h3>
-                    </div>
-                    <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
-                        <div className="p-3 bg-indigo-50 rounded-xl w-fit mb-6 text-indigo-500">
-                            <Clock className="w-5 h-5" />
+                        <div className="bg-white rounded-[2rem] p-8 shadow-sm border border-white">
+                            <div className="p-3 bg-indigo-50 rounded-xl w-fit mb-6 text-indigo-500">
+                                <Clock className="w-5 h-5" />
+                            </div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Transit Nodes</p>
+                            <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{pendingShipments} Active</h3>
                         </div>
-                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Transit Nodes</p>
-                        <h3 className="text-2xl font-black text-slate-900 tracking-tighter">{pendingShipments} Active</h3>
-                    </div>
-                    <div className="bg-black rounded-[2rem] p-8 text-white shadow-xl shadow-black/10 flex flex-col justify-center relative overflow-hidden group">
-                        <Zap className="absolute -right-4 -top-4 w-24 h-24 text-white/5 rotate-12 group-hover:rotate-45 transition-transform duration-700" />
-                        <div className="relative z-10">
-                            <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2">Automated Report</p>
-                            <Button className="w-full bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-xl h-12 font-black uppercase text-[9px] tracking-widest">
-                                <Download className="w-3.5 h-3.5 mr-2" />
-                                Export Ledger
-                            </Button>
+                        <div className="bg-black rounded-[2rem] p-8 text-white shadow-xl shadow-black/10 flex flex-col justify-center relative overflow-hidden group">
+                            <Zap className="absolute -right-4 -top-4 w-24 h-24 text-white/5 rotate-12 group-hover:rotate-45 transition-transform duration-700" />
+                            <div className="relative z-10">
+                                <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2">Automated Report</p>
+                                <Button className="w-full bg-white/10 hover:bg-white/20 border border-white/10 text-white rounded-xl h-12 font-black uppercase text-[9px] tracking-widest">
+                                    <Download className="w-3.5 h-3.5 mr-2" />
+                                    Export Ledger
+                                </Button>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                {/* Logistics Registry */}
-                <div className="bg-white rounded-[3rem] p-12 shadow-sm border border-white min-h-[600px]">
-                    <div className="flex items-center justify-between mb-12">
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Incoming Stock</h3>
-                    </div>
+                    {/* Logistics Registry */}
+                    <div className="bg-white rounded-[3rem] p-12 shadow-sm border border-white min-h-[600px]">
+                        <div className="flex items-center justify-between mb-12">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">Incoming Stock</h3>
+                        </div>
 
-                    {filteredReceivings.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {filteredReceivings.map((r, idx) => {
-                                const supplier = suppliers.find(s => s.id === r.supplierId);
-                                const status = getStatusConfig(r.status);
-                                return (
-                                    <div
-                                        key={r.id}
-                                        onClick={() => navigate(`/receivings/${r.id}`)}
-                                        className="bg-slate-50 hover:bg-white p-8 rounded-[2.5rem] border border-transparent hover:border-slate-100 hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-500 group cursor-pointer relative overflow-hidden"
-                                    >
-                                        <div className="flex justify-between items-start mb-6">
-                                            <div className={cn("px-4 py-1.5 rounded-full border text-[8px] font-black uppercase tracking-widest flex items-center gap-2", status.class)}>
-                                                {status.icon}
-                                                {status.label}
-                                            </div>
-                                            <div className="p-2 bg-white rounded-xl text-slate-200 group-hover:text-black transition-colors">
-                                                <MoreHorizontal className="w-4 h-4" />
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-1 mb-8">
-                                            <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight font-mono">{r.receivingNumber}</h4>
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{supplier?.companyName || 'UNIDENTIFIED_SOURCE'}</p>
-                                        </div>
-
-                                        <div className="flex items-end justify-between">
-                                            <div className="space-y-3">
-                                                <div className="flex items-center gap-2 text-slate-400">
-                                                    <Calendar className="w-3 h-3" />
-                                                    <span className="text-[9px] font-black uppercase tracking-widest">
-                                                        {new Date(r.updatedAt).toLocaleDateString()}
-                                                    </span>
+                        {filteredReceivings.length > 0 ? (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {filteredReceivings.map((r, idx) => {
+                                    const supplier = suppliers.find(s => s.id === r.supplierId);
+                                    const status = getStatusConfig(r.status);
+                                    return (
+                                        <div
+                                            key={r.id}
+                                            onClick={() => navigate(`/receivings/${r.id}`)}
+                                            className="bg-slate-50 hover:bg-white p-8 rounded-[2.5rem] border border-transparent hover:border-slate-100 hover:shadow-2xl hover:shadow-slate-200/50 transition-all duration-500 group cursor-pointer relative overflow-hidden"
+                                        >
+                                            <div className="flex justify-between items-start mb-6">
+                                                <div className={cn("px-4 py-1.5 rounded-full border text-[8px] font-black uppercase tracking-widest flex items-center gap-2", status.class)}>
+                                                    {status.icon}
+                                                    {status.label}
                                                 </div>
-                                                <div className="flex items-center gap-2 text-slate-400">
-                                                    <PackageSearch className="w-3 h-3" />
-                                                    <span className="text-[8px] font-black uppercase tracking-widest opacity-60">
-                                                        {r.purchaseOrderId ? 'Hashed Link' : 'Direct Node'}
-                                                    </span>
+                                                <div className="p-2 bg-white rounded-xl text-slate-200 group-hover:text-black transition-colors">
+                                                    <MoreHorizontal className="w-4 h-4" />
                                                 </div>
                                             </div>
-                                            <div className="text-right">
-                                                <p className="text-2xl font-black text-slate-900 tracking-tighter mb-1">{formatCurrency(r.totalAmount)}</p>
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <div className={cn("w-1.5 h-1.5 rounded-full", r.amountDue > 0 ? "bg-rose-500" : "bg-emerald-500")} />
-                                                    <span className={cn("text-[9px] font-black uppercase tracking-widest", r.amountDue > 0 ? "text-rose-500" : "text-emerald-500")}>
-                                                        {r.amountDue > 0 ? `Payable: ${formatCurrency(r.amountDue)}` : 'Node Settled'}
-                                                    </span>
+
+                                            <div className="space-y-1 mb-8">
+                                                <h4 className="text-xl font-black text-slate-900 uppercase tracking-tight font-mono">{r.receivingNumber}</h4>
+                                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{supplier?.companyName || 'UNIDENTIFIED_SOURCE'}</p>
+                                            </div>
+
+                                            <div className="flex items-end justify-between">
+                                                <div className="space-y-3">
+                                                    <div className="flex items-center gap-2 text-slate-400">
+                                                        <Calendar className="w-3 h-3" />
+                                                        <span className="text-[9px] font-black uppercase tracking-widest">
+                                                            {new Date(r.updatedAt).toLocaleDateString()}
+                                                        </span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 text-slate-400">
+                                                        <PackageSearch className="w-3 h-3" />
+                                                        <span className="text-[8px] font-black uppercase tracking-widest opacity-60">
+                                                            {r.purchaseOrderId ? 'Hashed Link' : 'Direct Node'}
+                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="text-2xl font-black text-slate-900 tracking-tighter mb-1">{formatCurrency(r.totalAmount)}</p>
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <div className={cn("w-1.5 h-1.5 rounded-full", r.amountDue > 0 ? "bg-rose-500" : "bg-emerald-500")} />
+                                                        <span className={cn("text-[9px] font-black uppercase tracking-widest", r.amountDue > 0 ? "text-rose-500" : "text-emerald-500")}>
+                                                            {r.amountDue > 0 ? `Payable: ${formatCurrency(r.amountDue)}` : 'Node Settled'}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    ) : (
-                        <div className="py-40 text-center opacity-30">
-                            <Truck className="w-24 h-24 text-slate-100 mx-auto mb-8" />
-                            <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Logistics Null</h3>
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 px-20 text-center mx-auto max-w-lg">
-                                No inbound acquisitions detected in the current sector. Initialize a new receiving node to begin logistics flow.
-                            </p>
-                        </div>
-                    )}
-                </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            <div className="py-40 text-center opacity-30">
+                                <Truck className="w-24 h-24 text-slate-100 mx-auto mb-8" />
+                                <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Logistics Null</h3>
+                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 px-20 text-center mx-auto max-w-lg">
+                                    No inbound acquisitions detected in the current sector. Initialize a new receiving node to begin logistics flow.
+                                </p>
+                            </div>
+                        )}
+                    </div>
+                  </>
+                )}
             </main>
 
             {/* Elevated FAB */}

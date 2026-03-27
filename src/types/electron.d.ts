@@ -6,7 +6,7 @@ import {
     StockTransfer, PurchaseOrder, ExpenseCategory, TaxSlab, Commission,
     LoyaltyPoint, ProductCustomValue, CustomField, ActivityLog,
     DeliveryZone, HRAttendance, HRLeave, Employee, Invoice, InvoiceItem,
-    Cheque
+    Cheque, UserPermission, PermissionSet
 } from '../lib/store-data'
 import { InventoryRow, ExcelUploadSummary, BarcodeResponse } from '../lib/inventory-utils'
 
@@ -246,6 +246,10 @@ export interface ElectronAPI {
 
     // Reports
     getReport: (type: string, storeId: string, dateFrom?: string, dateTo?: string) => Promise<Record<string, unknown>[]>;
+    
+    // Permissions
+    getPermissions: (userId: string) => Promise<UserPermission | null>;
+    updatePermissions: (userId: string, permissions: PermissionSet) => Promise<UserPermission | null>;
 }
 
 declare global {
