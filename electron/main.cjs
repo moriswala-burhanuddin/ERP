@@ -1282,12 +1282,14 @@ function setupAutoUpdater() {
             dialog.showMessageBox({
                 type: 'info',
                 title: 'Update Available',
-                message: `A new version (${info.version}) of Invenza ERP is available!\n\nmacOS requires manual updates right now. Would you like to download the latest version from our website?`,
-                buttons: ['Download Update', 'Later'],
+                message: `A new version (${info.version}) of Invenza ERP is ready. 
+
+macOS requires manual installation for security. Would you like to go to our website now to download the latest update?`,
+                buttons: ['Update Now', 'Later'],
                 defaultId: 0
             }).then(result => {
                 if (result.response === 0) {
-                    shell.openExternal('https://github.com/moriswala-burhanuddin/ERP/releases/latest');
+                    shell.openExternal('https://invenza-enterprise-resource-planning.netlify.app/');
                 }
             });
         }
