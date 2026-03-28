@@ -359,7 +359,7 @@ export const useStoreConfig = create<StoreConfigState>()(
             removeShippingZone: (id) => set((state) => ({ shippingZones: state.shippingZones.filter(z => z.id !== id) })),
         }),
         {
-            name: 'storeflow-store-config', // unique name
+            name: 'invenza-store-config', // unique name
         }
     )
 );

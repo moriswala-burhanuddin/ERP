@@ -524,7 +524,7 @@ const initialUsers: User[] = [
   { id: 'user-3', name: 'John Delivery', email: 'john@moriswala.com', role: 'staff', storeId: 'store-1' },
   { id: 'user-4', name: 'Sarah Tech', email: 'sarah@moriswala.com', role: 'staff', storeId: 'store-1' },
   { id: 'user-5', name: 'Mike Sales', email: 'mike@hardware.com', role: 'staff', storeId: 'store-2' },
-  { id: 'user-demo', name: 'Professional Demo', email: 'demo@storeflow.ai', password: 'demo123', role: 'super_admin', storeId: 'store-1' },
+  { id: 'user-demo', name: 'Professional Demo', email: 'demo@invenza.app', password: 'demo123', role: 'super_admin', storeId: 'store-1' },
 ];
 
 const initialProducts: Product[] = [
@@ -1030,7 +1030,7 @@ export const useERPStore = create<ERPState>()(
       login: async (email, password) => {
         // WEB DEMO BYPASS: Guaranteed login for demo credentials in browser
         //hostname check used as an extra check in case isElectron() gives a false positive in dev tools.
-        const isDemoUser = email.toLowerCase() === 'demo@storeflow.ai' && password === 'demo123';
+        const isDemoUser = email.toLowerCase() === 'demo@invenza.app' && password === 'demo123';
         const isWebTesting = !isElectron() || window.location.hostname === 'localhost' || window.location.hostname.includes('netlify') || window.location.hostname.includes('vercel');
         
         if (isWebTesting && isDemoUser) {
@@ -1039,7 +1039,7 @@ export const useERPStore = create<ERPState>()(
           const demoUser: User = { 
             id: 'user-demo', 
             name: 'Professional Demo', 
-            email: 'demo@storeflow.ai', 
+            email: 'demo@invenza.app', 
             role: 'super_admin', 
             storeId: 'store-1' 
           };
@@ -1111,7 +1111,7 @@ export const useERPStore = create<ERPState>()(
             isValid = await window.electronAPI.verifyPassword(localUser.id, password);
           } else {
             // Web Demo Bypass: Allow password demo123 for demo email
-            isValid = localUser.password === password || (localUser.email === 'demo@storeflow.ai' && password === 'demo123');
+            isValid = localUser.password === password || (localUser.email === 'demo@invenza.app' && password === 'demo123');
           }
 
           if (isValid) {
@@ -2800,7 +2800,7 @@ export const useERPStore = create<ERPState>()(
       },
     }),
     {
-      name: 'erp-store-v1',
+      name: 'invenza-erp-store-v1',
       partialize: (state) => {
         // Exclude isSyncing from persistence so it resets to false on reload
         const { isSyncing, ...rest } = state;

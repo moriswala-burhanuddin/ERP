@@ -15,7 +15,7 @@ export const AIChat: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState("");
     const [messages, setMessages] = useState<Message[]>([
-        { role: 'assistant', content: "Hello! I'm your StoreFlow AI Analyst. How can I help you with your ERP data today?" }
+        { role: 'assistant', content: "Hello! I'm your Invenza AI Analyst. How can I help you with your ERP data today?" }
     ]);
     const [isLoading, setIsLoading] = useState(false);
     const scrollRef = useRef<HTMLDivElement>(null);
@@ -167,7 +167,7 @@ export const AIChat: React.FC = () => {
                             </button>
                         </div>
                         <div className="mt-4 flex items-center justify-between text-[8px] font-black uppercase text-slate-400 tracking-widest">
-                          <span>StoreFlow AI v1.0</span>
+                          <span>Invenza AI v1.0</span>
                           {!isElectron() && (
                             <span>Credits Remaining: {aiService.getRemainingCredits()}</span>
                           )}

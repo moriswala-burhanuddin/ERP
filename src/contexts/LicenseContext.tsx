@@ -49,7 +49,7 @@ export const LicenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
             'Business Analyst Chat',
             'Invoice OCR'
           ]);
-          setClientInfo({ name: 'Demo User (StoreFlow AI)', id: 0 });
+          setClientInfo({ name: 'Demo User (Invenza AI)', id: 0 });
           setIsLoading(false);
           return;
         }

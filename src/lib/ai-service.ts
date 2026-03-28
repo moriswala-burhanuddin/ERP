@@ -6,7 +6,7 @@ const BASE_URL = import.meta.env.VITE_OPENAI_BASE_URL || 'https://api.openai.com
 
 // Usage Limits
 const MAX_REQUESTS_PER_SESSION = 20;
-const USAGE_KEY = 'sf_ai_usage_count';
+const USAGE_KEY = 'inv_ai_usage_count';
 
 const getUsageCount = (): number => {
   const count = localStorage.getItem(USAGE_KEY);
@@ -99,7 +99,7 @@ export const aiService = {
     const messages = [
       {
         role: "system",
-        content: "You are a Business Analyst for StoreFlow ERP. Analyze the data and provide concise insights. Focus on trends, low stock, and top customers."
+        content: "You are a Business Analyst for Invenza ERP. Analyze the data and provide concise insights. Focus on trends, low stock, and top customers."
       },
       {
         role: "user",

@@ -43,7 +43,7 @@ export default function CustomerDisplay() {
                         <div className="w-16 h-16 rounded-[2rem] bg-indigo-500 flex items-center justify-center shadow-2xl shadow-indigo-500/20">
                             <ShoppingBag className="w-8 h-8 text-white" />
                         </div>
-                        <h1 className="text-4xl font-black tracking-tighter uppercase italic">STOREFLOW<span className="text-indigo-500">.</span></h1>
+                        <h1 className="text-4xl font-black tracking-tighter uppercase italic">INVENZA<span className="text-indigo-500">.</span></h1>
                     </div>
                     <div className="flex items-center gap-3 bg-white/5 border border-white/5 px-4 py-1.5 rounded-full">
                         <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
@@ -139,7 +139,7 @@ export default function CustomerDisplay() {
                         <div className="w-14 h-14 bg-indigo-500 text-white rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                             <Receipt className="w-6 h-6" />
                         </div>
-                        <h4 className="text-xl font-black uppercase tracking-widest leading-none">Thank you for Choosing StoreFlow<span className="text-indigo-500">.</span></h4>
+                        <h4 className="text-xl font-black uppercase tracking-widest leading-none">Thank you for Choosing Invenza<span className="text-indigo-500">.</span></h4>
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] leading-relaxed">Have a great day!</p>
                     </div>
                 </div>

@@ -3699,3 +3699,28 @@
           FOREIGN KEY (store_id) REFERENCES stores(id)
         )
 [2026-03-28T14:13:01.697Z] Sales table migration NOT NEEDED or condition not met.
+[2026-03-28T14:26:33.213Z] Sales Schema: CREATE TABLE sales (
+          id TEXT PRIMARY KEY,
+          invoice_number TEXT UNIQUE NOT NULL,
+          type TEXT CHECK(type IN ('retail', 'cash', 'credit')) NOT NULL,
+          status TEXT DEFAULT 'completed',
+          items TEXT NOT NULL,
+          subtotal REAL DEFAULT 0,
+          discount_amount REAL DEFAULT 0,
+          tax_amount REAL DEFAULT 0,
+          total_amount REAL NOT NULL,
+          profit REAL NOT NULL,
+          payment_mode TEXT NOT NULL,
+          account_id TEXT NOT NULL,
+          customer_id TEXT,
+          store_id TEXT NOT NULL,
+          date TEXT NOT NULL,
+          quotation_id TEXT,
+          device_id TEXT,
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          sync_status INTEGER DEFAULT 0, source TEXT DEFAULT 'POS', is_deleted INTEGER DEFAULT 0,
+          FOREIGN KEY (account_id) REFERENCES accounts(id),
+          FOREIGN KEY (customer_id) REFERENCES customers(id),
+          FOREIGN KEY (store_id) REFERENCES stores(id)
+        )
+[2026-03-28T14:26:33.214Z] Sales table migration NOT NEEDED or condition not met.

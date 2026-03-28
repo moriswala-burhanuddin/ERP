@@ -81,7 +81,7 @@ export function ReceiptTemplate({ sale, store }: ReceiptTemplateProps) {
 
             <div style={{ textAlign: 'center', marginTop: '20px', fontSize: '10px' }}>
                 <p style={{ margin: '0' }}>THANK YOU FOR YOUR BUSINESS</p>
-                <p style={{ margin: '5px 0 0 0', fontStyle: 'italic' }}>POWERED BY STOREFLOW ERP</p>
+                <p style={{ margin: '5px 0 0 0', fontStyle: 'italic' }}>POWERED BY INVENZA ERP</p>
             </div>
         </div>
     );
@@ -175,7 +175,7 @@ export function generateReceiptHtml(sale: any, store: any) {
           
           <div class="center" style="margin-top: 20px; font-size: 10px;">
             <p>THANK YOU FOR YOUR BUSINESS</p>
-            <p style="margin-top: 5px; font-style: italic;">STOREFLOW ERP</p>
+            <p style="margin-top: 5px; font-style: italic;">INVENZA ERP</p>
           </div>
         </div>
       </body>

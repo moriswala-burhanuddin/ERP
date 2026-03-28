@@ -45,7 +45,7 @@ const HRLayout = () => {
                     <div className="flex items-center gap-3">
                         <div className="w-8 h-8 rounded bg-blue-600 flex items-center justify-center font-bold">HR</div>
                         <div>
-                            <h1 className="font-bold text-lg">StoreFlow HR</h1>
+                            <h1 className="font-bold text-lg">Invenza HR</h1>
                             <p className="text-xs text-slate-400">Department Module</p>
                         </div>
                     </div>

@@ -159,11 +159,11 @@ export default function SaleDetails() {
                         {config.companyLogo && (
                             <img src={config.companyLogo} alt="Logo" className="w-32 h-32 object-contain mb-6 bg-white p-3 rounded-2xl shadow-sm border border-slate-50" />
                         )}
-                        <h2 className="font-black text-4xl tracking-tighter uppercase text-slate-900">{config.companyName || 'STOREFLOW ERP'}</h2>
+                        <h2 className="font-black text-4xl tracking-tighter uppercase text-slate-900">{config.companyName || 'INVENZA ERP'}</h2>
                         <div className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] leading-relaxed mt-4 max-w-sm">
                             <p className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-slate-200" /> {config.taxId || 'Corporate Headquarters'}</p>
-                            <p className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-slate-200" /> Web: {config.websiteUrl || 'www.storeflow.erp'}</p>
-                            <p className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-slate-200" /> Email: {config.companyEmail || 'contact@storeflow.erp'}</p>
+                            <p className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-slate-200" /> Web: {config.websiteUrl || 'www.invenza.app'}</p>
+                            <p className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-slate-200" /> Email: {config.companyEmail || 'contact@invenza.app'}</p>
                         </div>
                     </div>
                     <div className="text-right flex flex-col justify-end">
