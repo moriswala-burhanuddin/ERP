@@ -32,21 +32,51 @@ import { dbAdapter } from '@/lib/db-adapter';
 import { eleganceApi } from '@/lib/elegance-api';
 import { DashboardMetrics } from '@/lib/store-data';
 import { cn, formatCurrency } from '@/lib/utils';
+import { isElectron } from '@/lib/electron-helper';
+
+const DEMO_METRICS: DashboardMetrics = {
+  revenue: 15240500,
+  posRevenue: 15240500,
+  onlineRevenue: 4250000,
+  profit: 3840000,
+  inventoryValue: 84200150,
+  todayRevenue: 850000,
+  todayProfit: 210000,
+  totalSales: 450,
+  totalItems: 12050,
+  lowStockCount: 15,
+  customerCount: 842,
+  lowStockItems: [
+    { id: '1', name: 'Power Drill XT', sku: 'PD-XT-01', quantity: 2, minStock: 5 },
+    { id: '2', name: 'Hammer Drill', sku: 'HD-05', quantity: 1, minStock: 3 },
+    { id: '3', name: 'Welding Mask', sku: 'WM-Pro', quantity: 0, minStock: 10 }
+  ],
+  recentSales: []
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const { getStoreSales, getStoreProducts, getStoreCustomers, getActiveStore, checkPermission } = useERPStore();
+  const { getStoreCustomers, getActiveStore, checkPermission } = useERPStore();
   const [dateRange, setDateRange] = useState('today');
   const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
   const [onlineStats, setOnlineStats] = useState<any>(null);
   const activeStore = getActiveStore();
 
   useEffect(() => {
-    if (activeStore) {
+    if (isElectron() && activeStore) {
       dbAdapter.getDashboardMetrics(activeStore.id).then(setMetrics);
+    } else if (!isElectron()) {
+      // Provide high-quality mock data for the web demo
+      setMetrics(DEMO_METRICS);
+      setOnlineStats({ revenue: 4250000, orders: 12 });
     }
-    // Also fetch live store stats
-    eleganceApi.getStoreSummary().then(setOnlineStats).catch(console.error);
+    
+    if (activeStore) {
+      // Still attempt to fetch live store stats if URL is configured
+      eleganceApi.getStoreSummary().then(setOnlineStats).catch(() => {
+        if (!isElectron()) setOnlineStats({ revenue: 4250000, orders: 12 });
+      });
+    }
   }, [activeStore]);
 
   const canSeeRevenue = checkPermission('canSeeRevenueMetrics');

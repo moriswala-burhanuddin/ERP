@@ -47,7 +47,7 @@ export const LicenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
             'Reorder Optimization',
             'Smart Categorization',
             'Business Analyst Chat',
-            'Invoice OCR (AI Capture)'
+            'Invoice OCR'
           ]);
           setClientInfo({ name: 'Demo User (StoreFlow AI)', id: 0 });
           setIsLoading(false);

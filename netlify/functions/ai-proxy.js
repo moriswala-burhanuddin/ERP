@@ -37,12 +37,30 @@ exports.handler = async (event) => {
 
     const data = await response.json();
     
-    // 4. Return the response back to the browser
+    // 4. Sanitize the response to avoid leaking API keys (Security Fix)
+    // AI providers like OpenAI/OpenRouter sometimes include the key in error messages.
+    let responseBody = JSON.stringify(data);
+    const sensitiveFound = responseBody.includes('sk-') || responseBody.includes('API key');
+    
+    if (sensitiveFound) {
+      console.warn('[AI Proxy Security]: Sensitive data detected in provider response. Redacting...');
+      if (data.error && data.error.message) {
+        // Log the REAL error for the developer in Netlify logs, but don't send it to the browser.
+        console.error('[AI Proxy REAL ERROR]:', data.error.message);
+        data.error.message = 'Authentication failed or AI service is currently unavailable. Please check your API configuration in Netlify.';
+      } else {
+        return {
+          statusCode: 500,
+          body: JSON.stringify({ error: 'AI provider returned a sensitive error message. Check server logs.' })
+        };
+      }
+    }
+
+    // 5. Return the sanitized response back to the browser
     return {
       statusCode: response.status,
       headers: {
         "Content-Type": "application/json",
-        // Enable CORS for development if needed, though same-origin is default on Netlify
         "Access-Control-Allow-Origin": "*",
         "Access-Control-Allow-Headers": "Content-Type",
         "Access-Control-Allow-Methods": "POST, OPTION"
@@ -50,10 +68,10 @@ exports.handler = async (event) => {
       body: JSON.stringify(data)
     };
   } catch (error) {
-    console.error('[AI Proxy Error]:', error);
+    console.error('[AI Proxy SYSTEM Error]:', error);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: 'Internal Server Error in Proxy' })
+      body: JSON.stringify({ error: 'An internal error occurred while processing your AI request.' })
     };
   }
 };

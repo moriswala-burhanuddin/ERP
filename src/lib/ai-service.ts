@@ -74,8 +74,15 @@ async function callAI(messages: any[], temperature = 0.7, responseFormat?: strin
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.error?.message || 'Failed to call AI service');
+    const errorBody = await response.json();
+    let message = errorBody.error?.message || 'Failed to call AI service';
+    
+    // REDACTION: Never allow sk- or "API key" to be displayed on the frontend
+    if (message.includes('sk-') || message.includes('API key')) {
+      message = 'AI Service Authentication Error. Please check your credentials in the Netlify settings.';
+    }
+    
+    throw new Error(message);
   }
 
   const data = await response.json();
