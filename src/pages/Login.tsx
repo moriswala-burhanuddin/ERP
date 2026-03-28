@@ -8,7 +8,7 @@ import logo from '../assets/invenza-bg.png';
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useERPStore();
-  const [email, setEmail] = useState('admin@hardware.com');
+  const [email, setEmail] = useState('demo@invenza.app');
   const [password, setPassword] = useState('demo123');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');

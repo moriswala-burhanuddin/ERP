@@ -1030,7 +1030,7 @@ export const useERPStore = create<ERPState>()(
       login: async (email, password) => {
         // WEB DEMO BYPASS: Guaranteed login for demo credentials in browser
         //hostname check used as an extra check in case isElectron() gives a false positive in dev tools.
-        const isDemoUser = email.toLowerCase() === 'demo@invenza.app' && password === 'demo123';
+        const isDemoUser = (email.toLowerCase() === 'demo@invenza.app' || email.toLowerCase() === 'demo@storeflow.ai') && password === 'demo123';
         const isWebTesting = !isElectron() || window.location.hostname === 'localhost' || window.location.hostname.includes('netlify') || window.location.hostname.includes('vercel');
         
         if (isWebTesting && isDemoUser) {

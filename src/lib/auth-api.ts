@@ -10,23 +10,23 @@ export const authApi = {
                 body: JSON.stringify({ email, password })
             });
 
+            const contentType = response.headers.get('content-type');
             let data;
-            try {
-                data = await response.json();
-            } catch (jsonError) {
-                console.error("Auth API JSON Parse Error:", jsonError);
-                return {
-                    success: false,
-                    message: `Invalid server response (${response.status}). Authentication service unreachable.`,
-                    status: response.status
-                };
+            if (contentType && contentType.includes('application/json')) {
+                try {
+                    data = await response.json();
+                } catch (jsonError) {
+                    console.error("Auth API JSON Parse Error:", jsonError);
+                }
+            } else {
+                console.warn("Auth API received non-JSON response:", contentType);
             }
 
             if (!response.ok) {
                 // Return a structured error
                 return {
                     success: false,
-                    message: data.detail || data.message || 'Login failed',
+                    message: (data && (data.detail || data.message)) || `Login failed (Status: ${response.status})`,
                     status: response.status
                 };
             }
