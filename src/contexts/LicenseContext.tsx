@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
+import { isElectron } from "@/lib/electron-helper";
 
 interface LicenseContextType {
   isLicensed: boolean;
@@ -32,6 +33,27 @@ export const LicenseProvider: React.FC<{ children: React.ReactNode }> = ({ child
     const initializeLicense = async () => {
       try {
         setIsLoading(true);
+
+        if (!isElectron()) {
+          // Web Demo Mode: Auto-verify demo key
+          const demoKey = 'A-091233';
+          setLicenseKey(demoKey);
+          setIsLicensed(true);
+          setFeatures([
+            'Inventory Analytics',
+            'Advanced Reports',
+            'AI Analyst',
+            'Inventory Forecast',
+            'Reorder Optimization',
+            'Smart Categorization',
+            'Business Analyst Chat',
+            'Invoice OCR (AI Capture)'
+          ]);
+          setClientInfo({ name: 'Demo User (StoreFlow AI)', id: 0 });
+          setIsLoading(false);
+          return;
+        }
+
         // @ts-ignore
         const savedKey = await window.electronAPI.getLicenseKey();
         // @ts-ignore

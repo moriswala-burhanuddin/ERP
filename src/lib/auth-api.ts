@@ -10,7 +10,17 @@ export const authApi = {
                 body: JSON.stringify({ email, password })
             });
 
-            const data = await response.json();
+            let data;
+            try {
+                data = await response.json();
+            } catch (jsonError) {
+                console.error("Auth API JSON Parse Error:", jsonError);
+                return {
+                    success: false,
+                    message: `Invalid server response (${response.status}). Authentication service unreachable.`,
+                    status: response.status
+                };
+            }
 
             if (!response.ok) {
                 // Return a structured error

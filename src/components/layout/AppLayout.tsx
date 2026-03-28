@@ -4,6 +4,7 @@ import { BottomNav } from './BottomNav';
 import { useERPStore } from '@/lib/store-data';
 import saifeeLogo from '@/assets/saifee.png';
 import sysfotechLogo from '@/assets/sysfotech-logo.png';
+import { AIChat } from '../ai/AIChat';
 
 export function AppLayout() {
   const { isAuthenticated, currentUser } = useERPStore();
@@ -47,6 +48,7 @@ export function AppLayout() {
         <Outlet />
       </main>
       <BottomNav />
+      <AIChat />
 
       {/* Multi-Partner Watermarks */}
       <div className="fixed bottom-4 right-4 flex flex-col items-end gap-2 opacity-30 pointer-events-none z-50 mix-blend-multiply">

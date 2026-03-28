@@ -10,6 +10,8 @@ import { Label } from '@/components/ui/label';
 import { cn, formatCurrency, CURRENCY_SYMBOL } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useLicense } from '@/contexts/LicenseContext';
+import { isElectron } from '@/lib/electron-helper';
+import { aiService } from '@/lib/ai-service';
 import { InvoiceReviewModal, ExtractedData } from '@/components/purchase/InvoiceReviewModal';
 
 interface CartItem {
@@ -79,14 +81,21 @@ export default function NewPurchase() {
         reader.onloadend = async () => {
           try {
             const base64 = (reader.result as string).split(',')[1];
-            const result = await window.electronAPI.processInvoiceOCR(base64, products);
+            let result;
+
+            if (isElectron() && window.electronAPI) {
+              result = await window.electronAPI.processInvoiceOCR(base64, products);
+            } else {
+              // Web Demo: Use our new aiService
+              result = await aiService.processInvoiceOCR(base64, products);
+            }
 
             if (result) {
               setExtractedData(result);
               setIsReviewModalOpen(true);
             }
-          } catch (err: unknown) {
-            toast.error("Failed to scan receipt. Please try again.");
+          } catch (err: any) {
+            toast.error(err.message || "Failed to scan receipt. Please try again.");
           } finally {
             setIsOcrLoading(false);
           }

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { Sparkles, Loader2, AlertTriangle, RefreshCcw, PackageCheck } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { useERPStore } from '@/lib/store-data';
+import { isElectron } from '@/lib/electron-helper';
+import { aiService } from '@/lib/ai-service';
 
 export function InventoryForecast() {
     const { products, sales } = useERPStore();
@@ -17,11 +19,19 @@ export function InventoryForecast() {
             const dateStr = thirtyDaysAgo.toISOString().split('T')[0];
 
             const recentSales = sales.filter(s => s.date >= dateStr);
-            const result = await window.electronAPI.getInventoryForecast(products, recentSales);
+            let result;
+
+            if (isElectron() && window.electronAPI) {
+                result = await window.electronAPI.getInventoryForecast(products, recentSales);
+            } else {
+                // Web Demo: Use our new aiService
+                result = await aiService.getInventoryForecast(products, recentSales);
+            }
+            
             setForecast(result);
-        } catch (error) {
+        } catch (error: any) {
             console.error('Forecast error:', error);
-            setForecast("Failed to generate forecast. Please check your AI connection.");
+            setForecast(`AI Forecast Error: ${error.message || "Please check your connection."}`);
         } finally {
             setIsLoading(false);
         }

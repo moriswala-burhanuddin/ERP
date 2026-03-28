@@ -7,6 +7,8 @@ import { toast } from 'sonner';
 import { cn, formatCurrency, CURRENCY_SYMBOL } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useLicense } from '@/contexts/LicenseContext';
+import { isElectron } from '@/lib/electron-helper';
+import { aiService } from '@/lib/ai-service';
 
 export default function NewProduct() {
   const navigate = useNavigate();
@@ -122,7 +124,14 @@ export default function NewProduct() {
     }
     setIsAiLoading(true);
     try {
-      const result = await window.electronAPI.suggestCategory(formData.name);
+      let result;
+      if (isElectron() && window.electronAPI) {
+        result = await window.electronAPI.suggestCategory(formData.name);
+      } else {
+        // Web Demo: Use our new aiService
+        result = await aiService.suggestProductCategory(formData.name);
+      }
+
       if (result) {
         setFormData(prev => ({
           ...prev,

@@ -1259,8 +1259,13 @@ function setupAutoUpdater() {
         return;
     }
 
-    autoUpdater.autoDownload = true;       // Download in background silently
-    autoUpdater.autoInstallOnAppQuit = true; // Install when the user quits normally
+    if (process.platform === 'darwin') {
+        autoUpdater.autoDownload = false; // Mac requires Apple Code Signing for background auto-updates
+        autoUpdater.autoInstallOnAppQuit = false;
+    } else {
+        autoUpdater.autoDownload = true;       // Download in background silently
+        autoUpdater.autoInstallOnAppQuit = true; // Install when the user quits normally
+    }
 
     // Check for update immediately when app opens
     autoUpdater.checkForUpdates().catch(err => {
@@ -1270,6 +1275,23 @@ function setupAutoUpdater() {
     // Update is available — notify renderer so it can show a banner
     autoUpdater.on('update-available', (info) => {
         console.log('[Updater] Update available:', info.version);
+        
+        // Show native alert on macOS directing them to the site
+        if (process.platform === 'darwin') {
+            const { dialog, shell } = require('electron');
+            dialog.showMessageBox({
+                type: 'info',
+                title: 'Update Available',
+                message: `A new version (${info.version}) of Invenza ERP is available!\n\nmacOS requires manual updates right now. Would you like to download the latest version from our website?`,
+                buttons: ['Download Update', 'Later'],
+                defaultId: 0
+            }).then(result => {
+                if (result.response === 0) {
+                    shell.openExternal('https://github.com/moriswala-burhanuddin/ERP/releases/latest');
+                }
+            });
+        }
+        
         if (mainWindow) {
             mainWindow.webContents.send('updater:update-available', { version: info.version });
         }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
-import { useERPStore } from '@/lib/store-data';
+import { useERPStore, Product } from '@/lib/store-data';
 import {
   Plus, Search, Package, ScanBarcode, FileSpreadsheet,
   Upload, Loader2, ArrowRightLeft, Sparkles, Copy,
@@ -8,6 +8,8 @@ import {
 } from 'lucide-react';
 import { StockTransferForm } from '@/components/inventory/StockTransferForm';
 import { useNavigate } from 'react-router-dom';
+import { isElectron } from '@/lib/electron-helper';
+import { aiService } from '@/lib/ai-service';
 import { parseExcelInventory } from '@/lib/inventory-utils';
 import { useLicense } from '@/contexts/LicenseContext';
 import { toast } from 'sonner';
@@ -56,25 +58,35 @@ export default function Products() {
   const canTransferStock  = checkPermission('canTransferStock');
 
   const runOptimization = async () => {
-    if (!window.electronAPI) return;
     setIsOptimizing(true);
     try {
       const sales = getStoreSales();
-      const suggestions = await window.electronAPI.optimizeReorder(products, sales);
+      let suggestions;
 
-      let updatedCount = 0;
-      for (const [id, suggestion] of Object.entries(suggestions)) {
-        const s = suggestion as { minStock: number, reorderQuantity: number };
-        updateProduct(id, {
-          minStock: s.minStock,
-          reorderQuantity: s.reorderQuantity
-        });
-        updatedCount++;
+      if (isElectron() && window.electronAPI) {
+        suggestions = await window.electronAPI.optimizeReorder(products, sales);
+      } else {
+        // Web Demo: Use our new aiService
+        suggestions = await aiService.optimizeReorderPoints(products, sales);
       }
 
-      toast.success('Optimization Complete', {
-        description: `Updated reorder points for ${updatedCount} products.`
-      });
+      let updatedCount = 0;
+      if (suggestions && typeof suggestions === 'object') {
+        for (const [id, suggestion] of Object.entries(suggestions)) {
+          const s = suggestion as { minStock: number, reorderQuantity: number };
+          updateProduct(id, {
+            minStock: s.minStock,
+            reorderQuantity: s.reorderQuantity
+          });
+          updatedCount++;
+        }
+
+        toast.success('Optimization Complete', {
+          description: `Updated reorder points for ${updatedCount} products.`
+        });
+      } else {
+        throw new Error('Invalid suggestions received from AI.');
+      }
     } catch (error) {
       toast.error('AI Optimization Failed', { description: (error as Error).message });
     } finally {

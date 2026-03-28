@@ -12,6 +12,15 @@ const openai = new OpenAI({
     baseURL: isOpenRouter ? "https://openrouter.ai/api/v1" : undefined,
 });
 
+/**
+ * Truncate large data arrays to fit token limits
+ */
+function limitData(data, maxItems = 30) {
+    if (!Array.isArray(data)) return data;
+    if (data.length <= maxItems) return data;
+    return data.slice(0, maxItems);
+}
+
 async function askAI(query, contextData) {
     const model = isOpenRouter ? "openai/gpt-4o-mini" : "gpt-4o-mini";
     try {
@@ -24,9 +33,10 @@ async function askAI(query, contextData) {
                 },
                 {
                     role: "user",
-                    content: `Here is the current ERP context: ${JSON.stringify(contextData)}\n\nUser Question: ${query}`
+                    content: `Here is the current ERP context: ${JSON.stringify(contextData)}\n\nUser Question: ${query}`.slice(0, 5000) // Further truncation
                 }
             ],
+            max_tokens: 1000,
             temperature: 0.7,
         });
 
@@ -77,9 +87,10 @@ async function getInventoryForecast(products, sales) {
                 },
                 {
                     role: "user",
-                    content: `Analyze this data and predict stockouts for the next 14 days:\n${JSON.stringify(forecastData)}`
+                    content: `Analyze this data and predict stockouts for the next 14 days:\n${JSON.stringify(limitData(forecastData, 30))}`
                 }
             ],
+            max_tokens: 1000,
             temperature: 0.5,
         });
 
@@ -259,9 +270,10 @@ async function optimizeReorderPoints(products, sales) {
                 },
                 {
                     role: "user",
-                    content: `Optimize these products based on 30-day velocity:\n${JSON.stringify(analysisData)}`
+                    content: `Optimize these products based on 30-day velocity:\n${JSON.stringify(limitData(analysisData, 30))}`
                 }
             ],
+            max_tokens: 1000,
             temperature: 0.3,
             response_format: { type: "json_object" }
         });

@@ -941,6 +941,7 @@ try {
   if (!salesTableInfo.some(col => col.name === 'tax_amount')) {
     db.prepare("ALTER TABLE sales ADD COLUMN tax_amount REAL DEFAULT 0").run();
   }
+  const productsTableInfo = db.prepare('PRAGMA table_info(products)').all();
   const hasBarcodeEnabled = productsTableInfo.some(col => col.name === 'barcode_enabled');
   if (!hasBarcodeEnabled) {
     db.prepare('ALTER TABLE products ADD COLUMN barcode_enabled INTEGER DEFAULT 1').run();
@@ -1833,7 +1834,14 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     const sales = db.prepare('SELECT * FROM sales WHERE store_id = ? AND is_deleted = 0 ORDER BY date DESC').all(storeId)
     return sales.map(sale => {
       const camelSale = toCamelCase(sale)
-      return { ...camelSale, items: JSON.parse(camelSale.items) }
+      let items = [];
+      try {
+        items = JSON.parse(camelSale.items);
+      } catch (e) {
+        // Placeholder or corrupted sales from sync have non-JSON items — skip gracefully
+        console.warn(`[DB] Skipping invalid items JSON for sale ${camelSale.id}: ${String(camelSale.items).substring(0, 50)}`);
+      }
+      return { ...camelSale, items }
     })
   },
 
@@ -2052,7 +2060,9 @@ VALUES(?, ?, ?, ?, ?, 0)
     // Return the inserted sale to confirm
     const result = db.prepare('SELECT * FROM sales WHERE id = ?').get(sale.id)
     const camelSale = toCamelCase(result)
-    return { ...camelSale, items: JSON.parse(camelSale.items) }
+    let parsedItems = [];
+    try { parsedItems = JSON.parse(camelSale.items); } catch(e) {}
+    return { ...camelSale, items: parsedItems }
   },
 
   // Legacy fallback (should ideally use processSale)
@@ -3100,14 +3110,18 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     const quotations = db.prepare('SELECT * FROM quotations WHERE store_id = ? AND is_deleted = 0 ORDER BY date DESC').all(storeId)
     return quotations.map(q => {
       const camelQ = toCamelCase(q)
-      return { ...camelQ, items: JSON.parse(camelQ.items) }
+      let qItems = [];
+      try { qItems = JSON.parse(camelQ.items); } catch(e) {}
+      return { ...camelQ, items: qItems }
     })
   },
   getAllPurchases: (storeId) => {
     const purchases = db.prepare('SELECT * FROM purchases WHERE store_id = ? AND is_deleted = 0 ORDER BY date DESC').all(storeId)
     return purchases.map(p => {
       const camelP = toCamelCase(p)
-      return { ...camelP, items: JSON.parse(camelP.items) }
+      let pItems = [];
+      try { pItems = JSON.parse(camelP.items); } catch(e) {}
+      return { ...camelP, items: pItems }
     })
   },
   getAllTransactions: (storeId) => db.prepare('SELECT * FROM transactions WHERE store_id = ? AND is_deleted = 0 ORDER BY date DESC').all(storeId).map(toCamelCase),

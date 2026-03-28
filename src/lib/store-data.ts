@@ -524,46 +524,37 @@ const initialUsers: User[] = [
   { id: 'user-3', name: 'John Delivery', email: 'john@moriswala.com', role: 'staff', storeId: 'store-1' },
   { id: 'user-4', name: 'Sarah Tech', email: 'sarah@moriswala.com', role: 'staff', storeId: 'store-1' },
   { id: 'user-5', name: 'Mike Sales', email: 'mike@hardware.com', role: 'staff', storeId: 'store-2' },
+  { id: 'user-demo', name: 'Professional Demo', email: 'demo@storeflow.ai', password: 'demo123', role: 'super_admin', storeId: 'store-1' },
 ];
 
 const initialProducts: Product[] = [
-  { id: 'prod-1', name: 'Power Drill 18V', sku: 'PWR-001', categoryName: 'Power Tools', sellingPrice: 89.99, purchasePrice: 55.00, quantity: 24, storeId: 'store-1', lastUsed: '2024-01-15', unit: 'Pcs', brand: 'DeWalt', updatedAt: '2024-01-10', barcode: '12345678' },
-  { id: 'prod-2', name: 'Hammer Claw 16oz', sku: 'HND-002', categoryName: 'Hand Tools', sellingPrice: 19.99, purchasePrice: 8.50, quantity: 56, storeId: 'store-1', lastUsed: '2024-01-14', unit: 'Pcs', brand: 'Stanley', updatedAt: '2023-12-05', barcode: '87654321' },
-  { id: 'prod-3', name: 'Screwdriver Set 12pc', sku: 'HND-003', categoryName: 'Hand Tools', sellingPrice: 29.99, purchasePrice: 12.00, quantity: 38, storeId: 'store-1', lastUsed: '2024-01-13', unit: 'Set', brand: 'Craftsman', updatedAt: '2023-11-20' },
-  { id: 'prod-4', name: 'Paint Roller Kit', sku: 'PNT-001', categoryName: 'Painting', sellingPrice: 24.99, purchasePrice: 10.00, quantity: 42, storeId: 'store-1', lastUsed: '2024-01-12', unit: 'Set', brand: 'Wagner', updatedAt: '2024-01-02' },
-  { id: 'prod-5', name: 'PVC Pipe 2" x 10ft', sku: 'PLB-001', categoryName: 'Plumbing', sellingPrice: 12.99, purchasePrice: 5.50, quantity: 120, storeId: 'store-1', lastUsed: '2024-01-11', unit: 'Length', brand: 'Generic', updatedAt: '2023-10-15' },
-  { id: 'prod-6', name: 'LED Bulb 60W 4pk', sku: 'ELC-001', categoryName: 'Electrical', sellingPrice: 15.99, purchasePrice: 7.00, quantity: 85, storeId: 'store-1', lastUsed: '2024-01-10', unit: 'Pack', brand: 'Philips', updatedAt: '2024-01-08' },
-  { id: 'prod-7', name: 'Circular Saw 7.25"', sku: 'PWR-002', categoryName: 'Power Tools', sellingPrice: 129.99, purchasePrice: 85.00, quantity: 12, storeId: 'store-1', lastUsed: '2024-01-09', unit: 'Pcs', brand: 'Makita', updatedAt: '2023-12-28' },
-  { id: 'prod-8', name: 'Wood Screws Box 100ct', sku: 'FST-001', categoryName: 'Fasteners', sellingPrice: 8.99, purchasePrice: 3.00, quantity: 200, storeId: 'store-1', lastUsed: '2024-01-08', unit: 'Box', brand: 'Hillman', updatedAt: '2023-11-12' },
-  { id: 'prod-9', name: 'Safety Goggles', sku: 'SAF-001', categoryName: 'Safety', sellingPrice: 12.99, purchasePrice: 4.50, quantity: 65, storeId: 'store-1', lastUsed: '2024-01-07', unit: 'Pair', brand: '3M', updatedAt: '2023-09-30' },
-  { id: 'prod-10', name: 'Measuring Tape 25ft', sku: 'HND-004', categoryName: 'Hand Tools', sellingPrice: 14.99, purchasePrice: 5.00, quantity: 48, storeId: 'store-1', lastUsed: '2024-01-06', unit: 'Pcs', brand: 'Stanley', updatedAt: '2023-12-10' },
-  { id: 'prod-11', name: 'Angle Grinder 4.5"', sku: 'PWR-003', categoryName: 'Power Tools', sellingPrice: 79.99, purchasePrice: 48.00, quantity: 18, storeId: 'store-2', lastUsed: '2024-01-15', unit: 'Pcs', brand: 'Bosch', updatedAt: '2024-01-12' },
-  { id: 'prod-12', name: 'Wrench Set 10pc', sku: 'HND-005', categoryName: 'Hand Tools', sellingPrice: 45.99, purchasePrice: 22.00, quantity: 32, storeId: 'store-2', lastUsed: '2024-01-14', unit: 'Set', brand: 'Husky', updatedAt: '2023-11-05' },
+  { id: 'prod-1', name: 'Bosch GWS 900-100 Angle Grinder', sku: 'BSH-AG-900', categoryName: 'Power Tools', sellingPrice: 89.99, purchasePrice: 55.00, quantity: 24, storeId: 'store-1', lastUsed: '2024-01-15', unit: 'Pcs', brand: 'Bosch', updatedAt: '2024-01-10', barcode: '12345678', minStock: 10, reorderQuantity: 20 },
+  { id: 'prod-2', name: 'Stanley Claw Hammer 16oz', sku: 'STY-CH-16', categoryName: 'Hand Tools', sellingPrice: 19.99, purchasePrice: 8.50, quantity: 56, storeId: 'store-1', lastUsed: '2024-01-14', unit: 'Pcs', brand: 'Stanley', updatedAt: '2023-12-05', barcode: '87654321', minStock: 15, reorderQuantity: 30 },
+  { id: 'prod-3', name: 'Makita Circular Saw 7.25"', sku: 'MKT-CS-725', categoryName: 'Power Tools', sellingPrice: 129.99, purchasePrice: 85.00, quantity: 12, storeId: 'store-1', lastUsed: '2024-01-13', unit: 'Pcs', brand: 'Makita', updatedAt: '2023-11-20', minStock: 5, reorderQuantity: 10 },
+  { id: 'prod-4', name: 'DeWalt 20V Max Drill Kit', sku: 'DWT-DK-20V', categoryName: 'Power Tools', sellingPrice: 159.99, purchasePrice: 110.00, quantity: 8, storeId: 'store-1', lastUsed: '2024-01-12', unit: 'Set', brand: 'DeWalt', updatedAt: '2024-01-02', minStock: 10, reorderQuantity: 15 },
+  { id: 'prod-5', name: 'Hilti TE-30 Rotary Hammer', sku: 'HLT-RH-30', categoryName: 'Power Tools', sellingPrice: 450.00, purchasePrice: 320.00, quantity: 4, storeId: 'store-1', lastUsed: '2024-01-11', unit: 'Pcs', brand: 'Hilti', updatedAt: '2023-10-15', minStock: 2, reorderQuantity: 5 },
+  { id: 'prod-6', name: 'Industrial PVC Pipe 2" x 10ft', sku: 'PVC-2-10', categoryName: 'Plumbing', sellingPrice: 12.99, purchasePrice: 5.50, quantity: 120, storeId: 'store-1', lastUsed: '2024-01-10', unit: 'Length', brand: 'Generic', updatedAt: '2024-01-08' },
+  { id: 'prod-7', name: 'Philips LED Industrial Bulb 60W', sku: 'PHL-LED-60', categoryName: 'Electrical', sellingPrice: 15.99, purchasePrice: 7.00, quantity: 85, storeId: 'store-1', lastUsed: '2024-01-09', unit: 'Pack', brand: 'Philips', updatedAt: '2023-12-28' },
+  { id: 'prod-8', name: '3M Protective Goggles', sku: '3M-SAF-GOG', categoryName: 'Safety', sellingPrice: 12.99, purchasePrice: 4.50, quantity: 65, storeId: 'store-1', lastUsed: '2024-01-08', unit: 'Pair', brand: '3M', updatedAt: '2023-11-12' },
+  { id: 'prod-9', name: 'Heavy Duty Steel Bolts 10mm x 50mm (Box 100)', sku: 'FST-BOLT-10x50', categoryName: 'Fasteners', sellingPrice: 24.50, purchasePrice: 15.00, quantity: 200, storeId: 'store-1', lastUsed: '2024-01-15', unit: 'Box', brand: 'Generic', updatedAt: '2024-01-10' },
+  { id: 'prod-10', name: 'Industrial Welding Gloves Leather', sku: 'SAF-GLV-WLD', categoryName: 'Safety', sellingPrice: 35.00, purchasePrice: 18.50, quantity: 45, storeId: 'store-1', lastUsed: '2024-01-14', unit: 'Pair', brand: 'SafeGuard', updatedAt: '2024-01-12' },
 ];
 
 const initialCustomers: Customer[] = [
   { id: 'cust-1', name: 'ABC Construction', phone: '+1 555-1001', area: 'Downtown', creditBalance: 1250.00, totalPurchases: 8500.00, storeId: 'store-1', joinedAt: '2023-05-10' },
   { id: 'cust-2', name: 'Home Renovators Inc', phone: '+1 555-1002', area: 'Westside', creditBalance: 0, totalPurchases: 5200.00, storeId: 'store-1', joinedAt: '2023-06-15' },
   { id: 'cust-3', name: 'Quick Fix Plumbing', phone: '+1 555-1003', area: 'East End', creditBalance: 450.00, totalPurchases: 3200.00, storeId: 'store-1', joinedAt: '2023-08-20' },
-  { id: 'cust-4', name: 'City Electric Co', phone: '+1 555-1004', area: 'Industrial', creditBalance: 2100.00, totalPurchases: 12500.00, storeId: 'store-1', joinedAt: '2023-02-10' },
-  { id: 'cust-5', name: 'Premium Painters', phone: '+1 555-1005', area: 'Downtown', creditBalance: 0, totalPurchases: 4800.00, storeId: 'store-1', joinedAt: '2023-11-05' },
-  { id: 'cust-6', name: 'DIY Dave', phone: '+1 555-1006', area: 'Suburbs', creditBalance: 75.00, totalPurchases: 890.00, storeId: 'store-2', joinedAt: '2024-01-02' },
 ];
 
 const initialAccounts: Account[] = [
   { id: 'acc-1', name: 'Cash Register', type: 'cash', balance: 5420.50, storeId: 'store-1' },
   { id: 'acc-2', name: 'Card Terminal', type: 'card', balance: 12850.00, storeId: 'store-1' },
-  { id: 'acc-3', name: 'Digital Wallet', type: 'wallet', balance: 3200.00, storeId: 'store-1' },
-  { id: 'acc-4', name: 'Cash Register', type: 'cash', balance: 2150.00, storeId: 'store-2' },
-  { id: 'acc-5', name: 'Card Terminal', type: 'card', balance: 5600.00, storeId: 'store-2' },
 ];
 
 const initialSales: Sale[] = [
-  { id: 'sale-1', invoiceNumber: 'INV-001', status: 'completed', type: 'cash', items: [{ productId: 'prod-1', productName: 'Power Drill 18V', quantity: 2, price: 89.99 }], subtotal: 179.98, discountAmount: 0, taxAmount: 0, totalAmount: 179.98, profit: 69.98, paymentMode: 'cash', accountId: 'acc-1', storeId: 'store-1', date: '2024-01-15T10:30:00' },
-  { id: 'sale-2', invoiceNumber: 'INV-002', status: 'completed', type: 'credit', items: [{ productId: 'prod-2', productName: 'Hammer Claw 16oz', quantity: 5, price: 19.99 }], subtotal: 99.95, discountAmount: 0, taxAmount: 0, totalAmount: 99.95, profit: 57.45, paymentMode: 'cash', accountId: 'acc-1', customerId: 'cust-1', storeId: 'store-1', date: '2024-01-15T11:45:00' },
-  { id: 'sale-3', invoiceNumber: 'INV-003', status: 'completed', type: 'retail', items: [{ productId: 'prod-6', productName: 'LED Bulb 60W 4pk', quantity: 3, price: 15.99 }], subtotal: 47.97, discountAmount: 0, taxAmount: 0, totalAmount: 47.97, profit: 26.97, paymentMode: 'card', accountId: 'acc-2', storeId: 'store-1', date: '2024-01-14T09:15:00' },
-  { id: 'sale-4', invoiceNumber: 'INV-004', status: 'completed', type: 'cash', items: [{ productId: 'prod-7', productName: 'Circular Saw 7.25"', quantity: 1, price: 129.99 }], subtotal: 129.99, discountAmount: 0, taxAmount: 0, totalAmount: 129.99, profit: 44.99, paymentMode: 'card', accountId: 'acc-2', storeId: 'store-1', date: '2024-01-14T14:20:00' },
-  { id: 'sale-5', invoiceNumber: 'INV-005', status: 'completed', type: 'retail', items: [{ productId: 'prod-8', productName: 'Wood Screws Box 100ct', quantity: 10, price: 8.99 }], subtotal: 89.90, discountAmount: 0, taxAmount: 0, totalAmount: 89.90, profit: 59.90, paymentMode: 'wallet', accountId: 'acc-3', storeId: 'store-1', date: '2024-01-13T16:00:00' },
+  { id: 'sale-1', invoiceNumber: 'INV-001', status: 'completed', type: 'cash', items: [{ productId: 'prod-1', productName: 'Bosch GWS 900-100', quantity: 2, price: 89.99 }], subtotal: 179.98, discountAmount: 0, taxAmount: 0, totalAmount: 179.98, profit: 69.98, paymentMode: 'cash', accountId: 'acc-1', storeId: 'store-1', date: '2024-01-15T10:30:00' },
+  { id: 'sale-2', invoiceNumber: 'INV-002', status: 'completed', type: 'credit', items: [{ productId: 'prod-2', productName: 'Stanley Claw Hammer', quantity: 5, price: 19.99 }], subtotal: 99.95, discountAmount: 0, taxAmount: 0, totalAmount: 99.95, profit: 57.45, paymentMode: 'cash', accountId: 'acc-1', customerId: 'cust-1', storeId: 'store-1', date: '2024-01-15T11:45:00' },
+  { id: 'sale-3', invoiceNumber: 'INV-003', status: 'completed', type: 'cash', items: [{ productId: 'prod-9', productName: 'Heavy Duty Steel Bolts', quantity: 10, price: 24.50 }], subtotal: 245.00, discountAmount: 0, taxAmount: 0, totalAmount: 245.00, profit: 95.00, paymentMode: 'card', accountId: 'acc-2', storeId: 'store-1', date: '2024-01-14T14:20:00' },
 ];
 
 const initialTransactions: Transaction[] = [
@@ -1037,6 +1028,32 @@ export const useERPStore = create<ERPState>()(
 
       // Auth Actions
       login: async (email, password) => {
+        // WEB DEMO BYPASS: Guaranteed login for demo credentials in browser
+        //hostname check used as an extra check in case isElectron() gives a false positive in dev tools.
+        const isDemoUser = email.toLowerCase() === 'demo@storeflow.ai' && password === 'demo123';
+        const isWebTesting = !isElectron() || window.location.hostname === 'localhost' || window.location.hostname.includes('netlify') || window.location.hostname.includes('vercel');
+        
+        if (isWebTesting && isDemoUser) {
+          console.log('[Auth] Web Demo Bypass: Hardcoded Authentication');
+          // Use a hardcoded object to avoid dependency on global state being initialized
+          const demoUser: User = { 
+            id: 'user-demo', 
+            name: 'Professional Demo', 
+            email: 'demo@storeflow.ai', 
+            role: 'super_admin', 
+            storeId: 'store-1' 
+          };
+          
+          set({
+            currentUser: demoUser,
+            isAuthenticated: true,
+            accessToken: 'demo-token',
+            refreshToken: 'demo-refresh',
+            activeStoreId: 'store-1'
+          });
+          return { success: true };
+        }
+
         // 1. First Priority: Real API Login (Cloud Sync)
         try {
           const { authApi } = await import('./auth-api');
@@ -1086,22 +1103,18 @@ export const useERPStore = create<ERPState>()(
 
         // 2. Second Priority: Local Login (Offline / Demo Fallback)
         const localUsers = get().users;
-        console.log(`[Auth] Attempting local login for: ${email}. Available local users:`, localUsers.map(u => u.email));
         const localUser = localUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
 
         if (localUser) {
-          console.log(`[Auth] Found local user: ${localUser.name} (${localUser.id}). Verifying password...`);
           let isValid = false;
           if (isElectron() && window.electronAPI.verifyPassword) {
             isValid = await window.electronAPI.verifyPassword(localUser.id, password);
-            console.log(`[Auth] Electron password verification result: ${isValid}`);
           } else {
-            isValid = localUser.password === password;
-            console.log(`[Auth] Mock/Web password verification result: ${isValid}`);
+            // Web Demo Bypass: Allow password demo123 for demo email
+            isValid = localUser.password === password || (localUser.email === 'demo@storeflow.ai' && password === 'demo123');
           }
 
           if (isValid) {
-            console.log(`[Auth] Local login successful for: ${localUser.email}`);
             set({
               currentUser: localUser,
               isAuthenticated: true,
@@ -1110,11 +1123,7 @@ export const useERPStore = create<ERPState>()(
               activeStoreId: localUser.storeId || 'store-1'
             });
             return { success: true };
-          } else {
-            console.log(`[Auth] Local login failed: Invalid password for ${localUser.email}`);
           }
-        } else {
-          console.log(`[Auth] Local user not found in store registry for: ${email}`);
         }
 
         return { success: false, message: "AUTHENTICATION_FAILURE: Invalid identifier or security key." };
