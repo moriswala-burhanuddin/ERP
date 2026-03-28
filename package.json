@@ -1,7 +1,7 @@
 {
   "name": "invenza-erp",
   "private": true,
-  "version": "1.0.16",
+  "version": "1.0.17",
   "type": "module",
   "description": "Invenza - Advanced Inventory & Management System",
   "author": "Invenza Team",

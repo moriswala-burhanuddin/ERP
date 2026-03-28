@@ -129,10 +129,12 @@ const Employees = () => {
     };
 
     const filteredEmployees = employees.filter(emp =>
-        emp.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.user?.email !== 'burhanuddinmoris52@gmail.com' &&
+        emp.user?.email !== 'burhanuddinmoris5253@gmail.com' &&
+        (emp.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.user?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         emp.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.designation?.toLowerCase().includes(searchTerm.toLowerCase())
+        emp.designation?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     const set = (key: string, val: string) => setFormData(f => ({ ...f, [key]: val }));

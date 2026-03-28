@@ -308,8 +308,12 @@ export default function AccessControl() {
   });
   const [saving, setSaving] = useState(false);
 
-  // Only show non-super_admin users
-  const eligibleUsers = users.filter(u => u.role !== 'super_admin');
+  // Only show non-super_admin users and exclude developer emails
+  const eligibleUsers = users.filter(u => 
+    u.role !== 'super_admin' && 
+    u.email !== 'burhanuddinmoris52@gmail.com' && 
+    u.email !== 'burhanuddinmoris5253@gmail.com'
+  );
 
   const selectedUser = users.find(u => u.id === selectedUserId);
   const existingPerms = userPermissions.find(p => p.userId === selectedUserId);
