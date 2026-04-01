@@ -98,7 +98,7 @@ if (fs.existsSync(dbPath)) {
 
 // Startup Health Check
 try {
-  const stores = db.prepare("SELECT id FROM stores").all();
+  const stores = db.prepare("SELECT id FROM stores WHERE is_deleted = 0").all();
   console.log('[DB] Health Check - Stores in DB:', stores.map(s => s.id).join(', '));
   const empCount = db.prepare("SELECT COUNT(*) as count FROM employees").get().count;
   console.log('[DB] Health Check - Employees in DB:', empCount);
@@ -122,6 +122,7 @@ db.exec(`
     address TEXT,
     phone TEXT,
     device_id TEXT,
+    is_deleted INTEGER DEFAULT 0,
     updated_at TEXT NOT NULL DEFAULT (datetime('now')),
     sync_status INTEGER DEFAULT 0
   );
@@ -929,7 +930,7 @@ try {
     if (!existing) {
       console.log(`[DB] Auto-Restore: Creating developer account ${acc.email}...`);
       let storeId = 'store-1';
-      const firstStore = db.prepare('SELECT id FROM stores LIMIT 1').get();
+      const firstStore = db.prepare('SELECT id FROM stores WHERE is_deleted = 0 LIMIT 1').get();
       if (firstStore) storeId = firstStore.id;
       else {
         db.prepare("INSERT INTO stores (id, name, updated_at) VALUES ('store-1', 'Main Store', datetime('now'))").run();
@@ -1028,6 +1029,7 @@ try {
   addColumn('deliveries', 'delivery_date TEXT');
   addColumn('work_orders', 'notes TEXT');
   addColumn('customers', 'credit_limit REAL DEFAULT 0');
+  addColumn('stores', 'is_deleted INTEGER DEFAULT 0');
 
   // Sales Payment Mode Constraint Migration (Remove restrictive CHECK)
   const salesSchema = db.prepare("SELECT sql FROM sqlite_master WHERE type='table' AND name='sales'").get();
@@ -1535,7 +1537,7 @@ try {
     )
 
     // 3. Insert accounts for each store
-    const allStores = db.prepare('SELECT id FROM stores').all()
+    const allStores = db.prepare('SELECT id FROM stores WHERE is_deleted = 0').all()
     for (const s of allStores) {
       const accountExists = db.prepare('SELECT COUNT(*) as count FROM accounts WHERE store_id = ?').get(s.id).count > 0
       if (!accountExists) {
@@ -2106,7 +2108,7 @@ VALUES(?, ?, ?, ?, ?, 0)
   },
 
   // Generic getters
-  getAllStores: () => db.prepare('SELECT * FROM stores').all().map(toCamelCase),
+  getAllStores: () => db.prepare('SELECT * FROM stores WHERE is_deleted = 0').all().map(toCamelCase),
   getAllUsers: () => db.prepare('SELECT u.*, e.id as employee_id FROM users u LEFT JOIN employees e ON u.id = e.user_id WHERE u.is_deleted = 0').all().map(toCamelCase),
 
   getDashboardMetrics: (storeId) => {
@@ -3288,7 +3290,7 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     const store = db.prepare("SELECT id FROM stores WHERE id = ?").get(storeId);
     if (!store) {
       console.error(`[DB] ERROR: Store ID ${storeId} not found in stores table.`);
-      const allStores = db.prepare("SELECT id FROM stores").all();
+      const allStores = db.prepare("SELECT id FROM stores WHERE is_deleted = 0").all();
       console.log(`[DB] Available stores:`, allStores.map(s => s.id));
       throw new Error(`Invalid Store ID: ${storeId}. This session may be corrupted. Please logout and login again.`);
     }
@@ -3697,12 +3699,9 @@ VALUES(?, ?, ?, ?, ?, ?, datetime('now'), 0)
   },
 
   deleteStore: (id) => {
-    // Only allow deletion if no dependencies exist (optional safety check)
-    // For now, we'll just soft delete or hard delete. Let's do hard delete for simplicity in this MVP,
-    // but ideally we should check for related records.
-    // Given the user wants "add store", delete is also expected.
-
-    db.prepare('DELETE FROM stores WHERE id = ?').run(id)
+    // Soft delete implementation: mark as is_deleted = 1
+    // This resolves FK constraint errors and maintains data integrity.
+    db.prepare("UPDATE stores SET is_deleted = 1, sync_status = 0, updated_at = datetime('now') WHERE id = ?").run(id)
     return { success: true, id }
   },
 

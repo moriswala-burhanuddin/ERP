@@ -85,7 +85,7 @@ let secondaryWindow;
 console.log('[MAIN] App Name:', app.getName());
 console.log('[MAIN] UserData Path:', app.getPath('userData'));
 try {
-    const stores = db.prepare('SELECT id, name FROM stores').all();
+    const stores = db.prepare('SELECT id, name FROM stores WHERE is_deleted = 0').all();
     console.log('[MAIN] Available Stores in DB:', JSON.stringify(stores));
 } catch (e) {
     console.error('[MAIN] DB Store Check Error:', e.message);

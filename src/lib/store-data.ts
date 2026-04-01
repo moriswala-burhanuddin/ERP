@@ -1028,6 +1028,7 @@ export const useERPStore = create<ERPState>()(
 
       // Auth Actions
       login: async (email, password) => {
+        let errorMessage = "AUTHENTICATION_FAILURE: Invalid identifier or security key.";
         // WEB DEMO BYPASS: Guaranteed login for demo credentials in browser
         //hostname check used as an extra check in case isElectron() gives a false positive in dev tools.
         const isDemoUser = (email.toLowerCase() === 'demo@invenza.app' || email.toLowerCase() === 'demo@storeflow.ai') && password === 'demo123';
@@ -1092,42 +1093,62 @@ export const useERPStore = create<ERPState>()(
             return { success: true };
           }
 
-          // If it's a network error OR an auth error (401/404), try local fallback.
-          // Locally added employees might not have reached the cloud yet.
-          if (!result.isNetworkError) {
-            console.log(`[Auth] Cloud login failed: ${result.message}. Trying local fallback...`);
+            // If it's a network error OR an auth error (401/404), try local fallback.
+            // Locally added employees might not have reached the cloud yet.
+            if (!result.isNetworkError) {
+              console.log(`[Auth] Cloud login failed: ${result.message}. Trying local fallback...`);
+            }
+            
+            // If the failure was a 401 (Unauthorized), it means the password was wrong on the cloud.
+            // We should still try local fallback because the user might be using a local-only password,
+            // but we'll keep track of the error message.
+            errorMessage = result.message || errorMessage;
+          } catch (error) {
+            console.log("[Auth] Cloud login error, attempting local fallback...");
+            errorMessage = (error as Error).message || errorMessage;
           }
-        } catch (error) {
-          console.log("[Auth] Cloud login error, attempting local fallback...");
-        }
-
-        // 2. Second Priority: Local Login (Offline / Demo Fallback)
-        const localUsers = get().users;
-        const localUser = localUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-        if (localUser) {
-          let isValid = false;
-          if (isElectron() && window.electronAPI.verifyPassword) {
-            isValid = await window.electronAPI.verifyPassword(localUser.id, password);
-          } else {
-            // Web Demo Bypass: Allow password demo123 for demo email
-            isValid = localUser.password === password || (localUser.email === 'demo@invenza.app' && password === 'demo123');
+  
+          // 2. Second Priority: Local Login (Offline / Demo Fallback)
+          const localUsers = get().users;
+          const localUser = localUsers.find(u => u.email.toLowerCase() === email.toLowerCase());
+  
+          if (localUser) {
+            let isValid = false;
+            if (isElectron() && window.electronAPI.verifyPassword) {
+              isValid = await window.electronAPI.verifyPassword(localUser.id, password);
+              if (!isValid) {
+                console.warn(`[Auth] Local password check failed for ${email}. Potential hash mismatch if synced from Cloud.`);
+                errorMessage = "AUTHENTICATION_FAILURE: Local password mismatch. If you recently changed your password on the web, please connect to the internet to sync.";
+              }
+            } else {
+              // Web Demo Bypass
+              isValid = localUser.password === password || (localUser.email === 'demo@invenza.app' && password === 'demo123');
+              
+              if (!isValid && !errorMessage.includes("Email not verified")) {
+                 errorMessage = "AUTHENTICATION_FAILURE: Invalid credentials for local-account.";
+              }
+            }
+  
+            if (isValid) {
+              set({
+                currentUser: localUser,
+                isAuthenticated: true,
+                accessToken: 'mock-local-token',
+                refreshToken: 'mock-local-refresh',
+                activeStoreId: localUser.storeId || 'store-1'
+              });
+              return { success: true };
+            }
           }
-
-          if (isValid) {
-            set({
-              currentUser: localUser,
-              isAuthenticated: true,
-              accessToken: 'mock-local-token',
-              refreshToken: 'mock-local-refresh',
-              activeStoreId: localUser.storeId || 'store-1'
-            });
-            return { success: true };
+ else {
+            console.warn(`[Auth] User ${email} not found in local database.`);
+            if (get().accessToken === 'mock-local-token') {
+               errorMessage = "AUTHENTICATION_FAILURE: Account not found in local database. Please login online first to sync your account.";
+            }
           }
-        }
-
-        return { success: false, message: "AUTHENTICATION_FAILURE: Invalid identifier or security key." };
-      },
+  
+          return { success: false, message: errorMessage };
+        },
 
       logout: () => {
         set({ currentUser: null, isAuthenticated: false, accessToken: null, refreshToken: null });
