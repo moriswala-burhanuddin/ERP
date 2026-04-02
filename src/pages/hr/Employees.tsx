@@ -35,7 +35,7 @@ const getRoleBadge = (role: string) => {
         admin: { label: 'Admin', class: 'bg-indigo-50 text-indigo-600 border-indigo-100' },
         super_admin: { label: 'Super Admin', class: 'bg-black text-white border-black' },
     };
-    return map[role] || { label: role.toUpperCase(), class: 'bg-slate-50 text-slate-500 border-slate-100' };
+    return map[role] || { label: (role || '').toUpperCase(), class: 'bg-slate-50 text-slate-500 border-slate-100' };
 };
 
 const DEFAULT_FORM = {
@@ -354,7 +354,7 @@ const Employees = () => {
                                             </div>
                                             <div className="min-w-0 flex-1">
                                                 <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                                                    <span className="text-[9px] font-black text-slate-300 font-mono tracking-widest">ID:{emp.id.substring(4, 12).toUpperCase()}</span>
+                                                    <span className="text-[9px] font-black text-slate-300 font-mono tracking-widest">ID:{(emp.id || '').substring(4, 12).toUpperCase()}</span>
                                                     <div className={cn("px-3 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-widest flex items-center gap-1.5", roleBadge.class)}>
                                                         <ShieldCheck className="w-3 h-3" />
                                                         {roleBadge.label}

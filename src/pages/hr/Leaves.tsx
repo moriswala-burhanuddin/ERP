@@ -242,7 +242,7 @@ const Leaves = ({ isEmployeeView = false }: LeavesProps) => {
                                                             </span>
                                                         </div>
                                                         <h4 className="text-lg font-black text-slate-900 uppercase tracking-tight mb-2">
-                                                            {!isEmployeeView ? ((app as LeaveWithUser).userName || app.employeeId).toUpperCase() : currentUser?.name || 'Me'}
+                                                            {!isEmployeeView ? (((app as LeaveWithUser).userName || app.employeeId) || '').toUpperCase() : currentUser?.name || 'Me'}
                                                         </h4>
                                                         <div className="flex items-center gap-6 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                                             <span className="flex items-center gap-2"><CalendarRange className="w-3.5 h-3.5" />{app.startDate} → {app.endDate}</span>

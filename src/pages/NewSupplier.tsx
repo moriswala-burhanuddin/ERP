@@ -341,7 +341,7 @@ export default function NewSupplier() {
                                     >
                                         <option value="" className="bg-slate-900">Choose Terms...</option>
                                         {paymentTerms.map(term => (
-                                            <option key={term.id} value={term.id} className="bg-slate-900">{term.name.toUpperCase()} ({term.days} DAYS)</option>
+                                            <option key={term.id} value={term.id} className="bg-slate-900">{(term.name || '').toUpperCase()} ({term.days} DAYS)</option>
                                         ))}
                                     </select>
                                 </div>

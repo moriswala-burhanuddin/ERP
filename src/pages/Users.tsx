@@ -33,7 +33,7 @@ export default function Users() {
       case 'admin': return { icon: <ShieldCheck className="w-3.5 h-3.5" />, class: 'bg-indigo-50 text-indigo-600 border-indigo-100', label: 'ADMIN' };
       case 'manager': return { icon: <Shield className="w-3.5 h-3.5" />, class: 'bg-emerald-50 text-emerald-600 border-emerald-100', label: 'MANAGER' };
       case 'sales': return { icon: <Zap className="w-3.5 h-3.5" />, class: 'bg-amber-50 text-amber-600 border-amber-100', label: 'SALES' };
-      default: return { icon: <UserIcon className="w-3.5 h-3.5" />, class: 'bg-slate-50 text-slate-500 border-slate-100', label: role.toUpperCase() };
+      default: return { icon: <UserIcon className="w-3.5 h-3.5" />, class: 'bg-slate-50 text-slate-500 border-slate-100', label: (role || '').toUpperCase() };
     }
   };
 
@@ -130,7 +130,7 @@ export default function Users() {
                           u.role === 'super_admin' ? 'bg-purple-100 text-purple-700' :
                           'bg-slate-100 text-slate-700'
                         }`}>
-                          {u.role.toUpperCase().replace('_', ' ')}
+                          {(u.role || '').toUpperCase().replace('_', ' ')}
                         </span>
                     </div>
                   </div>

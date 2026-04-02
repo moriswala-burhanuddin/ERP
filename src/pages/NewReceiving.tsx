@@ -204,7 +204,7 @@ export default function NewReceiving() {
                                     className="w-full h-16 bg-slate-50 border-none rounded-2xl px-6 text-[11px] font-black uppercase focus:ring-2 focus:ring-black appearance-none"
                                 >
                                     <option value="">Select Supplier...</option>
-                                    {suppliers.map(s => <option key={s.id} value={s.id}>{s.companyName.toUpperCase()}</option>)}
+                                    {suppliers.map(s => <option key={s.id} value={s.id}>{(s.companyName || '').toUpperCase()}</option>)}
                                 </select>
                             </div>
                             <div className="space-y-4">
@@ -216,7 +216,7 @@ export default function NewReceiving() {
                                     disabled={!supplierId}
                                 >
                                     <option value="">No PO Linked...</option>
-                                    {filteredPurchaseOrders.map(po => <option key={po.id} value={po.id}>{po.id.toUpperCase()} ({fmt(po.totalAmount)})</option>)}
+                                    {filteredPurchaseOrders.map(po => <option key={po.id} value={po.id}>{(po.id || '').toUpperCase()} ({fmt(po.totalAmount)})</option>)}
                                 </select>
                             </div>
                         </div>
@@ -321,7 +321,7 @@ export default function NewReceiving() {
                                             onChange={(e) => setAccountId(e.target.value)}
                                             className="w-full h-16 bg-white/10 border-none rounded-2xl px-6 text-xs font-black uppercase text-white focus:ring-2 focus:ring-white/20 appearance-none"
                                         >
-                                            {accounts.map(a => <option key={a.id} value={a.id} className="bg-slate-900">{a.name.toUpperCase()} ({fmt(a.balance)})</option>)}
+                                            {accounts.map(a => <option key={a.id} value={a.id} className="bg-slate-900">{(a.name || '').toUpperCase()} ({fmt(a.balance)})</option>)}
                                         </select>
                                     </div>
                                 )}

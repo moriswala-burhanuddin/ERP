@@ -1045,12 +1045,13 @@ export const useERPStore = create<ERPState>()(
             storeId: 'store-1' 
           };
           
+          const mainStore = get().stores.find(s => s.branch.toLowerCase().includes('main') || s.id === 'main') || get().stores[0];
           set({
             currentUser: demoUser,
             isAuthenticated: true,
             accessToken: 'demo-token',
             refreshToken: 'demo-refresh',
-            activeStoreId: 'store-1'
+            activeStoreId: mainStore?.id || 'store-1'
           });
           return { success: true };
         }
@@ -1079,7 +1080,7 @@ export const useERPStore = create<ERPState>()(
               name: user.name || user.email?.split('@')[0] || 'Unknown User',
               email: user.email || '',
               role: normalizedRole,
-              storeId: user.store_id || 'store-1',
+              storeId: user.store_id || get().stores.find(s => s.branch.toLowerCase().includes('main'))?.id || 'store-1',
               employeeId: employeeId,
             };
 
@@ -1135,7 +1136,7 @@ export const useERPStore = create<ERPState>()(
                 isAuthenticated: true,
                 accessToken: 'mock-local-token',
                 refreshToken: 'mock-local-refresh',
-                activeStoreId: localUser.storeId || 'store-1'
+                activeStoreId: localUser.storeId || get().stores.find(s => s.branch.toLowerCase().includes('main'))?.id || 'store-1'
               });
               return { success: true };
             }

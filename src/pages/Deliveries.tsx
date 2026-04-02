@@ -41,7 +41,7 @@ export default function Deliveries() {
             case 'delivered': return { icon: <CheckCircle2 className="w-3.5 h-3.5" />, class: 'bg-emerald-50 text-emerald-600 border-emerald-100', label: 'DELIVERED' };
             case 'cancelled': return { icon: <XCircle className="w-3.5 h-3.5" />, class: 'bg-rose-50 text-rose-600 border-rose-100', label: 'CANCELLED' };
             case 'failed': return { icon: <AlertCircle className="w-3.5 h-3.5" />, class: 'bg-red-50 text-red-600 border-red-100', label: 'FAILED' };
-            default: return { icon: <AlertCircle className="w-3.5 h-3.5" />, class: 'bg-slate-50 text-slate-500 border-slate-100', label: (status as string).toUpperCase() };
+            default: return { icon: <AlertCircle className="w-3.5 h-3.5" />, class: 'bg-slate-50 text-slate-500 border-slate-100', label: (status as string || '').toUpperCase() };
         }
     };
 
@@ -255,7 +255,7 @@ export default function Deliveries() {
                                                             >
                                                                 <option value="">SELECT EMPLOYEE...</option>
                                                                 {users.filter(u => u.storeId === activeStoreId).map(u => (
-                                                                    <option key={u.id} value={u.name}>{u.name.toUpperCase()}</option>
+                                                                    <option key={u.id} value={u.name}>{(u.name || '').toUpperCase()}</option>
                                                                 ))}
                                                             </select>
                                                             <ChevronRight className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 pointer-events-none group-hover/select:text-black transition-colors rotate-90" />

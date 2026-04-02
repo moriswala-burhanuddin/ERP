@@ -166,8 +166,8 @@ export default function NewPurchase() {
   };
 
   const filteredProducts = products.filter(p =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.sku.toLowerCase().includes(searchQuery.toLowerCase())
+    (p.name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (p.sku || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const canManagePurchases = checkPermission('canSeeDetailedPurchases') || checkPermission('canSeeSuppliers');
@@ -356,7 +356,7 @@ export default function NewPurchase() {
                         onChange={(e) => setAccountId(e.target.value)}
                         className="w-full h-16 bg-white/10 border-none rounded-2xl px-6 text-xs font-black uppercase text-white focus:ring-2 focus:ring-white/20 appearance-none"
                       >
-                        {accounts.map(a => <option key={a.id} value={a.id} className="bg-slate-900">{a.name.toUpperCase()} ({formatCurrency(a.balance)})</option>)}
+                        {accounts.map(a => <option key={a.id} value={a.id} className="bg-slate-900">{(a.name || '').toUpperCase()} ({formatCurrency(a.balance)})</option>)}
                       </select>
                     </div>
                   </div>

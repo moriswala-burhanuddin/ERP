@@ -18,8 +18,8 @@ export function ReceiptTemplate({ sale, store }: ReceiptTemplateProps) {
             backgroundColor: '#fff'
         }}>
             <div style={{ textAlign: 'center', marginBottom: '10px' }}>
-                <h2 style={{ margin: '0 0 5px 0', fontSize: '16px', fontWeight: '900' }}>{store.name.toUpperCase()}</h2>
-                <p style={{ margin: '0', fontSize: '10px' }}>{store.address?.toUpperCase()}</p>
+                <h2 style={{ margin: '0 0 5px 0', fontSize: '16px', fontWeight: '900' }}>{(store.name || '').toUpperCase()}</h2>
+                <p style={{ margin: '0', fontSize: '10px' }}>{(store.address || '').toUpperCase()}</p>
                 <p style={{ margin: '0', fontSize: '10px' }}>TEL: {store.phone}</p>
             </div>
 
@@ -44,7 +44,7 @@ export function ReceiptTemplate({ sale, store }: ReceiptTemplateProps) {
                 <tbody>
                     {sale.items?.map((item: any, idx: number) => (
                         <tr key={idx}>
-                            <td style={{ padding: '5px 0' }}>{item.productName.toUpperCase()}</td>
+                            <td style={{ padding: '5px 0' }}>{(item.productName || '').toUpperCase()}</td>
                             <td style={{ textAlign: 'right', padding: '5px 0' }}>{item.quantity}</td>
                             <td style={{ textAlign: 'right', padding: '5px 0' }}>${(item.price * item.quantity).toFixed(2)}</td>
                         </tr>
@@ -115,8 +115,8 @@ export function generateReceiptHtml(sale: any, store: any) {
       <body>
         <div class="receipt">
           <div class="center">
-            <h2 style="margin: 0; font-size: 18px;">${store.name.toUpperCase()}</h2>
-            <p style="margin: 5px 0; font-size: 10px;">${store.address?.toUpperCase() || ''}</p>
+            <h2 style="margin: 0; font-size: 18px;">${(store.name || '').toUpperCase()}</h2>
+            <p style="margin: 5px 0; font-size: 10px;">${(store.address || '').toUpperCase()}</p>
             <p style="margin: 0; font-size: 10px;">TEL: ${store.phone || ''}</p>
           </div>
           
@@ -141,7 +141,7 @@ export function generateReceiptHtml(sale: any, store: any) {
             <tbody>
               ${sale.items.map((item: any) => `
                 <tr>
-                  <td style="padding: 5px 0;">${item.productName.toUpperCase()}</td>
+                  <td style="padding: 5px 0;">${(item.productName || '').toUpperCase()}</td>
                   <td style="text-align: right; padding: 5px 0;">${item.quantity}</td>
                   <td style="text-align: right; padding: 5px 0;">$${(item.price * item.quantity).toFixed(2)}</td>
                 </tr>
