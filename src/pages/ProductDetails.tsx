@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useERPStore } from '@/lib/store-data';
-import { Package, TrendingUp, DollarSign, History, AlertTriangle, Sparkles, Loader2, ArrowLeft, Trash2, Edit3, Tag, Layers, Activity, Calendar, ShieldCheck } from 'lucide-react';
+import { Package, TrendingUp, DollarSign, History, AlertTriangle, Sparkles, Loader2, ArrowLeft, Trash2, Edit3, Tag, Layers, Activity, Calendar, ShieldCheck, Info } from 'lucide-react';
 import { cn, formatCurrency } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -109,6 +109,17 @@ export default function ProductDetails() {
             </div>
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-10">
+                {/* Product Description */}
+                {product.description && (
+                    <div className="bg-white rounded-[2.5rem] p-10 shadow-sm border border-white mb-8">
+                        <div className="flex items-center gap-3 mb-4">
+                            <Info className="w-5 h-5 text-indigo-600" />
+                            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">About this product</h3>
+                        </div>
+                        <p className="text-slate-600 font-bold leading-relaxed">{product.description}</p>
+                    </div>
+                )}
+
                 {/* Metrics Widgets */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                     <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-white">
@@ -179,6 +190,7 @@ export default function ProductDetails() {
                                     { label: 'Cost Price', value: canSeeBuyingPrice ? formatCurrency(product.purchasePrice) : '***', highlight: true },
                                     { label: 'Selling Price', value: formatCurrency(product.sellingPrice), highlight: true },
                                     { label: 'Unit', value: product.unit || 'Standard' },
+                                    { label: 'Description', value: (product.description && product.description.trim()) ? product.description : 'No description available' },
                                     { label: 'Last Updated', value: new Date(product.updatedAt).toLocaleDateString() },
                                 ].map((row, i) => (
                                     <div key={i} className="flex justify-between items-center group">

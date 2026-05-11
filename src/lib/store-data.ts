@@ -52,6 +52,7 @@ export interface Category {
 export interface Product {
   id: string;
   name: string;
+  description?: string;
   sku: string;
   categoryId?: string; // Change from category: string
   categoryName?: string; // For display convenience
@@ -528,16 +529,16 @@ const initialUsers: User[] = [
 ];
 
 const initialProducts: Product[] = [
-  { id: 'prod-1', name: 'Bosch GWS 900-100 Angle Grinder', sku: 'BSH-AG-900', categoryName: 'Power Tools', sellingPrice: 89.99, purchasePrice: 55.00, quantity: 24, storeId: 'store-1', lastUsed: '2024-01-15', unit: 'Pcs', brand: 'Bosch', updatedAt: '2024-01-10', barcode: '12345678', minStock: 10, reorderQuantity: 20 },
-  { id: 'prod-2', name: 'Stanley Claw Hammer 16oz', sku: 'STY-CH-16', categoryName: 'Hand Tools', sellingPrice: 19.99, purchasePrice: 8.50, quantity: 56, storeId: 'store-1', lastUsed: '2024-01-14', unit: 'Pcs', brand: 'Stanley', updatedAt: '2023-12-05', barcode: '87654321', minStock: 15, reorderQuantity: 30 },
-  { id: 'prod-3', name: 'Makita Circular Saw 7.25"', sku: 'MKT-CS-725', categoryName: 'Power Tools', sellingPrice: 129.99, purchasePrice: 85.00, quantity: 12, storeId: 'store-1', lastUsed: '2024-01-13', unit: 'Pcs', brand: 'Makita', updatedAt: '2023-11-20', minStock: 5, reorderQuantity: 10 },
-  { id: 'prod-4', name: 'DeWalt 20V Max Drill Kit', sku: 'DWT-DK-20V', categoryName: 'Power Tools', sellingPrice: 159.99, purchasePrice: 110.00, quantity: 8, storeId: 'store-1', lastUsed: '2024-01-12', unit: 'Set', brand: 'DeWalt', updatedAt: '2024-01-02', minStock: 10, reorderQuantity: 15 },
-  { id: 'prod-5', name: 'Hilti TE-30 Rotary Hammer', sku: 'HLT-RH-30', categoryName: 'Power Tools', sellingPrice: 450.00, purchasePrice: 320.00, quantity: 4, storeId: 'store-1', lastUsed: '2024-01-11', unit: 'Pcs', brand: 'Hilti', updatedAt: '2023-10-15', minStock: 2, reorderQuantity: 5 },
-  { id: 'prod-6', name: 'Industrial PVC Pipe 2" x 10ft', sku: 'PVC-2-10', categoryName: 'Plumbing', sellingPrice: 12.99, purchasePrice: 5.50, quantity: 120, storeId: 'store-1', lastUsed: '2024-01-10', unit: 'Length', brand: 'Generic', updatedAt: '2024-01-08' },
-  { id: 'prod-7', name: 'Philips LED Industrial Bulb 60W', sku: 'PHL-LED-60', categoryName: 'Electrical', sellingPrice: 15.99, purchasePrice: 7.00, quantity: 85, storeId: 'store-1', lastUsed: '2024-01-09', unit: 'Pack', brand: 'Philips', updatedAt: '2023-12-28' },
-  { id: 'prod-8', name: '3M Protective Goggles', sku: '3M-SAF-GOG', categoryName: 'Safety', sellingPrice: 12.99, purchasePrice: 4.50, quantity: 65, storeId: 'store-1', lastUsed: '2024-01-08', unit: 'Pair', brand: '3M', updatedAt: '2023-11-12' },
-  { id: 'prod-9', name: 'Heavy Duty Steel Bolts 10mm x 50mm (Box 100)', sku: 'FST-BOLT-10x50', categoryName: 'Fasteners', sellingPrice: 24.50, purchasePrice: 15.00, quantity: 200, storeId: 'store-1', lastUsed: '2024-01-15', unit: 'Box', brand: 'Generic', updatedAt: '2024-01-10' },
-  { id: 'prod-10', name: 'Industrial Welding Gloves Leather', sku: 'SAF-GLV-WLD', categoryName: 'Safety', sellingPrice: 35.00, purchasePrice: 18.50, quantity: 45, storeId: 'store-1', lastUsed: '2024-01-14', unit: 'Pair', brand: 'SafeGuard', updatedAt: '2024-01-12' },
+  { id: 'prod-1', name: 'Bosch GWS 900-100 Angle Grinder', description: 'Professional 900W angle grinder for heavy-duty metalworking.', sku: 'BSH-AG-900', categoryName: 'Power Tools', sellingPrice: 89.99, purchasePrice: 55.00, quantity: 24, storeId: 'store-1', lastUsed: '2024-01-15', unit: 'Pcs', brand: 'Bosch', updatedAt: '2024-01-10', barcode: '12345678', minStock: 10, reorderQuantity: 20 },
+  { id: 'prod-2', name: 'Stanley Claw Hammer 16oz', description: 'Durable 16oz claw hammer with fiberglass handle for shock reduction.', sku: 'STY-CH-16', categoryName: 'Hand Tools', sellingPrice: 19.99, purchasePrice: 8.50, quantity: 56, storeId: 'store-1', lastUsed: '2024-01-14', unit: 'Pcs', brand: 'Stanley', updatedAt: '2023-12-05', barcode: '87654321', minStock: 15, reorderQuantity: 30 },
+  { id: 'prod-3', name: 'Makita Circular Saw 7.25"', description: 'High-performance circular saw with 15-amp motor and heat-treated gears.', sku: 'MKT-CS-725', categoryName: 'Power Tools', sellingPrice: 129.99, purchasePrice: 85.00, quantity: 12, storeId: 'store-1', lastUsed: '2024-01-13', unit: 'Pcs', brand: 'Makita', updatedAt: '2023-11-20', minStock: 5, reorderQuantity: 10 },
+  { id: 'prod-4', name: 'DeWalt 20V Max Drill Kit', description: 'Compact drill/driver kit with two 20V MAX Lithium Ion batteries.', sku: 'DWT-DK-20V', categoryName: 'Power Tools', sellingPrice: 159.99, purchasePrice: 110.00, quantity: 8, storeId: 'store-1', lastUsed: '2024-01-12', unit: 'Set', brand: 'DeWalt', updatedAt: '2024-01-02', minStock: 10, reorderQuantity: 15 },
+  { id: 'prod-5', name: 'Hilti TE-30 Rotary Hammer', description: 'Heavy-duty rotary hammer for drilling and chiseling in concrete.', sku: 'HLT-RH-30', categoryName: 'Power Tools', sellingPrice: 450.00, purchasePrice: 320.00, quantity: 4, storeId: 'store-1', lastUsed: '2024-01-11', unit: 'Pcs', brand: 'Hilti', updatedAt: '2023-10-15', minStock: 2, reorderQuantity: 5 },
+  { id: 'prod-6', name: 'Industrial PVC Pipe 2" x 10ft', description: 'Schedule 40 PVC pipe for industrial plumbing and drainage.', sku: 'PVC-2-10', categoryName: 'Plumbing', sellingPrice: 12.99, purchasePrice: 5.50, quantity: 120, storeId: 'store-1', lastUsed: '2024-01-10', unit: 'Length', brand: 'Generic', updatedAt: '2024-01-08' },
+  { id: 'prod-7', name: 'Philips LED Industrial Bulb 60W', description: 'Energy-efficient 60W LED bulb for industrial high-bay lighting.', sku: 'PHL-LED-60', categoryName: 'Electrical', sellingPrice: 15.99, purchasePrice: 7.00, quantity: 85, storeId: 'store-1', lastUsed: '2024-01-09', unit: 'Pack', brand: 'Philips', updatedAt: '2023-12-28' },
+  { id: 'prod-8', name: '3M Protective Goggles', description: 'Anti-fog protective eyewear with soft seal for all-day comfort.', sku: '3M-SAF-GOG', categoryName: 'Safety', sellingPrice: 12.99, purchasePrice: 4.50, quantity: 65, storeId: 'store-1', lastUsed: '2024-01-08', unit: 'Pair', brand: '3M', updatedAt: '2023-11-12' },
+  { id: 'prod-9', name: 'Heavy Duty Steel Bolts 10mm x 50mm (Box 100)', description: 'Grade 8.8 zinc-plated steel bolts for structural applications.', sku: 'FST-BOLT-10x50', categoryName: 'Fasteners', sellingPrice: 24.50, purchasePrice: 15.00, quantity: 200, storeId: 'store-1', lastUsed: '2024-01-15', unit: 'Box', brand: 'Generic', updatedAt: '2024-01-10' },
+  { id: 'prod-10', name: 'Industrial Welding Gloves Leather', description: 'Heat-resistant premium leather gloves for professional welding.', sku: 'SAF-GLV-WLD', categoryName: 'Safety', sellingPrice: 35.00, purchasePrice: 18.50, quantity: 45, storeId: 'store-1', lastUsed: '2024-01-14', unit: 'Pair', brand: 'SafeGuard', updatedAt: '2024-01-12' },
 ];
 
 const initialCustomers: Customer[] = [

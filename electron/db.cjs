@@ -83,6 +83,18 @@ try {
       console.log(`[DB] Schema Fix Completed for ${table}.`);
     }
   }
+
+  // Migration: Add description to products if missing
+  const productCols = db.prepare("PRAGMA table_info(products)").all();
+  const hasDescription = productCols.some(c => c.name === 'description');
+  if (!hasDescription) {
+    console.log("[DB] Migration: Adding 'description' column to products table.");
+    db.exec("ALTER TABLE products ADD COLUMN description TEXT");
+    db.exec("UPDATE products SET sync_status = 0"); // Force sync all
+  } else {
+    // If column exists, ensure any local descriptions are marked for sync
+    db.exec("UPDATE products SET sync_status = 0 WHERE (description IS NOT NULL AND description != '') AND sync_status = 1");
+  }
 } catch (err) {
   console.error('[DB] Schema Fix FAILED:', err.message);
 }
@@ -160,6 +172,7 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS products (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
+    description TEXT,
     sku TEXT NOT NULL,
     category TEXT,
     selling_price REAL NOT NULL,
@@ -1560,20 +1573,20 @@ try {
 
     // Insert demo products with barcodes
     const products = [
-      ['prod-1', 'Power Drill 18V', 'PWR-001', 'Power Tools', 89.99, 55.00, 24, 'store-1', 'Pcs', 'DeWalt', '12345678'],
-      ['prod-2', 'Hammer Claw 16oz', 'HND-002', 'Hand Tools', 19.99, 8.50, 56, 'store-1', 'Pcs', 'Stanley', '87654321'],
-      ['prod-3', 'Screwdriver Set 12pc', 'HND-003', 'Hand Tools', 29.99, 12.00, 38, 'store-1', 'Set', 'Craftsman', '11223344'],
+      ['prod-1', 'Power Drill 18V', 'A high-performance cordless power drill for heavy-duty construction.', 'PWR-001', 'Power Tools', 89.99, 55.00, 24, 'store-1', 'Pcs', 'DeWalt', '12345678'],
+      ['prod-2', 'Hammer Claw 16oz', 'Classic steel hammer with an ergonomic grip and vibration reduction.', 'HND-002', 'Hand Tools', 19.99, 8.50, 56, 'store-1', 'Pcs', 'Stanley', '87654321'],
+      ['prod-3', 'Screwdriver Set 12pc', 'Professional grade magnetic tip screwdriver set with carrying case.', 'HND-003', 'Hand Tools', 29.99, 12.00, 38, 'store-1', 'Set', 'Craftsman', '11223344'],
     ]
 
     const insertProduct = db.prepare(`
-      INSERT INTO products(id, name, sku, category, selling_price, purchase_price, quantity, store_id, unit, brand, barcode, device_id, last_used)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      INSERT INTO products(id, name, description, sku, category, selling_price, purchase_price, quantity, store_id, unit, brand, barcode, device_id, last_used)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `)
 
     products.forEach(p => {
       console.log(`Inserting product: ${p[1]} `)
       const params = [...p]
-      params.splice(11, 0, deviceId) // Insert deviceId at correct position
+      params.splice(12, 0, deviceId) // Insert deviceId at correct position (index 12 after description)
       insertProduct.run(...params)
     })
 
@@ -1704,11 +1717,11 @@ const dbHelpers = {
 
   addProduct: (product) => {
     const stmt = db.prepare(`
-      INSERT INTO products(id, name, sku, category, selling_price, purchase_price, quantity, store_id, last_used, unit, brand, barcode, min_stock, reorder_quantity, device_id, updated_at)
-VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
+      INSERT INTO products(id, name, description, sku, category, selling_price, purchase_price, quantity, store_id, last_used, unit, brand, barcode, min_stock, reorder_quantity, device_id, updated_at)
+VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
     `)
     stmt.run(
-      product.id, product.name, product.sku, product.category || product.categoryName,
+      product.id, product.name, product.description || '', product.sku, product.category || product.categoryName,
       product.sellingPrice, product.purchasePrice, product.quantity,
       product.storeId, product.lastUsed, product.unit, product.brand,
       product.barcode, product.minStock || 0, product.reorderQuantity || 0, deviceId
@@ -1734,13 +1747,17 @@ VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))
       barcode: 'barcode',
       minStock: 'min_stock',
       reorderQuantity: 'reorder_quantity',
-      lastUsed: 'last_used'
+      lastUsed: 'last_used',
+      description: 'description'
     }
 
+    const usedCols = new Set()
     Object.keys(updates).forEach(key => {
-      if (fieldMap[key]) {
-        fields.push(`${fieldMap[key]} = ?`)
+      const dbCol = fieldMap[key]
+      if (dbCol && !usedCols.has(dbCol)) {
+        fields.push(`${dbCol} = ?`)
         values.push(updates[key])
+        usedCols.add(dbCol)
       }
     })
 

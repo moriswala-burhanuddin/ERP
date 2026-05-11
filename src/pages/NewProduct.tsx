@@ -47,6 +47,7 @@ export default function NewProduct() {
     reorderQuantity: '',
     barcodeEnabled: true,
     limitedQty: '',
+    description: '',
   });
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
@@ -85,6 +86,7 @@ export default function NewProduct() {
           reorderQuantity: String(product.reorderQuantity || '0'), // Ensure string, default to '0'
           barcodeEnabled: product.barcodeEnabled ?? true,
           limitedQty: product.limitedQty?.toString() || '',
+          description: product.description || '',
         });
 
         const values = productCustomValues.filter(v => v.productId === id);
@@ -113,6 +115,7 @@ export default function NewProduct() {
         reorderQuantity: (product.reorderQuantity || 0).toString(),
         barcodeEnabled: product.barcodeEnabled ?? true,
         limitedQty: product.limitedQty?.toString() || '',
+        description: product.description || '',
       });
     }
   }, [id, isEditMode, getStoreProducts, navigate, productCustomValues, location.state, categories, canAddProduct]);
@@ -216,6 +219,7 @@ export default function NewProduct() {
         reorderQuantity: parseInt(formData.reorderQuantity) || 0,
         barcodeEnabled: formData.barcodeEnabled,
         limitedQty: formData.limitedQty ? parseFloat(formData.limitedQty) : undefined,
+        description: formData.description,
         storeId: activeStoreId,
         lastUsed: new Date().toISOString().split('T')[0],
       };
@@ -318,6 +322,19 @@ export default function NewProduct() {
                   />
                 </div>
               </div>
+            </div>
+
+            <div className="mt-8 space-y-3">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Description</label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                disabled={isEditMode && !canEditProduct}
+                rows={3}
+                className="w-full bg-slate-50 border-none rounded-[1.5rem] py-5 px-6 font-bold text-slate-900 focus:ring-2 focus:ring-black transition-all placeholder:text-slate-300 disabled:opacity-50 resize-none"
+                placeholder="Enter product description and specifications..."
+              />
             </div>
 
             <div className="grid md:grid-cols-3 gap-6 mt-8">
