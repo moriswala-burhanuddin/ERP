@@ -4274,3 +4274,78 @@
           FOREIGN KEY (store_id) REFERENCES stores(id)
         )
 [2026-05-11T13:19:02.653Z] Sales table migration NOT NEEDED or condition not met.
+[2026-05-15T12:33:09.546Z] Sales Schema: CREATE TABLE sales (
+          id TEXT PRIMARY KEY,
+          invoice_number TEXT UNIQUE NOT NULL,
+          type TEXT CHECK(type IN ('retail', 'cash', 'credit')) NOT NULL,
+          status TEXT DEFAULT 'completed',
+          items TEXT NOT NULL,
+          subtotal REAL DEFAULT 0,
+          discount_amount REAL DEFAULT 0,
+          tax_amount REAL DEFAULT 0,
+          total_amount REAL NOT NULL,
+          profit REAL NOT NULL,
+          payment_mode TEXT NOT NULL,
+          account_id TEXT NOT NULL,
+          customer_id TEXT,
+          store_id TEXT NOT NULL,
+          date TEXT NOT NULL,
+          quotation_id TEXT,
+          device_id TEXT,
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          sync_status INTEGER DEFAULT 0, source TEXT DEFAULT 'POS', is_deleted INTEGER DEFAULT 0, company_id TEXT,
+          FOREIGN KEY (account_id) REFERENCES accounts(id),
+          FOREIGN KEY (customer_id) REFERENCES customers(id),
+          FOREIGN KEY (store_id) REFERENCES stores(id)
+        )
+[2026-05-15T12:33:09.548Z] Sales table migration NOT NEEDED or condition not met.
+[2026-05-15T12:47:46.296Z] Sales Schema: CREATE TABLE sales (
+          id TEXT PRIMARY KEY,
+          invoice_number TEXT UNIQUE NOT NULL,
+          type TEXT CHECK(type IN ('retail', 'cash', 'credit')) NOT NULL,
+          status TEXT DEFAULT 'completed',
+          items TEXT NOT NULL,
+          subtotal REAL DEFAULT 0,
+          discount_amount REAL DEFAULT 0,
+          tax_amount REAL DEFAULT 0,
+          total_amount REAL NOT NULL,
+          profit REAL NOT NULL,
+          payment_mode TEXT NOT NULL,
+          account_id TEXT NOT NULL,
+          customer_id TEXT,
+          store_id TEXT NOT NULL,
+          date TEXT NOT NULL,
+          quotation_id TEXT,
+          device_id TEXT,
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          sync_status INTEGER DEFAULT 0, source TEXT DEFAULT 'POS', is_deleted INTEGER DEFAULT 0, company_id TEXT,
+          FOREIGN KEY (account_id) REFERENCES accounts(id),
+          FOREIGN KEY (customer_id) REFERENCES customers(id),
+          FOREIGN KEY (store_id) REFERENCES stores(id)
+        )
+[2026-05-15T12:47:46.297Z] Sales table migration NOT NEEDED or condition not met.
+[2026-05-15T12:48:32.493Z] Sales Schema: CREATE TABLE sales (
+          id TEXT PRIMARY KEY,
+          invoice_number TEXT UNIQUE NOT NULL,
+          type TEXT CHECK(type IN ('retail', 'cash', 'credit')) NOT NULL,
+          status TEXT DEFAULT 'completed',
+          items TEXT NOT NULL,
+          subtotal REAL DEFAULT 0,
+          discount_amount REAL DEFAULT 0,
+          tax_amount REAL DEFAULT 0,
+          total_amount REAL NOT NULL,
+          profit REAL NOT NULL,
+          payment_mode TEXT NOT NULL,
+          account_id TEXT NOT NULL,
+          customer_id TEXT,
+          store_id TEXT NOT NULL,
+          date TEXT NOT NULL,
+          quotation_id TEXT,
+          device_id TEXT,
+          updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+          sync_status INTEGER DEFAULT 0, source TEXT DEFAULT 'POS', is_deleted INTEGER DEFAULT 0, company_id TEXT,
+          FOREIGN KEY (account_id) REFERENCES accounts(id),
+          FOREIGN KEY (customer_id) REFERENCES customers(id),
+          FOREIGN KEY (store_id) REFERENCES stores(id)
+        )
+[2026-05-15T12:48:32.494Z] Sales table migration NOT NEEDED or condition not met.

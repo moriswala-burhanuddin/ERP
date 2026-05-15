@@ -2119,6 +2119,7 @@ export const useERPStore = create<ERPState>()(
               // Update existing
               state.updateProduct(existingProduct.id, {
                 name: row.name,
+                description: row.description || existingProduct.description,
                 sellingPrice: row.price,
                 purchasePrice: row.purchasePrice || existingProduct.purchasePrice,
                 quantity: existingProduct.quantity + row.stock,
@@ -2134,6 +2135,7 @@ export const useERPStore = create<ERPState>()(
               // Create new
               state.addProduct({
                 name: row.name,
+                description: row.description || '',
                 barcode: row.barcode,
                 sellingPrice: row.price,
                 purchasePrice: row.purchasePrice || row.price * 0.7, // Estimate purchase price if missing

@@ -605,6 +605,7 @@ ipcMain.handle('db:processExcelUpload', async (event, rows, storeId) => {
 
             const productData = {
                 name: row.name,
+                description: row.description || row.Description || '',
                 barcode: row.barcode,
                 sku: row.barcode, 
                 sellingPrice: Number(row.price || 0),

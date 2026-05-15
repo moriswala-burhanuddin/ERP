@@ -9,6 +9,7 @@ export interface InventoryRow {
     purchasePrice?: number;
     stock: number;
     category?: string;
+    description?: string;
     brand?: string;
     unit?: string;
     minStock?: number;
@@ -67,6 +68,7 @@ export const validateInventoryRow = (row: Record<string, unknown>, rowIndex: num
     const purchasePrice = Number(row.purchasePrice || row['Purchase Price'] || row.PurchasePrice || 0);
     const stock = Number(row.stock || row.Stock || 0);
     const category = row.category || row.Category ? String(row.category || row.Category) : undefined;
+    const description = row.description || row.Description ? String(row.description || row.Description) : undefined;
     const brand = row.brand || row.Brand ? String(row.brand || row.Brand) : undefined;
     const unit = row.unit || row.Unit || row['Unit of Measure'] ? String(row.unit || row.Unit || row['Unit of Measure']) : undefined;
     const minStock = Number(row.minStock || row.MinStock || row['Low Stock Alert'] || 0);
@@ -98,6 +100,7 @@ export const validateInventoryRow = (row: Record<string, unknown>, rowIndex: num
             purchasePrice: purchasePrice || 0,
             stock: stock || 0,
             category,
+            description,
             brand,
             unit,
             minStock: isNaN(minStock) ? 0 : minStock,
