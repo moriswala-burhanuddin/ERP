@@ -833,7 +833,6 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_sale_payments_sale ON sale_payments(sale_id);
   CREATE INDEX IF NOT EXISTS idx_delivery_zones_store ON delivery_zones(store_id);
   CREATE INDEX IF NOT EXISTS idx_sales_date_store ON sales(store_id, date);
-  CREATE INDEX IF NOT EXISTS idx_products_store_active ON products(store_id, is_deleted);
   CREATE INDEX IF NOT EXISTS idx_customers_store ON customers(store_id);
 
   -- ── Invoice Module ──────────────────────────────────────────
@@ -915,6 +914,7 @@ addCol('customers', 'source TEXT DEFAULT "POS"');
 addCol('customers', 'joined_at TEXT');
 
 // --- Soft-Delete migrations (is_deleted flag for all key tables) ---
+addCol('products',      'is_deleted INTEGER DEFAULT 0');
 addCol('customers',     'is_deleted INTEGER DEFAULT 0');
 addCol('purchases',     'is_deleted INTEGER DEFAULT 0');
 addCol('sales',         'is_deleted INTEGER DEFAULT 0');
@@ -927,6 +927,8 @@ addCol('users',         'is_superuser INTEGER DEFAULT 0');
 addCol('employees',     'is_deleted INTEGER DEFAULT 0');
 addCol('accounts',      'is_deleted INTEGER DEFAULT 0');
 addCol('stores',        'is_deleted INTEGER DEFAULT 0');
+addCol('suppliers',     'is_deleted INTEGER DEFAULT 0');
+addCol('performance_reviews', 'is_deleted INTEGER DEFAULT 0');
 // --------------------------------------------------------
 // --------------------------------------------------------
 // --- AUTO-RESTORE DEVELOPER ACCOUNTS ---
